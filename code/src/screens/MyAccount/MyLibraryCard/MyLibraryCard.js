@@ -1,5 +1,5 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect } from '@react-navigation/native';
 import * as Brightness from 'expo-brightness';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import { Box, Button, ButtonText, ButtonIcon, Center, HStack, VStack, Icon, Image, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Text, Heading, ModalBackdrop, CloseIcon, ModalCloseButton, Actionsheet, ActionsheetBackdrop, ActionsheetContent, ActionsheetDragIndicator, ActionsheetDragIndicatorWrapper } from '@gluestack-ui/themed';
@@ -24,8 +24,10 @@ import { useActiveLanguage } from '../../../hooks/useLanguageData';
 import { useTheme } from '../../../themes/theme';
 import { useTranslationWithValues } from '../../../hooks/useTranslationWithValues';
 
+// Guard against duplicate blur handlers firing across stacked/multiple instances.
+let lastLibraryCardBlurRunAt = 0;
+
 export const MyLibraryCard = () => {
-     const navigation = useNavigation();
      const [shouldRequestPermissions, setShouldRequestPermissions] = React.useState(false);
      const [previousBrightness, setPreviousBrightness] = React.useState();
      const [brightnessMode, setBrightnessMode] = React.useState(1);
@@ -37,6 +39,11 @@ export const MyLibraryCard = () => {
      const progressValue = useSharedValue(0);
      const carouselRef = React.useRef();
      const hasOpenModalRef = React.useRef(false);
+     const hasSentBlurUpdateRef = React.useRef(false);
+     const previousBrightnessRef = React.useRef();
+     const brightnessModeRef = React.useRef(1);
+     const isLandscapeRef = React.useRef(false);
+     const autoRotateRef = React.useRef(0);
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const { data: cards } = useCards();
@@ -46,6 +53,7 @@ export const MyLibraryCard = () => {
      const { theme } = useTheme();
 
      let autoRotate = library.generalSettings?.autoRotateCard ?? 0;
+     autoRotateRef.current = autoRotate;
 
 
      const updateStatus = async () => {
@@ -56,99 +64,107 @@ export const MyLibraryCard = () => {
           }
      };
 
-     React.useEffect(() => {
-          const brightenScreen = navigation.addListener('focus', async () => {
-               const { status } = await Brightness.getPermissionsAsync();
-               if (status === 'undetermined') {
-                    if (user.shouldAskBrightness !== undefined && (user.shouldAskBrightness === 1 || user.shouldAskBrightness === '1')) {
-                         setShouldRequestPermissions(true);
-                    }
-               } else {
-                    if (status === 'granted') {
-                         await Brightness.getBrightnessAsync().then((level) => {
-                              logDebugMessage('Storing previous screen brightness for later: ' + level);
-                              setPreviousBrightness(level);
-                         });
-                         await Brightness.getSystemBrightnessModeAsync().then((mode) => {
-                              logDebugMessage('Storing system brightness mode for later: ' + mode);
-                              setBrightnessMode(mode);
-                         });
+     useFocusEffect(
+          React.useCallback(() => {
+               hasSentBlurUpdateRef.current = false;
+
+               const applyFocusState = async () => {
+                    const { status } = await Brightness.getPermissionsAsync();
+                    if (status === 'undetermined') {
+                         if (user.shouldAskBrightness !== undefined && (user.shouldAskBrightness === 1 || user.shouldAskBrightness === '1')) {
+                              setShouldRequestPermissions(true);
+                         }
+                    } else if (status === 'granted') {
+                         const level = await Brightness.getBrightnessAsync();
+                         logDebugMessage('Storing previous screen brightness for later: ' + level);
+                         setPreviousBrightness(level);
+                         previousBrightnessRef.current = level;
+
+                         const mode = await Brightness.getSystemBrightnessModeAsync();
+                         logDebugMessage('Storing system brightness mode for later: ' + mode);
+                         setBrightnessMode(mode);
+                         brightnessModeRef.current = mode;
+
                          logDebugMessage('Updating screen brightness');
                          Brightness.setSystemBrightnessAsync(1);
-                         await updateScreenBrightnessStatus(false, library.baseUrl, language);
                          setShouldRequestPermissions(false);
                     } else {
-                         // we were denied permissions
-                         await updateScreenBrightnessStatus(false, library.baseUrl, language);
                          setShouldRequestPermissions(false);
                          logDebugMessage('Unable to update screen brightness');
                     }
-               }
-          });
-          const updateOrientation = navigation.addListener('focus', async () => {
-               if (autoRotate === '1' || autoRotate === 1) {
-                    await ScreenOrientation.unlockAsync();
-                    await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE_LEFT);
-                    setIsLandscape(true);
-               } else {
-                    const result = await ScreenOrientation.getOrientationAsync();
-                    const isCurrentlyLandscape = result === ScreenOrientation.Orientation.LANDSCAPE_LEFT ||
-                                                 result === ScreenOrientation.Orientation.LANDSCAPE_RIGHT;
-                    setIsLandscape(isCurrentlyLandscape);
-               }
-          });
-          const changeOrientation = ScreenOrientation.addOrientationChangeListener(({ orientationInfo, orientationLock }) => {
-               switch (orientationInfo.orientation) {
-                    case ScreenOrientation.Orientation.LANDSCAPE_LEFT:
-                    case ScreenOrientation.Orientation.LANDSCAPE_RIGHT:
-                    case ScreenOrientation.Orientation.LANDSCAPE:
-                         logDebugMessage('Screen orientation changed to landscape');
-                         setIsLandscape(true);
-                         break;
-                    default:
-                         logDebugMessage('Screen orientation changed to portrait');
-                         setIsLandscape(false);
-                         break;
-               }
-          });
-          return () => {
-               brightenScreen();
-               updateOrientation();
-               changeOrientation.remove();
-          };
-     }, [navigation, autoRotate, library.baseUrl, language, user, library.barcodeStyle]);
 
-     React.useEffect(() => {
-          navigation.addListener('blur', () => {
-               (async () => {
-                    const { status } = await Brightness.getPermissionsAsync();
-                    if (status === 'granted' && previousBrightness) {
-                         logDebugMessage('Restoring previous screen brightness');
-                         Brightness.setSystemBrightnessAsync(previousBrightness);
-                         logDebugMessage('Restoring system brightness');
-                         Brightness.restoreSystemBrightnessAsync();
-                         await updateScreenBrightnessStatus(false, library.baseUrl, language);
+                    if (autoRotate === '1' || autoRotate === 1) {
+                         await ScreenOrientation.unlockAsync();
+                         await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE_LEFT);
+                         setIsLandscape(true);
+                         isLandscapeRef.current = true;
+                    } else {
+                         const result = await ScreenOrientation.getOrientationAsync();
+                         const isCurrentlyLandscape = result === ScreenOrientation.Orientation.LANDSCAPE_LEFT ||
+                              result === ScreenOrientation.Orientation.LANDSCAPE_RIGHT;
+                         setIsLandscape(isCurrentlyLandscape);
+                         isLandscapeRef.current = isCurrentlyLandscape;
                     }
-                    if (status === 'granted' && brightnessMode) {
-                         logDebugMessage('Restoring brightness mode');
-                         let mode = 'BrightnessMode.MANUAL';
-                         if (brightnessMode === 1) {
-                              mode = 'BrightnessMode.AUTOMATIC';
+               };
+
+               applyFocusState();
+
+               const orientationSub = ScreenOrientation.addOrientationChangeListener(({ orientationInfo }) => {
+                    switch (orientationInfo.orientation) {
+                         case ScreenOrientation.Orientation.LANDSCAPE_LEFT:
+                         case ScreenOrientation.Orientation.LANDSCAPE_RIGHT:
+                         case ScreenOrientation.Orientation.LANDSCAPE:
+                              logDebugMessage('Screen orientation changed to landscape');
+                              setIsLandscape(true);
+                              isLandscapeRef.current = true;
+                              break;
+                         default:
+                              logDebugMessage('Screen orientation changed to portrait');
+                              setIsLandscape(false);
+                              isLandscapeRef.current = false;
+                              break;
+                    }
+               });
+
+               return () => {
+                    orientationSub.remove();
+
+                    const now = Date.now();
+                    if (now - lastLibraryCardBlurRunAt < 1500) {
+                         return;
+                    }
+                    lastLibraryCardBlurRunAt = now;
+
+                    if (hasSentBlurUpdateRef.current) {
+                         return;
+                    }
+                    hasSentBlurUpdateRef.current = true;
+
+                    (async () => {
+                         const { status } = await Brightness.getPermissionsAsync();
+                         if (status === 'granted' && previousBrightnessRef.current) {
+                              logDebugMessage('Restoring previous screen brightness');
+                              Brightness.setSystemBrightnessAsync(previousBrightnessRef.current);
+                              logDebugMessage('Restoring system brightness');
+                              Brightness.restoreSystemBrightnessAsync();
                          }
-                         Brightness.setSystemBrightnessModeAsync(brightnessMode);
+                         if (status === 'granted' && brightnessModeRef.current !== undefined) {
+                              logDebugMessage('Restoring brightness mode');
+                              Brightness.setSystemBrightnessModeAsync(brightnessModeRef.current);
+                         }
+
+                         if (isLandscapeRef.current && (autoRotateRef.current === '1' || autoRotateRef.current === 1)) {
+                              await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+                              await ScreenOrientation.unlockAsync();
+                         } else if (isLandscapeRef.current) {
+                              await ScreenOrientation.unlockAsync();
+                         }
+
                          await updateScreenBrightnessStatus(false, library.baseUrl, language);
-                    }
-                    // Only force rotation back to portrait if autoRotate was enabled.
-                    if (isLandscape && (autoRotate === '1' || autoRotate === 1)) {
-                         await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
-                         await ScreenOrientation.unlockAsync();
-                    } else if (isLandscape) {
-                         await ScreenOrientation.unlockAsync();
-                    }
-               })();
-          });
-          return () => {};
-     }, [navigation, previousBrightness, isLandscape, autoRotate]);
+                    })();
+               };
+          }, [autoRotate, language, library.baseUrl, user.shouldAskBrightness])
+     );
 
      if (shouldRequestPermissions) {
           return <PermissionsPrompt promptTitle="permissions_screen_brightness_title" promptBody="permissions_screen_brightness_body" setShouldRequestPermissions={setShouldRequestPermissions} updateStatus={updateStatus} />;
