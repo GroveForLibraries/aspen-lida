@@ -20,6 +20,8 @@ export const MySavedSearches = () => {
      const navigation = useNavigation();
      const [isFetching, setIsFetching] = React.useState(false);
      const [fetchError, setFetchError] = React.useState(null);
+     const hasFetchedSavedSearchesRef = React.useRef(false);
+     const isFetchingSavedSearchesRef = React.useRef(false);
      const { data: savedSearches } = useSavedSearches();
      const updateSavedSearches = useUpdateSavedSearches();
      const library = useLibrary();
@@ -36,32 +38,41 @@ export const MySavedSearches = () => {
      useFocusEffect(
           React.useCallback(() => {
                const loadSavedSearchesIfNeeded = async () => {
-                    if (Array.isArray(savedSearches) && savedSearches.length > 0) {
+                    if (hasFetchedSavedSearchesRef.current || isFetchingSavedSearchesRef.current) {
                          return;
                     }
-                    setIsFetching(true);
-                    setFetchError(null);
-                    try {
-                         const data = await fetchSavedSearches(library.baseUrl);
-                         if (data.ok) {
-                              await updateSavedSearches(data.data.result?.searches ?? []);
-                         } else {
-                              logDebugMessage('Error fetching saved searches for user');
-                              logDebugMessage(data);
-                              getErrorMessage(data.code, data.problem);
-                         }
-                    } catch (error) {
-                         logDebugMessage('Error fetching saved searches for user');
-                         logErrorMessage(error);
-                         setFetchError(error);
-                    } finally {
-                         setIsFetching(false);
-                    }
-               };
 
-               loadSavedSearchesIfNeeded();
-          }, [savedSearches, library.baseUrl, updateSavedSearches])
-     );
+                    if (Array.isArray(savedSearches) && savedSearches.length > 0) {
+                         hasFetchedSavedSearchesRef.current = true;
+                          return;
+                    }
+
+                    isFetchingSavedSearchesRef.current = true;
+                     setIsFetching(true);
+                     setFetchError(null);
+                     try {
+                          const data = await fetchSavedSearches(library.baseUrl);
+                          if (data.ok) {
+                               await updateSavedSearches(data.data.result?.searches ?? []);
+                               hasFetchedSavedSearchesRef.current = true;
+                          } else {
+                               logDebugMessage('Error fetching saved searches for user');
+                               logDebugMessage(data);
+                               getErrorMessage(data.code, data.problem);
+                          }
+                     } catch (error) {
+                          logDebugMessage('Error fetching saved searches for user');
+                          logErrorMessage(error);
+                          setFetchError(error);
+                     } finally {
+                          isFetchingSavedSearchesRef.current = false;
+                          setIsFetching(false);
+                     }
+                };
+
+                loadSavedSearchesIfNeeded();
+           }, [savedSearches, library.baseUrl, updateSavedSearches])
+      );
 
      const Empty = () => {
           return (
