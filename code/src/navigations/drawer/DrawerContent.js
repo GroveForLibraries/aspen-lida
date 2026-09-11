@@ -180,9 +180,6 @@ export const DrawerContent = (props) => {
      const insets = useSafeAreaInsets();
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
-     const userHoldPendingSortMethod = userState?.userHoldPendingSortMethod ?? 'sortTitle';
-     const userHoldReadySortMethod = userState?.userHoldReadySortMethod ?? 'expire';
-     const userCheckoutSortMethod = userState?.userCheckoutSortMethod ?? 'dueAsc';
      const { data: cards } = useCards();
 
      const updateUserProfile = useUpdateUserProfile();
@@ -199,8 +196,6 @@ export const DrawerContent = (props) => {
       // noinspection JSUnusedLocalSymbols
       const [ notifications, setNotifications] = React.useState([]);
       const [messages, setILSMessages] = React.useState([]);
-      const { updateCheckouts } = React.useContext(CheckoutsContext);
-      const { updateHolds } = React.useContext(HoldsContext);
       const { updateSystemMessages } = React.useContext(SystemMessagesContext);
        const language = useActiveLanguage();
        const { dataUpdatedAt: dictionaryUpdatedAt } = useDictionaryQuery();
@@ -290,54 +285,6 @@ export const DrawerContent = (props) => {
                logErrorMessage(error);
           }
       });
-
-
-      useQueryWithCallbacks({
-          queryKey: ['holds', user.id, library.baseUrl, language],
-          queryFn: () => getPatronHolds(userHoldReadySortMethod, userHoldPendingSortMethod, 'all', library.baseUrl, false, language),
-          refetchInterval: 60 * 1000 * 15,
-          refetchIntervalInBackground: true,
-          refetchOnWindowFocus: 'always',
-          placeholderData: [] }, {
-          onSuccess: (data) => {
-               if(data.ok) {
-                    let holds = formatHolds(data.data.result.holds ?? []);
-                    holds = sortHolds(holds, userHoldPendingSortMethod, userHoldReadySortMethod);
-                    updateHolds(holds);
-               } else {
-                    logDebugMessage("Error fetching user holds");
-                    logDebugMessage(data);
-                    getErrorMessage(data.code ?? 0, data.problem);
-               }
-          },
-          onError: (error) => {
-               logDebugMessage("Error fetching user holds");
-               logErrorMessage(error);
-          }
-     });
-
-     useQueryWithCallbacks({
-          queryKey: ['checkouts', user.id, library.baseUrl, language],
-          queryFn: () => getPatronCheckedOutItems('all', library.baseUrl, false, language),
-          refetchInterval: 60 * 1000 * 15,
-          refetchIntervalInBackground: true,
-          refetchOnWindowFocus: 'always' }, {
-          onSuccess: (data) => {
-               if(data.ok) {
-                    let checkouts = data.data.result.checkedOutItems ?? [];
-                    checkouts = sortCheckouts(checkouts, userCheckoutSortMethod);
-                    updateCheckouts(checkouts);
-               } else {
-                    logDebugMessage("Error fetching user checkouts");
-                    logDebugMessage(data);
-                    getErrorMessage(data.code ?? 0, data.problem);
-               }
-          },
-          onError: (error) => {
-               logDebugMessage("Error fetching user checkouts");
-               logErrorMessage(error);
-          }
-     });
 
      useQueryWithCallbacks({
           queryKey: ['lists', user.id, library.baseUrl, language],

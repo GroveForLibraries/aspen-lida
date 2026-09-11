@@ -13,7 +13,7 @@ import {
      ScrollView
 } from '@gluestack-ui/themed';
 import { useRoute } from '@react-navigation/native';
-import { useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import _ from 'lodash';
 import React from 'react';
@@ -27,7 +27,7 @@ import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useUserState, useAccounts, useCards, useLocations, useSublocations, useUpdateAccounts, useUpdateCards, useUpdateLocations, useUpdateSublocations, useUpdatePickupLocationPrefs } from '../../hooks/useUserData';
 import { startSearch } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
-import { getFirstRecord, getVariations } from '../../util/api/item';
+import { getVariations } from '../../util/api/item';
 import { getLinkedAccounts, passUserToDiscovery } from '../../util/api/user';
 import { formatLinkedAccounts } from '../../util/api/userHelper';
 import { getGroupedWork } from '../../util/api/work';
@@ -146,25 +146,15 @@ const DisplayGroupedWork = (payload) => {
      const { format } = React.useContext(GroupedWorkContext);
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { colorMode } = useTheme();
 
-     const formats = Object.keys(groupedWork.formats);
+     const formats = Object.keys(groupedWork.formats ?? {});
+     const firstFormat = formats[0];
 
-     useQueries({
-          queries: formats.map((format) => {
-               return {
-                    queryKey: ['recordId', groupedWork.id, format, language, library.baseUrl],
-                    queryFn: () => getFirstRecord(id, format, language, library.baseUrl, groupedWork.formats[format]) };
-          }) });
-
-     useQueries({
-          queries: formats.map((format) => {
-               return {
-                    queryKey: ['variation', groupedWork.id, format, language, library.baseUrl],
-                    queryFn: () => getVariations(id, format, language, library.baseUrl, groupedWork.formats[format]) };
-          }) });
-
-     const key = 'large_' + groupedWork.id;
+     useQuery({
+          queryKey: ['variation', id, firstFormat, language, library.baseUrl],
+          queryFn: () => getVariations(id, firstFormat, language, library.baseUrl, groupedWork.formats[firstFormat]),
+          enabled: !!id && !!firstFormat && !!groupedWork?.formats?.[firstFormat]
+     });
 
      return (
           <Box p="$5" width="$full">

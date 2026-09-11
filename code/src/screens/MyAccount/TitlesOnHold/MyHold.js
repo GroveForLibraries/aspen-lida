@@ -34,9 +34,8 @@ import { getAuthor, getBadge, getCleanTitle, getExpirationDate, getFormat, getOn
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { cancelHold, cancelHolds, freezeHold, freezeHolds, thawHold, thawHolds } from '../../../util/api/user';
-import { formatPickupLocations } from '../../../util/api/userHelper';
 import { formatDiscoveryVersion } from '../../../helpers/helpers';
-import { checkoutItem, getPickupLocations } from '../../../util/api/user';
+import { checkoutItem } from '../../../util/api/user';
 import { SelectPickupLocation } from './SelectPickupLocation';
 import { SelectThawDate } from './SelectThawDate.js';
 
@@ -51,7 +50,6 @@ const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 export const MyHold = (props) => {
      const hold = props.data;
      const resetGroup = props.resetGroup;
-     const [pickupLocations, setPickupLocations] = React.useState([]);
      const { data: sublocations } = useSublocations();
      const section = props.section;
      const { data: userState } = useUserState();
@@ -82,19 +80,11 @@ export const MyHold = (props) => {
                     setUsesHoldPosition(true);
                     setHoldPosition(tmp);
                }
+          } else {
+               setUsesHoldPosition(false);
+               setHoldPosition(null);
           }
-          const update = async () => {
-               await getPickupLocations(library.baseUrl, null, hold.id).then((result) => {
-                    if(result.ok) {
-                         const pickupLocationsList = formatPickupLocations(result.data.result);
-                         if (pickupLocations !== pickupLocationsList.locations) {
-                              setPickupLocations(pickupLocationsList.locations);
-                         }
-                    }
-               });
-          };
-          update();
-     }, [language]);
+     }, [hold.holdQueueLength, hold.position, language]);
 
      if (hold.canFreeze === true) {
           if (hold.frozen === true) {
@@ -342,7 +332,7 @@ export const MyHold = (props) => {
 
      const createUpdatePickupLocationAction = (canUpdate, available) => {
           if (canUpdate && !available) {
-               return <SelectPickupLocation isOpen={showActionsheet} language={language} libraryContext={library} holdsContext={updateHolds} locations={pickupLocations} sublocations={sublocations} onClose={handleClose} userId={hold.userId} currentPickupId={hold.pickupLocationId} holdId={hold.cancelId} resetGroup={resetGroup} textColor={textColor} colorMode={colorMode} theme={theme} />;
+               return <SelectPickupLocation isOpen={showActionsheet} language={language} libraryContext={library} holdsContext={updateHolds} sublocations={sublocations} onClose={handleClose} userId={hold.userId} currentPickupId={hold.pickupLocationId} holdId={hold.cancelId} pickupRecordId={hold.id} resetGroup={resetGroup} textColor={textColor} colorMode={colorMode} theme={theme} />;
           } else {
                return null;
           }
@@ -638,7 +628,6 @@ export const ManageAllHolds = (props) => {
                                         resetGroup();
                                         startFreezing(false);
                                    });
-                                   queryClient.invalidateQueries({ queryKey: ['holds', user.id, library.baseUrl, language] });
                               }}>
                               <ActionsheetItemText color={textColor}>{numToFreezeLabel}</ActionsheetItemText>
                          </ActionsheetItem>
