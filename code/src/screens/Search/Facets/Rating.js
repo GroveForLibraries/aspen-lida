@@ -1,16 +1,25 @@
-import { MaterialIcons } from '@expo/vector-icons';
+import { ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/ThemedMaterialIcons';
 import _ from 'lodash';
-import { HStack, Icon, Pressable, Text, VStack } from '@gluestack-ui/themed';
 import React from 'react';
-import { ScrollView } from 'react-native';
+import { ThemedScrollView as ScrollView } from '@/src/components/themed/ThemedScrollView';
 import Stars from 'react-native-stars';
+import { LoadingSpinner } from '@/src/components/loadingSpinner';
+import { addAppliedFilter, removeAppliedFilter } from '@/src/util/api/searchHelper';
+import { useTheme } from '@/src/themes/theme';
+import { HStack } from '@/components/ui/hstack';
+import { Pressable } from '@/components/ui/pressable';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
+import { VStack } from '@/components/ui/vstack';
 
-// custom components and helper files
-import { LoadingSpinner } from '../../../components/loadingSpinner';
-import { addAppliedFilter, removeAppliedFilter } from '../../../util/api/searchHelper';
-import { useTheme } from '../../../themes/theme';
-
-
+/**
+ * Facet_Rating component that renders a list of rating options (from 1 to 5 stars and Unrated) for a given facet category. It manages the selected rating state, updates the applied filters, and triggers an update to the parent component when a rating is selected or deselected.
+ * @param param0
+ * @param param0.data
+ * @param param0.category
+ * @param param0.updater
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const Facet_Rating = ({ data, category, updater }) => {
      const [isLoading, setIsLoading] = React.useState(true);
      const [value, setValue] = React.useState('');
@@ -34,7 +43,8 @@ export const Facet_Rating = ({ data, category, updater }) => {
                label: 'Unrated',
                value: '0' },
      ]);
-     const {theme, textColor, colorMode } = useTheme();
+     const { brand } = useTheme();
+     const starColor = '#eab308';
 
      React.useEffect(() => {
           setIsLoading(false);
@@ -72,27 +82,26 @@ export const Facet_Rating = ({ data, category, updater }) => {
 
      return (
           <ScrollView>
-               <VStack space="$2">
+               <VStack space="sm">
                     {stars.map((star, index) => (
-                         <Pressable key={index} onPress={() => updateSearch(star.label)} p="$0.5" py="$2">
-                              <HStack space="sm" justifyContent="flex-start" alignItems="center">
+                        <Pressable key={index} onPress={() => updateSearch(star.label)} className="p-[2px] py-2">
+                             <HStack space="sm" className="justify-start items-center">
                                    {value === star.label ?
-                                        <Icon as={MaterialIcons} name="radio-button-checked" size="lg" color={theme.tokens.colors.primary['600']} /> :
-                                        <Icon as={MaterialIcons} name="radio-button-unchecked" size="lg" color={theme.tokens.colors.primary['200']} />
+                                       <MaterialIcons name="radio-button-checked" size={20} color={brand.primary[600]} /> :
+                                       <MaterialIcons name="radio-button-unchecked" size={20} color={brand.primary[200]} />
                                    }
                                    <Stars
                                         default={star.value}
                                         count={5}
                                         starSize={50}
                                         disabled
-                                        fullStar={<Icon as={MaterialIcons} name="star" size="lg" color={theme['tokens']['colors']['yellow']['500']} />}
-                                        emptyStar={<Icon as={MaterialIcons} name="star-border" size="lg" color={theme['tokens']['colors']['yellow']['500']} />}
+                                       fullStar={<MaterialIcons name="star" size={20} color={starColor} />}
+                                       emptyStar={<MaterialIcons name="star-border" size={20} color={starColor} />}
                                    />
                                    <Text
-                                        color={textColor}
-                                        ml="$2"
+                                       className="ml-2"
                                    >
-                                        ({getRatingCount(star.label)})
+                                       ({getRatingCount(star.label)})
                                    </Text>
                               </HStack>
                          </Pressable>

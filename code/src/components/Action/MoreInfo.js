@@ -1,33 +1,34 @@
-import {Button, ButtonText, useToken} from '@gluestack-ui/themed';
 import { useColorModeValue, useTheme } from '../../themes/theme';
-
+import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../themed/ThemedButton';
 import { useUserState } from '../../hooks/useUserData';
 import React from 'react';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
-
-// custom components and helper files
 import {passUserToDiscovery} from '../../util/api/user';
 
+/**
+ * MoreInfo component for displaying a button that navigates to the Aspen Discovery grouped work page.
+ * @param props
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const MoreInfo = (props) => {
-    const { theme } = useTheme();
+    const { neutralPairs } = useTheme();
     const { data: userState } = useUserState();
     const user = userState?.user ?? {};
     const library = useLibrary();
 
-    const backgroundColor = useToken('colors', useColorModeValue('warmGray.200', 'coolGray.900'));
-    const textColor = useToken('colors', useColorModeValue('gray.800', 'coolGray.200'));
+    const backgroundColor = useColorModeValue(neutralPairs.surface.light, neutralPairs.surface.dark);
+    const textColor = useColorModeValue(neutralPairs.textMain.light, neutralPairs.textMain.dark);
 
     return (
         <Button
             size="xs"
-            minWidth="100%"
-            maxWidth="100%"
             variant="link"
-            bgColor={backgroundColor}
+            style={{ width: '100%', backgroundColor }}
             onPress={async () => {
                 passUserToDiscovery(library?.baseUrl ?? '', props.module, user.id, backgroundColor, textColor, props.recordId)
             }}>
-            <ButtonText color={textColor}>{props.title}</ButtonText>
+            <ButtonText style={{ color: textColor }}>{props.title}</ButtonText>
         </Button>
     );
 };

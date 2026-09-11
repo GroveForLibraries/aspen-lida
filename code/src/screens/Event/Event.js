@@ -1,4 +1,4 @@
-import { MaterialIcons } from '@expo/vector-icons';
+import { ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/ThemedMaterialIcons';
 import { useRoute } from '@react-navigation/native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
@@ -7,31 +7,9 @@ import * as SecureStore from 'expo-secure-store';
 import * as WebBrowser from 'expo-web-browser';
 import _ from 'lodash';
 import moment from 'moment';
-import {
-     Box,
-     Divider,
-     Pressable,
-     ScrollView,
-     VStack,
-     Text,
-     Button,
-     ButtonGroup,
-     ButtonText,
-     Center,
-     Heading,
-     Icon,
-     Modal,
-     ModalContent,
-     ModalHeader,
-     ModalBody,
-     ModalFooter,
-     HStack,
-     CloseIcon, ModalCloseButton, ModalBackdrop } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
 import { showLocation } from 'react-native-map-link';
-
-// custom components and helper files
 import { loadError } from '../../components/loadError';
 import { popAlert, popToast } from '../../components/feedback';
 import { LoadingSpinner } from '../../components/loadingSpinner';
@@ -48,9 +26,28 @@ import AddToList from '../Search/AddToList';
 import { logDebugMessage, logErrorMessage, logInfoMessage, getErrorMessage } from '../../util/logging';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 import { useTheme } from '../../themes/theme';
+import { Box } from '@/components/ui/box';
+import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../components/themed/ThemedButton';
+import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
+import { Center } from '@/components/ui/center';
+import { ThemedDivider as Divider } from '@/src/components/themed/ThemedDivider';
+import { ThemedHeading as Heading } from '@/src/components/themed/ThemedHeading';
+import { HStack } from '@/components/ui/hstack';
+import { ThemedModal as Modal, ThemedModalBackdrop as ModalBackdrop, ThemedModalBody as ModalBody, ThemedModalCloseButton as ModalCloseButton, ThemedModalContent as ModalContent, ThemedModalFooter as ModalFooter, ThemedModalHeader as ModalHeader } from '@/src/components/themed/ThemedModal';
+import { Pressable } from '@/components/ui/pressable';
+import { ThemedScrollView as ScrollView } from '@/src/components/themed/ThemedScrollView';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
+import { VStack } from '@/components/ui/vstack';
+import { ThemedCloseIcon as CloseIcon } from '../../components/themed/ThemedFormControls';
+import { screenContentContainerStyle } from '@/src/components/ScreenContainer';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
+/**
+ * EventScreen component that displays the details of a specific event, including title, description, date, time, location, and options to add to calendar or user events.
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const EventScreen = () => {
      const route = useRoute();
      const queryClient = useQueryClient();
@@ -59,7 +56,7 @@ export const EventScreen = () => {
      const library = useLibrary();
      const language = useActiveLanguage();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
-     const { textColor, theme, colorMode } = useTheme();
+     const { textColor, neutralPairs, neutrals } = useTheme();
      const [hasValidImage, setHasValidImage] = React.useState(false);
      const [eventData, setEventData] = React.useState([]);
      const [errorMessage, setErrorMessage] = React.useState('');
@@ -109,16 +106,17 @@ export const EventScreen = () => {
      };
 
      return (
-          <ScrollView>
+          <ScrollView contentContainerStyle={screenContentContainerStyle}>
                {(eventData.length === 0 || status === 'loading' || isFetching) && errorMessage === ''? (
-                    <Box pt={50}><LoadingSpinner message="Fetching data..." /></Box>
+                    // TODO(translation): Replace hardcoded loading message with TranslationService-backed key.
+                    <Box className="pt-[50px]"><LoadingSpinner message="Fetching data..." /></Box>
                ) : status === 'error' ? (
-                    <Box pt={50}>{loadError(error, '')}</Box>
+                    <Box className="pt-[50px]">{loadError(error, '')}</Box>
                ) : errorMessage !== '' ? (
-                    <Box pt={50}>{loadError(errorMessage, '')}</Box>
+                    <Box className="pt-[50px]">{loadError(errorMessage, '')}</Box>
                ) : (
                     <>
-                         {_.size(systemMessages) > 0 ? <Box safeArea={2}>{showSystemMessage()}</Box> : null}
+                         {_.size(systemMessages) > 0 ? <Box className="p-2">{showSystemMessage()}</Box> : null}
                          <DisplayEvent data={eventData} source={source} hasValidImage={hasValidImage} />
                     </>
                )}
@@ -126,14 +124,20 @@ export const EventScreen = () => {
      );
 };
 
+/**
+ * DisplayEvent component that renders the details of an event, including title, description, date, time, location, and options to add to calendar or user events.
+ * @param payload
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 const DisplayEvent = (payload) => {
      const event = payload.data;
      const hasValidImage = payload.hasValidImage;
      const route = useRoute();
      const source = route.params.source;
      const language = useActiveLanguage();
-     const { textColor, theme, colorMode } = useTheme();
-     const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
+     const { textColor, neutralPairs, neutrals } = useTheme();
+     const backgroundColor = neutrals.surface;
      const openLink = async () => {
           const browserParams = {
                enableDefaultShareMenuItem: false,
@@ -177,17 +181,15 @@ const DisplayEvent = (payload) => {
 
      return (
           <>
-               {event.cover ? <Box h={{ base: 125, lg: 200 }} width="$full" bgColor="warmGray.200" _dark={{ bgColor: 'coolGray.900' }} zIndex={-1} position="absolute" left={0} top={0} /> : null}
-               <Box p="$5" width="$full">
-                    <Center mt={event.cover ? 5 : 0} width="100%">
+               {event.cover ? <Box style={{ height: 125, width: '100%', backgroundColor, zIndex: -1, position: 'absolute', left: 0, top: 0 }} /> : null}
+               <Box className="py-5 w-full">
+                    <Center style={{ marginTop: event.cover ? 20 : 0, width: '100%' }}>
                          {event.cover ? (
                               <Image
                                    alt={event.title}
                                    source={event.cover}
-                                   style={{
-                                        width: '100%',
-                                        height: 150,
-                                        borderRadius: "$sm" }}
+                                   className="rounded-lg"
+                                   style={{ width: '100%', height: 150.0 }}
                                    placeholder={blurhash}
                                    transition={1000}
                                    contentFit="cover"
@@ -201,14 +203,14 @@ const DisplayEvent = (payload) => {
                     </VStack>
                     {event.registrationRequired && event.registrationBody ? <RegistrationModal event={event} /> : null}
                     {event.inUserEvents ? <InYourEvents /> : <AddToYourEvents id={event.id} source={source} />}
-                    <HStack justifyContent="space-between" space="sm">
+                    <HStack space="sm" className="justify-between">
                          {event.canAddToList ? <AddToList source="Events" itemId={event.id} btnStyle="reg" btnWidth="48%" /> : null}
-                         <Button bgColor={"$coolGray200"} w={event.canAddToList ? '49%' : '100%'} onPress={() => openLink()}>
-                              <ButtonText color={"$coolGray800"}>{getTermFromDictionary(language, 'more_info')}</ButtonText>
+                         <Button style={{ backgroundColor: neutralPairs.surface.light, width: event.canAddToList ? '49%' : '100%' }} onPress={() => openLink()}>
+                              <ButtonText style={{ color: neutralPairs.textMain.light }}>{getTermFromDictionary(language, 'more_info')}</ButtonText>
                          </Button>
                     </HStack>
                     <EventDescription description={event.description} />
-                    <HStack justifyContent="space-between" space="lg" mt="$5" flexWrap="wrap">
+                    <HStack space="lg" className="justify-between mt-5 flex-wrap">
                          <EventAudiences audiences={event.audiences} />
                          <EventCategories categories={event.categories} />
                          <EventProgramTypes programTypes={event.programTypes} />
@@ -218,12 +220,20 @@ const DisplayEvent = (payload) => {
      );
 };
 
+/**
+ * EventTitle component that renders the title of an event, with optional padding based on whether a cover image is present.
+ * @param param0
+ * @param param0.title
+ * @param param0.hasCoverImage
+ * @returns {React.JSX.Element|null}
+ * @constructor
+ */
 const EventTitle = ({ title, hasCoverImage }) => {
      const { textColor } = useTheme();
      if (title) {
           return (
                <>
-                    <Heading pt={hasCoverImage ? 5 : 0} pb={3} alignText="center" color={textColor}>
+                    <Heading className="pb-3" style={{ paddingTop: hasCoverImage ? 20 : 0, textAlign: 'center' }}>
                          {title}
                     </Heading>
                </>
@@ -233,16 +243,23 @@ const EventTitle = ({ title, hasCoverImage }) => {
      }
 };
 
+/**
+ * EventDescription component that renders the description of an event, with a heading and optional HTML decoding.
+ * @param param0
+ * @param param0.description
+ * @returns {React.JSX.Element|null}
+ * @constructor
+ */
 const EventDescription = ({ description }) => {
      const { textColor } = useTheme();
      const language = useActiveLanguage();
      if (description) {
           return (
-               <Box mt={5}>
-                    <Text size="lg" fontWeight="$bold" textAlign="center" color={textColor}>
+               <Box className="mt-5">
+                    <Text size="lg" bold className="text-center">
                          {getTermFromDictionary(language, 'about')}
                     </Text>
-                    <Text size="md" color={textColor}>
+                    <Text size="md">
                          {decodeHTML(description)}
                     </Text>
                </Box>
@@ -252,17 +269,24 @@ const EventDescription = ({ description }) => {
      }
 };
 
+/**
+ * EventAudiences component that renders the audiences of an event, with a heading and a list of audience items.
+ * @param param0
+ * @param param0.audiences
+ * @returns {React.JSX.Element|null}
+ * @constructor
+ */
 const EventAudiences = ({ audiences }) => {
      const { textColor } = useTheme();
      const language = useActiveLanguage();
      if (audiences) {
           return (
                <Box>
-                    <Text size="lg" fontWeight="$bold" textAlign="center" color={textColor}>
+                    <Text size="lg" bold className="text-center">
                          {getTermFromDictionary(language, 'audiences')}
                     </Text>
                     {_.map(audiences, function (item, index, array) {
-                         return <Text key={index} color={textColor}>{item}</Text>;
+                         return <Text key={index}>{item}</Text>;
                     })}
                </Box>
           );
@@ -271,17 +295,24 @@ const EventAudiences = ({ audiences }) => {
      }
 };
 
+/**
+ * EventCategories component that renders the categories of an event, with a heading and a list of category items.
+ * @param param0
+ * @param param0.categories
+ * @returns {React.JSX.Element|null}
+ * @constructor
+ */
 const EventCategories = ({ categories }) => {
      const { textColor } = useTheme();
      const language = useActiveLanguage();
      if (categories) {
           return (
                <Box>
-                    <Text size="lg" fontWeight="$bold" textAlign="center" color={textColor}>
+                    <Text size="lg" bold className="text-center">
                          {getTermFromDictionary(language, 'categories')}
                     </Text>
                     {_.map(categories, function (item, index, array) {
-                         return <Text key={index} color={textColor}>{item}</Text>;
+                         return <Text key={index}>{item}</Text>;
                     })}
                </Box>
           );
@@ -290,17 +321,24 @@ const EventCategories = ({ categories }) => {
      }
 };
 
+/**
+ * EventProgramTypes component that renders the program types of an event, with a heading and a list of program type items.
+ * @param param0
+ * @param param0.programTypes
+ * @returns {React.JSX.Element|null}
+ * @constructor
+ */
 const EventProgramTypes = ({ programTypes }) => {
      const { textColor } = useTheme();
      const language = useActiveLanguage();
      if (programTypes) {
           return (
                <Box>
-                    <Text size="lg" fontWeight="$bold" textAlign="center" color={textColor}>
+                    <Text size="lg" bold className="text-center">
                          {getTermFromDictionary(language, 'program_types')}
                     </Text>
                     {_.map(programTypes, function (item, index, array) {
-                         return <Text key={index} color={textColor}>{item}</Text>;
+                         return <Text key={index}>{item}</Text>;
                     })}
                </Box>
           );
@@ -309,6 +347,16 @@ const EventProgramTypes = ({ programTypes }) => {
      }
 };
 
+/**
+ * AddToCalendar component that provides functionality to add an event to the user's calendar, including handling permissions and displaying a modal for confirmation.
+ * @param param0
+ * @param param0.start
+ * @param param0.end
+ * @param param0.location
+ * @param param0.event
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 const AddToCalendar = ({ start, end, location, event }) => {
      const language = useActiveLanguage();
      const [showModal, setShowModal] = React.useState(false);
@@ -316,7 +364,7 @@ const AddToCalendar = ({ start, end, location, event }) => {
      const [modalBodyHeading, setModalBodyHeading] = React.useState('');
      const [calendarId, setCalendarId] = React.useState();
      const [confirmAdd, setConfirmAdd] = React.useState(false);
-     const { textColor } = useTheme();
+     const { neutralPairs, neutrals } = useTheme();
 
      let displayDay = false;
      let displayStartTime = false;
@@ -418,54 +466,55 @@ const AddToCalendar = ({ start, end, location, event }) => {
 
      return (
           <>
-               <Pressable py="$3" onPress={() => handleAddToCalendar()}>
-                    <HStack space="sm" alignItems="center" justifyContent="space-between">
-                         <HStack space="sm" alignItems="center">
-                              <Icon as={MaterialIcons} name="calendar-today" size="md" color={textColor}/>
+               <Pressable className="py-3" onPress={() => handleAddToCalendar()}>
+                    <HStack space="sm" className="items-center justify-between">
+                         <HStack space="sm" className="items-center">
+                              <MaterialIcons name="calendar-today" size={18} />
                               <VStack>
-                                   <Text bold color={textColor}>{displayDay}</Text>
-                                   <Text color={textColor}>
+                                   <Text bold>{displayDay}</Text>
+                                   <Text>
                                         {displayStartTime} - {displayEndTime}
                                    </Text>
                               </VStack>
                          </HStack>
-                         <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor}/>
+                         <MaterialIcons name="chevron-right" size={20} color={neutrals.actionableIndicator} />
                     </HStack>
                </Pressable>
                <Modal isOpen={showModal} onClose={() => setShowModal(false)} closeOnOverlayClick={false} size="md">
                     <ModalBackdrop />
-                    <ModalContent maxWidth="90%" bg="white" _dark={{ bg: 'coolGray.800' }}>
+                    <ModalContent style={{ maxWidth: '90%', backgroundColor: neutralPairs.surface.light }}>
                          <ModalHeader>
-                              <Heading size="$md">{modalBodyHeading}</Heading>
-                              <ModalCloseButton p="$3" onPress={() => { setShowModal(false); }}>
-                                   <Icon as={CloseIcon} color={textColor} />
+                              <Heading>{modalBodyHeading}</Heading>
+                              <ModalCloseButton onPress={() => { setShowModal(false); }}>
+                                   <CloseIcon />
                               </ModalCloseButton>
                          </ModalHeader>
                          <ModalBody><Text>{modalBodyText}</Text></ModalBody>
                          <ModalFooter>
-                              <ButtonGroup space={2} size="md">
-                                   <Button
-                                        colorScheme="muted"
+                              <ButtonGroup space="sm" size="md">
+                                   <Button colorScheme="primary"
                                         variant="outline"
+                                       
                                         onPress={() => {
                                              setShowModal(false);
                                              setConfirmAdd(false);
                                              setModalBodyText('');
                                              setModalBodyHeading('');
                                         }}>
-                                        <ButtonText>{getTermFromDictionary(language, 'close_window')}</ButtonText>
+                                       <ButtonText>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                    </Button>
                                    {confirmAdd ? (
                                         <Button
-                                             onPress={() =>
-                                                  createCalendarEvent().then((result) => {
-                                                       setShowModal(false);
+                                            colorScheme="primary"
+                                            onPress={() =>
+                                                 createCalendarEvent().then((result) => {
+                                                      setShowModal(false);
                                                        setConfirmAdd(false);
                                                        setModalBodyText('');
                                                        setModalBodyHeading('');
                                                   })
                                              }>
-                                             <ButtonText>{getTermFromDictionary(language, 'add_event')}</ButtonText>
+                                           <ButtonText>{getTermFromDictionary(language, 'add_event')}</ButtonText>
                                         </Button>
                                    ) : null}
                               </ButtonGroup>
@@ -476,8 +525,16 @@ const AddToCalendar = ({ start, end, location, event }) => {
      );
 };
 
+/**
+ * Directions component that provides functionality to get directions to an event location, including handling coordinates and opening a map application.
+ * @param param0
+ * @param param0.location
+ * @param param0.room
+ * @returns {React.JSX.Element|null}
+ * @constructor
+ */
 const Directions = ({ location, room }) => {
-     const { textColor } = useTheme();
+     const { neutrals } = useTheme();
      let hasCoordinates = false;
      if (location) {
           if (!_.isUndefined(location.coordinates) && _.isObject(location.coordinates)) {
@@ -509,17 +566,17 @@ const Directions = ({ location, room }) => {
 
      if (location) {
           return (
-               <Pressable py="$3" mb="$5" onPress={() => handleGetDirections()}>
-                    <HStack space="sm" alignItems="center" justifyContent="space-between">
-                         <HStack space="sm" alignItems="center">
-                              <Icon as={MaterialIcons} name="location-pin" size="md" color={textColor}/>
+               <Pressable className="py-3 mb-5" onPress={() => handleGetDirections()}>
+                    <HStack space="sm" className="items-center justify-between">
+                         <HStack space="sm" className="items-center">
+                              <MaterialIcons name="location-pin" size={18} />
                               <VStack>
-                                   {location.name ? <Text bold color={textColor}>{location.name}</Text> : null}
-                                   {room ? <Text color={textColor}>{room}</Text> : null}
-                                   {location.address ? <Text color={textColor}>{location.address}</Text> : null}
+                                   {location.name ? <Text bold>{location.name}</Text> : null}
+                                   {room ? <Text>{room}</Text> : null}
+                                   {location.address ? <Text>{location.address}</Text> : null}
                               </VStack>
                          </HStack>
-                         {hasCoordinates ? <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} /> : null}
+                         {hasCoordinates ? <MaterialIcons name="chevron-right" size={20} color={neutrals.actionableIndicator} /> : null}
                     </HStack>
                </Pressable>
           );
@@ -528,6 +585,14 @@ const Directions = ({ location, room }) => {
      return null;
 };
 
+/**
+ * AddToYourEvents component that provides functionality to add an event to the user's events, including handling API calls and updating the user profile.
+ * @param param0
+ * @param param0.id
+ * @param param0.source
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 const AddToYourEvents = ({ id, source }) => {
      const queryClient = useQueryClient();
      const { data: userState } = useUserState();
@@ -535,7 +600,7 @@ const AddToYourEvents = ({ id, source }) => {
      const updateUserProfile = useUpdateUserProfile();
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { theme } = useTheme();
+     const {  } = useTheme();
      const [isLoading, setIsLoading] = React.useState(false);
 
      const addToEvents = async () => {
@@ -559,28 +624,40 @@ const AddToYourEvents = ({ id, source }) => {
      };
 
      return (
-          <Button bgColor={theme['tokens']['colors']['tertiary']['500']} onPress={() => addToEvents()} mb="$2" isLoading={isLoading} isLoadingText={getTermFromDictionary(language, 'adding', true)}>
-               <ButtonText color={theme.tokens.colors.tertiary['500-text']}>{getTermFromDictionary(language, 'add_to_events')}</ButtonText>
+          <Button colorScheme="tertiary" className="mb-2" onPress={() => addToEvents()} isLoading={isLoading} isLoadingText={getTermFromDictionary(language, 'adding', true)}>
+               <ButtonText>{getTermFromDictionary(language, 'add_to_events')}</ButtonText>
           </Button>
      );
 };
 
+/**
+ * InYourEvents component that provides functionality to navigate to the user's events, allowing them to view events they have added.
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 const InYourEvents = () => {
      const language = useActiveLanguage();
-     const { theme } = useTheme();
+     const {  } = useTheme();
      return (
-          <Button mb="$2" bgColor={theme['tokens']['colors']['tertiary']['500']} onPress={() => navigateStack('AccountScreenTab', 'MyEvents')}>
-               <ButtonText color={theme.tokens.colors.tertiary['500-text']}>{getTermFromDictionary(language, 'in_your_events')}</ButtonText>
+          <Button colorScheme="tertiary" className="mb-2" onPress={() => navigateStack('AccountScreenTab', 'MyEvents')}>
+               <ButtonText>{getTermFromDictionary(language, 'in_your_events')}</ButtonText>
           </Button>
      );
 };
 
+/**
+ * RegistrationModal component that displays a modal with registration information for an event, including options to close the modal or go to the registration link.
+ * @param param0
+ * @param param0.event
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 const RegistrationModal = ({ event }) => {
      const language = useActiveLanguage();
      const [showRegistrationModal, setShowRegistrationModal] = React.useState(false);
 
-     const { textColor, theme, colorMode } = useTheme();
-     const backgroundColor= colorMode === 'light' ? "$warmGray200" : "$coolGray900";
+     const { textColor, neutralPairs, neutrals } = useTheme();
+     const backgroundColor= neutrals.surface;
 
      const openLink = async () => {
           /* location.homeLink */
@@ -599,30 +676,30 @@ const RegistrationModal = ({ event }) => {
 
      return (
           <>
-               <Button bgColor={theme['tokens']['colors']['tertiary']['500']} onPress={() => setShowRegistrationModal(true)} mb="$2">
-                    <ButtonText color={theme.tokens.colors.tertiary['500-text']}>{getTermFromDictionary(language, 'registration_information')}</ButtonText>
+               <Button colorScheme="tertiary" className="mb-2" onPress={() => setShowRegistrationModal(true)}>
+                   <ButtonText>{getTermFromDictionary(language, 'registration_information')}</ButtonText>
                </Button>
                <Modal isOpen={showRegistrationModal} onClose={() => setShowRegistrationModal(false)} closeOnOverlayClick={false} size="lg">
                     <ModalBackdrop />
-                    <ModalContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"} maxWidth="90%">
+                    <ModalContent>
                          <ModalHeader>
-                              <Heading size="$md" color={textColor}>{getTermFromDictionary(language, 'registration_information')}</Heading>
-                              <ModalCloseButton p="$3" onPress={() => { setShowRegistrationModal(false); }}>
-                                   <Icon as={CloseIcon} color={textColor} />
+                              <Heading>{getTermFromDictionary(language, 'registration_information')}</Heading>
+                              <ModalCloseButton onPress={() => { setShowRegistrationModal(false); }}>
+                                   <CloseIcon />
                               </ModalCloseButton>
                          </ModalHeader>
-                         <ModalBody><Text color={textColor}>{stripHTML(decodeHTML(event.registrationBody))}</Text></ModalBody>
+                         <ModalBody><Text>{stripHTML(decodeHTML(event.registrationBody))}</Text></ModalBody>
                          <ModalFooter>
                               <ButtonGroup space="sm" size="md">
                                    <Button
-                                        bgColor={"$coolGray200"}
                                         variant="outline"
+                                        style={{ borderColor: neutralPairs.border.light, backgroundColor: neutralPairs.surface.light }}
                                         onPress={() => {
                                              setShowRegistrationModal(false);
                                         }}>
-                                        <ButtonText color={"$coolGray800"}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
+                                        <ButtonText style={{ color: neutralPairs.textMain.light }}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                    </Button>
-                                   <Button bgColor={theme.tokens.colors.primary['500']} onPress={() => openLink()}><ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'go_to_registration')}</ButtonText></Button>
+                                   <Button colorScheme="primary" onPress={() => openLink()}><ButtonText>{getTermFromDictionary(language, 'go_to_registration')}</ButtonText></Button>
                               </ButtonGroup>
                          </ModalFooter>
                     </ModalContent>
@@ -631,6 +708,11 @@ const RegistrationModal = ({ event }) => {
      );
 };
 
+/**
+ * checkImageUrl function that checks if an image URL is valid by making a fetch request and checking the response status.
+ * @param url
+ * @returns {Promise<void>}
+ */
 async function checkImageUrl(url) {
      fetch(url).then((response) => {
           if (!_.isUndefined(response.status)) {

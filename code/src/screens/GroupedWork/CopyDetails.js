@@ -1,29 +1,28 @@
 import React, {useState} from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {Button, ButtonText, Center, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, HStack, Text, Icon, FlatList, Heading} from '@gluestack-ui/themed';
-import {MaterialIcons} from '@expo/vector-icons';
+import { FlatList } from 'react-native';
+import { ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/ThemedMaterialIcons';
 import {getItemDetails} from '../../util/api/item';
 import _ from 'lodash';
-import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
-import {useQueryClient} from '@tanstack/react-query';
 import {getTermFromDictionary} from '../../translations/TranslationService';
 import { logDebugMessage, getErrorMessage } from '../../util/logging';
 import { DisplayErrorAlertDialog } from '../../components/loadError';
+import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../components/themed/ThemedButton';
+import { Center } from '@/components/ui/center';
+import { ThemedHeading as Heading } from '@/src/components/themed/ThemedHeading';
+import { HStack } from '@/components/ui/hstack';
+import { ThemedModal as Modal, ThemedModalBody as ModalBody, ThemedModalContent as ModalContent, ThemedModalHeader as ModalHeader } from '@/src/components/themed/ThemedModal';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
 
-/*const CopyDetails = (props) => {
- const library = useLibrary();
- const [open, setOpen] = React.useState(false);
- const toggleModal = () => {
- setOpen(!open);
- };
- const [loading, setLoading] = React.useState(false);
- };*/
-
+/**
+ * ShowItemDetails component that displays a button to show item details in a modal, including available copies, location, and call number. It fetches item details from the API based on the provided library URL, item ID, and format.
+ * @param props
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 const ShowItemDetails = (props) => {
-     const library = useLibrary();
      const language = useActiveLanguage();
-     const queryClient = useQueryClient();
      const {
           data,
           title,
@@ -93,26 +92,27 @@ const ShowItemDetails = (props) => {
                                       }
                                  });
                             }}
-                            colorScheme="tertiary"
                             variant="ghost"
                             size="sm"
-                            leftIcon={<Icon as={MaterialIcons} name="location-pin" size="xs" mr="-1"/>}>
-                             {getTermFromDictionary(language, 'where_is_it')}
+                            colorScheme="secondary">
+                            <HStack space="xs" className="items-center">
+                                 <MaterialIcons name="location-pin" size={14} className="mr-[-4px]" />
+                                 <ButtonText>{getTermFromDictionary(language, 'where_is_it')}</ButtonText>
+                            </HStack>
                         </Button>
 
                         <Modal isOpen={showModal} onClose={() => setShowModal(false)} size="full">
-                             <Modal.Content maxWidth="90%" bg="white" _dark={{bg: 'coolGray.800'}}>
-                                  <Modal.CloseButton/>
-                                  <Modal.Header>
-                                       <HStack>
-                                            <Icon as={MaterialIcons} name="location-pin" size="xs" mt=".5" pr={5}/>
-                                            <Heading size="sm">{getTermFromDictionary(language, 'where_is_it')}</Heading>
+                             <ModalContent>
+                                  <ModalHeader>
+                                       <HStack className="items-center">
+                                            <MaterialIcons name="location-pin" size={14} className="mt-[2px] pr-[5px]" />
+                                            <Heading>{getTermFromDictionary(language, 'where_is_it')}</Heading>
                                        </HStack>
-                                  </Modal.Header>
-                                  <Modal.Body>
+                                  </ModalHeader>
+                                  <ModalBody>
                                        <FlatList data={details} keyExtractor={(item) => item.description} ListHeaderComponent={renderHeader()} renderItem={({item}) => renderCopyDetails(item)}/>
-                                  </Modal.Body>
-                             </Modal.Content>
+                                  </ModalBody>
+                             </ModalContent>
                         </Modal>
                         {showErrorDialog && (
                              <DisplayErrorAlertDialog title={errorDetails.title} message={errorDetails.message} />
@@ -124,23 +124,25 @@ const ShowItemDetails = (props) => {
           return (
               <SafeAreaView>
                    <Center>
-                        <Button onPress={() => setShowModal(true)} colorScheme="tertiary" variant="ghost" size="sm" leftIcon={<Icon as={MaterialIcons} name="location-pin" size="xs" mr="-1"/>}>
-                            {getTermFromDictionary(language, 'where_is_it')}
+                        <Button onPress={() => setShowModal(true)} variant="ghost" size="sm" colorScheme="secondary">
+                            <HStack space="xs" className="items-center">
+                                 <MaterialIcons name="location-pin" size={14} className="mr-[-4px]" />
+                                 <ButtonText>{getTermFromDictionary(language, 'where_is_it')}</ButtonText>
+                            </HStack>
                         </Button>
 
                         <Modal isOpen={showModal} onClose={() => setShowModal(false)} size="full">
-                             <Modal.Content maxWidth="90%" bg="white" _dark={{bg: 'coolGray.800'}}>
-                                  <Modal.CloseButton/>
-                                  <Modal.Header>
-                                       <HStack>
-                                            <Icon as={MaterialIcons} name="location-pin" size="xs" mt=".5" pr={5}/>
-                                            <Heading size="sm">{getTermFromDictionary(language, 'where_is_it')}</Heading>
+                             <ModalContent>
+                                  <ModalHeader>
+                                       <HStack className="items-center">
+                                            <MaterialIcons name="location-pin" size={14} className="mt-[2px] pr-[5px]" />
+                                            <Heading>{getTermFromDictionary(language, 'where_is_it')}</Heading>
                                        </HStack>
-                                  </Modal.Header>
-                                  <Modal.Body>
+                                  </ModalHeader>
+                                  <ModalBody>
                                        <FlatList data={copies} ListHeaderComponent={renderHeader()} renderItem={({item}) => renderCopyDetails(item)} keyExtractor={(item, index) => index.toString()}/>
-                                  </Modal.Body>
-                             </Modal.Content>
+                                  </ModalBody>
+                             </ModalContent>
                         </Modal>
                    </Center>
               </SafeAreaView>
@@ -148,33 +150,42 @@ const ShowItemDetails = (props) => {
      }
 };
 
+/**
+ * Renders the header for the copy details list, displaying column titles for available copies, location, and call number.
+ * @returns {React.JSX.Element}
+ */
 const renderHeader = () => {
     const language = useActiveLanguage();
      return (
-         <HStack space={4} justifyContent="space-between" pb={2}>
-              <Text bold w="30%" fontSize="$xs">
+         <HStack space="md" className="justify-between pb-2">
+              <Text bold size="xs" className="w-[30%]">
                   {getTermFromDictionary(language, 'available_copies')}
               </Text>
-              <Text bold w="30%" fontSize="$xs">
+              <Text bold size="xs" className="w-[30%]">
                   {getTermFromDictionary(language, 'location')}
               </Text>
-              <Text bold w="30%" fontSize="$xs">
+              <Text bold size="xs" className="w-[30%]">
                   {getTermFromDictionary(language, 'call_num')}
               </Text>
          </HStack>
      );
 };
 
+/**
+ * Renders the details of a single copy, displaying the number of available copies, shelf location, and call number in a horizontal stack.
+ * @param item
+ * @returns {React.JSX.Element}
+ */
 const renderCopyDetails = (item) => {
      return (
-         <HStack space={4} justifyContent="space-between">
-              <Text w="30%" fontSize="$xs">
+         <HStack space="md" className="justify-between">
+              <Text size="xs" className="w-[30%]">
                    {item.availableCopies} of {item.totalCopies}
               </Text>
-              <Text w="30%" fontSize="$xs">
+              <Text size="xs" className="w-[30%]">
                    {item.shelfLocation}
               </Text>
-              <Text w="30%" fontSize="$xs">
+              <Text size="xs" className="w-[30%]">
                    {item.callNumber}
               </Text>
          </HStack>

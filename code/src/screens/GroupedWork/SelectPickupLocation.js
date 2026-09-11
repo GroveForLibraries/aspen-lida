@@ -1,32 +1,4 @@
 import _ from 'lodash';
-import {
-     Button,
-     ButtonText,
-     ButtonGroup,
-     CheckIcon,
-     FormControl,
-     FormControlLabel,
-     FormControlLabelText,
-     Heading,
-     Modal,
-     ModalBackdrop,
-     ModalContent,
-     ModalHeader,
-     ModalBody,
-     ModalFooter,
-     ModalCloseButton,
-     Select,
-     SelectTrigger,
-     SelectInput,
-     SelectPortal,
-     SelectBackdrop,
-     SelectContent,
-     SelectDragIndicatorWrapper,
-     SelectDragIndicator,
-     SelectItem,
-     Icon,
-     ChevronDownIcon
-} from '@gluestack-ui/themed';
 import React, { useState } from 'react';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useUserState, useAccounts, useLocations, useUpdateUserProfile } from '../../hooks/useUserData';
@@ -35,7 +7,19 @@ import { refreshProfile } from '../../util/api/user';
 import { completeAction } from '../../util/api/userHelper';
 import { SelectVolume } from './SelectVolume';
 import { logDebugMessage, logWarnMessage, getErrorMessage } from '../../util/logging';
+import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../components/themed/ThemedButton';
+import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
+import { ThemedFormControl as FormControl, ThemedFormControlLabelText as FormControlLabelText, ThemedFormControlLabel as FormControlLabel } from '../../components/themed/ThemedFormControls';
+import { ThemedHeading as Heading } from '@/src/components/themed/ThemedHeading';
+import { ThemedModal as Modal, ThemedModalBackdrop as ModalBackdrop, ThemedModalBody as ModalBody, ThemedModalCloseButton as ModalCloseButton, ThemedModalContent as ModalContent, ThemedModalFooter as ModalFooter, ThemedModalHeader as ModalHeader } from '@/src/components/themed/ThemedModal';
+import { ThemedSelect as Select, ThemedSelectBackdrop as SelectBackdrop, ThemedSelectContent as SelectContent, ThemedSelectDragIndicator as SelectDragIndicator, ThemedSelectDragIndicatorWrapper as SelectDragIndicatorWrapper, ThemedSelectInput as SelectInput, ThemedSelectItem as SelectItem, ThemedSelectPortal as SelectPortal, ThemedSelectTrigger as SelectTrigger } from '../../components/themed/ThemedSelect';
 
+/**
+ * SelectPickupLocation component that renders a button to select a pickup location for placing holds or checking out items. It displays a modal with options for selecting volumes, accounts, and pickup locations, and handles the completion of the action based on user selections.
+ * @param props
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 const SelectPickupLocation = (props) => {
      const { id, action, title, volumeInfo, prevRoute, response, setResponse, responseIsOpen, setResponseIsOpen, onResponseClose, cancelResponseRef, language } = props;
      const [loading, setLoading] = React.useState(false);
@@ -106,30 +90,29 @@ const SelectPickupLocation = (props) => {
                <Button
                     variant="solid"
                     onPress={() => setShowModal(true)}
-                    action="primary"
+                    colorScheme="primary"
                     size="md">
                     <ButtonText>{title}</ButtonText>
                </Button>
                <Modal isOpen={showModal} onClose={() => setShowModal(false)} size="lg">
                     <ModalBackdrop />
-                    <ModalContent maxWidth="90%">
-                         <ModalHeader borderBottomWidth="$0">
-                              <Heading size="$md">{isPlacingHold ? getTermFromDictionary(language, 'hold_options') : getTermFromDictionary(language, 'checkout_options')}</Heading>
+                    <ModalContent>
+                         <ModalHeader style={{ borderBottomWidth: 0 }}>
+                              <Heading>{isPlacingHold ? getTermFromDictionary(language, 'hold_options') : getTermFromDictionary(language, 'checkout_options')}</Heading>
                               <ModalCloseButton />
                          </ModalHeader>
                          <ModalBody>
                               {shouldDisplayVolumes ? <SelectVolume language={language} id={id} holdType={holdType} setHoldType={setHoldType} volume={volume} setVolume={setVolume} promptForHoldType={promptForHoldType} /> : null}
                               {_.size(accounts) > 1 ? (
-                                   <FormControl mb="$4">
+                                   <FormControl className="mb-4">
                                         <FormControlLabel>
                                              <FormControlLabelText>{isPlacingHold ? getTermFromDictionary(language, 'linked_place_hold_for_account') : getTermFromDictionary(language, 'linked_checkout_to_account')}</FormControlLabelText>
                                         </FormControlLabel>
                                         <Select
                                              selectedValue={activeAccount}
                                              onValueChange={(itemValue) => setActiveAccount(itemValue)}>
-                                             <SelectTrigger variant="outline" size="md">
-                                                  <SelectInput py={0} placeholder={isPlacingHold ? getTermFromDictionary(language, 'linked_place_hold_for_account') : getTermFromDictionary(language, 'linked_checkout_to_account')} />
-                                                  <Icon as={ChevronDownIcon} mr="$3" />
+                                             <SelectTrigger>
+                                                  <SelectInput placeholder={isPlacingHold ? getTermFromDictionary(language, 'linked_place_hold_for_account') : getTermFromDictionary(language, 'linked_checkout_to_account')} />
                                              </SelectTrigger>
                                              <SelectPortal>
                                                   <SelectBackdrop />
@@ -146,16 +129,15 @@ const SelectPickupLocation = (props) => {
                                         </Select>
                                    </FormControl>
                               ) : null}
-                              <FormControl mb="$2">
+                              <FormControl className="mb-2">
                                    <FormControlLabel>
                                         <FormControlLabelText>{getTermFromDictionary(language, 'select_pickup_location')}</FormControlLabelText>
                                    </FormControlLabel>
                                    <Select
                                         selectedValue={location}
                                         onValueChange={(itemValue) => setLocation(itemValue)}>
-                                        <SelectTrigger variant="outline" size="md">
-                                             <SelectInput py={0} placeholder={getTermFromDictionary(language, 'select_pickup_location')} />
-                                             <Icon as={ChevronDownIcon} mr="$3" />
+                                        <SelectTrigger>
+                                             <SelectInput placeholder={getTermFromDictionary(language, 'select_pickup_location')} />
                                         </SelectTrigger>
                                         <SelectPortal>
                                              <SelectBackdrop />
@@ -171,9 +153,9 @@ const SelectPickupLocation = (props) => {
                                    </Select>
                               </FormControl>
                          </ModalBody>
-                         <ModalFooter borderTopWidth="$0">
+                         <ModalFooter style={{ borderTopWidth: 0 }}>
                               <ButtonGroup space="md" size="md">
-                                   <Button variant="outline" action="secondary" onPress={() => setShowModal(false)}>
+                                   <Button variant="outline" colorScheme="secondary" onPress={() => setShowModal(false)}>
                                         <ButtonText>{getTermFromDictionary(language, 'close_button')}</ButtonText>
                                    </Button>
                                    <Button

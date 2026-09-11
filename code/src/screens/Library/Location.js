@@ -1,11 +1,17 @@
 import { useRoute } from '@react-navigation/native';
 import { useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
 import _ from 'lodash';
 import moment from 'moment';
-import { Badge, BadgeText, Box, Button, ButtonText, Divider, Heading, ScrollView, Text, VStack } from '@gluestack-ui/themed';
 import React from 'react';
+import { ThemedBadge as Badge, ThemedBadgeText as BadgeText } from '../../components/themed/ThemedBadge';
+import { Box } from '@/components/ui/box';
+import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../components/themed/ThemedButton';
+import { ThemedDivider as Divider } from '@/src/components/themed/ThemedDivider';
+import { ThemedHeading as Heading } from '@/src/components/themed/ThemedHeading';
+import { ThemedScrollView as ScrollView } from '@/src/components/themed/ThemedScrollView';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
+import { VStack } from '@/components/ui/vstack';
 import { DisplaySystemMessage } from '../../components/Notifications';
 import { SystemMessagesContext } from '../../context/initialContext';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
@@ -15,7 +21,6 @@ import { getTermFromDictionary } from '../../translations/TranslationService';
 import AdditionalInformation from './AdditionalInformation';
 import ContactButtons from './ContactButtons';
 import DisplayMap from './DisplayMap';
-// custom components and helper files
 import Hours from './Hours';
 import {logDebugMessage} from "../../util/logging";
 import { useActiveLanguage } from '../../hooks/useLanguageData';
@@ -23,6 +28,11 @@ import { useTheme } from '../../themes/theme';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
+/**
+ * Location component that displays detailed information about a specific library location, including its image, address, phone number, hours of operation, map, contact buttons, and additional information. It also handles system messages and navigation to view all locations if applicable.
+ * @returns {React.JSX.Element|null}
+ * @constructor
+ */
 export const Location = () => {
      const route = useRoute();
      const location = route.params?.data ?? false;
@@ -31,9 +41,7 @@ export const Location = () => {
      const language = useActiveLanguage();
      const queryClient = useQueryClient();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
-     const { colorMode, textColor, theme } = useTheme();
-
-     const bgColor = (colorMode === 'light' ? "$warmGray50" : "$coolGray800");
+     const { textColor } = useTheme();
      const showSystemMessage = () => {
           if (_.isArray(systemMessages)) {
                return systemMessages.map((obj, index) => {
@@ -122,33 +130,33 @@ export const Location = () => {
                                    />
                               </>
                          ) : null}
-                         <Box safeArea={5} mx="$4" zIndex={200}>
+                         <Box style={{ zIndex: 200 }} className="mx-4">
                               {showSystemMessage()}
-                              {library.displayName !== location.displayName ? <Heading mb={2} color={textColor}>{location.displayName}</Heading> : <Heading mb={1} color={textColor}>{library.displayName}</Heading>}
-                              {location.address ? <Text color={textColor}>{location.address}</Text> : null}
+                              {library.displayName !== location.displayName ? <Heading className="mb-2">{location.displayName}</Heading> : <Heading className="mb-1">{library.displayName}</Heading>}
+                              {location.address ? <Text>{location.address}</Text> : null}
                               {location.phone ? (
-                                   <Text color={textColor}>
+                                   <Text>
                                         {getTermFromDictionary(language, 'phone')}: {location.phone}
                                    </Text>
                               ) : null}
                               {hasHours ? (
-                                   <Badge colorScheme={isClosedToday ? 'error' : 'success'} alignSelf="flex-start">
-                                        <BadgeText color={textColor}>
+                                   <Badge colorScheme={isClosedToday ? 'error' : 'success'} className="self-start">
+                                        <BadgeText colorScheme={isClosedToday ? 'error' : 'success'} style={{ color: textColor }}>
                                              {hoursLabel}
                                         </BadgeText>
                                    </Badge>
                               ) : null}
                          </Box>
                          <DisplayMap data={location} />
-                         <Box safeArea={5} mx={4} >
+                         <Box className="mx-4" >
                               <ContactButtons data={location} />
                               {hasHours ? <Hours data={location} /> : null}
                               <AdditionalInformation data={location} />
                               {_.size(locations) > 1 ? (
                                    <>
-                                        <Divider mt={5} mb={2} />
-                                        <Button variant="ghost" size="sm" onPress={selectLocations} bgColor={theme.tokens.colors.primary['500']}>
-                                             <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'view_all_locations')}</ButtonText>
+                                        <Divider className="mt-5 mb-2" />
+                                        <Button size="sm" onPress={selectLocations} colorScheme="primary">
+                                            <ButtonText>{getTermFromDictionary(language, 'view_all_locations')}</ButtonText>
                                         </Button>
                                    </>
                               ) : null}

@@ -1,7 +1,18 @@
-import React, { useState } from 'react';
+import React from 'react';
 
+/**
+ * AuthContext is a React context for managing authentication state and providing authentication-related functions to its consumers.
+ * @type {React.Context<unknown>}
+ */
 export const AuthContext = React.createContext();
 
+/**
+ * AuthProvider component for managing authentication state and providing authentication context to its children.
+ * @param param0
+ * @param param0.children
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const AuthProvider = ({ children }) => {
      const [state, dispatch] = React.useReducer(
           (prevState, action) => {

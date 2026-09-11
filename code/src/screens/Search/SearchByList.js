@@ -1,12 +1,8 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
-import { Box, FlatList, Center, Heading } from '@gluestack-ui/themed';
 import React from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { loadError } from '../../components/loadError';
-
-// custom components and helper files
 import { LoadingSpinner } from '../../components/loadingSpinner';
 import { SystemMessagesContext } from '../../context/initialContext';
 import { DisplayResult } from './DisplayResult';
@@ -15,11 +11,20 @@ import { DisplaySystemMessage } from '../../components/Notifications';
 import { fetchSearchResultsForList } from '../../util/api/search';
 import { logDebugMessage, logErrorMessage } from '../../util/logging';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
-import { useTheme } from '../../themes/theme';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
+import { Box } from '@/components/ui/box';
+import { Center } from '@/components/ui/center';
+import { FlatList } from '@/components/ui/flat-list';
+import { ThemedHeading as Heading } from '@/src/components/themed/ThemedHeading';
+import { ScreenContainer } from '@/src/components/ScreenContainer';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
+/**
+ * SearchResultsForList component that displays search results for a specific list. It fetches data from the API based on the provided list ID and page number, and renders a list of results. It also handles system messages and error states.
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const SearchResultsForList = () => {
      const id = useRoute().params?.id;
 
@@ -30,7 +35,6 @@ export const SearchResultsForList = () => {
      const library = useLibrary();
      const language = useActiveLanguage();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
-     const { theme, textColor, colorMode } = useTheme();
      const queryClient = useQueryClient();
      const url = library.baseUrl;
 
@@ -75,26 +79,26 @@ export const SearchResultsForList = () => {
      const NoResults = () => {
           return (
                <>
-                    {_.size(systemMessagesForScreen) > 0 ? <Box p="$2">{showSystemMessage()}</Box> : null}
-                    <Center flex={1}>
-                         <Heading pt="$5" color={textColor}>{getTermFromDictionary(language, 'no_results')}</Heading>
+                   {_.size(systemMessagesForScreen) > 0 ? <Box className="p-2">{showSystemMessage()}</Box> : null}
+                   <Center className="flex-1">
+                        <Heading className="pt-5">{getTermFromDictionary(language, 'no_results')}</Heading>
                     </Center>
                </>
           );
      };
 
      return (
-          <SafeAreaView style={{ flex: 1 }}>
-               {_.size(systemMessagesForScreen) > 0 ? <Box p="$2">{showSystemMessage()}</Box> : null}
+          <ScreenContainer safeArea style={{ flex: 1 }}>
+               {_.size(systemMessagesForScreen) > 0 ? <Box className="p-2">{showSystemMessage()}</Box> : null}
                {status === 'loading' || isFetching ? (
                     <LoadingSpinner />
                ) : status === 'error' ? (
                     loadError('Error', '')
                ) : (
-                    <Box flex={1}>
+                   <Box className="flex-1">
                          <FlatList data={data.items} ListEmptyComponent={NoResults} renderItem={({ item }) => <DisplayResult data={item} />} keyExtractor={(item, index) => index.toString()} />
                     </Box>
                )}
-          </SafeAreaView>
+          </ScreenContainer>
      );
 };

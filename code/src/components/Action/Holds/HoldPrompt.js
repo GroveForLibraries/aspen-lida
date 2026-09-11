@@ -1,71 +1,39 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
-import {
-     CloseIcon,
-     Modal,
-     Checkbox,
-     CheckboxIndicator,
-     CheckboxIcon,
-     CheckboxLabel,
-     CheckIcon,
-     ModalBackdrop,
-     ModalContent,
-     ModalHeader,
-     ModalCloseButton,
-     ModalBody,
-     ModalFooter,
-     FormControl,
-     FormControlLabel,
-     FormControlLabelText,
-     Heading,
-     Select,
-     Button,
-     ButtonGroup,
-     ButtonText,
-     SelectTrigger,
-     SelectInput,
-     SelectIcon,
-     SelectPortal,
-     SelectBackdrop,
-     SelectContent,
-     SelectDragIndicatorWrapper,
-     SelectDragIndicator,
-     SelectItem,
-     Icon,
-     ChevronDownIcon,
-     ButtonSpinner,
-     SelectScrollView,
-     Input,
-     InputField,
-     InputSlot,
-     InputIcon,
-     Text
-} from '@gluestack-ui/themed';
 import React from 'react';
-import { EyeOff, Eye } from 'lucide-react-native';
-import { Platform, useWindowDimensions } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useWindowDimensions } from 'react-native';
 import RenderHtml from 'react-native-render-html';
-
-import { useLibrary } from '../../../hooks/useLibrarySystemData';
-import { useUserState, useAccounts, useLocations, useSublocations, useUpdateUserProfile } from '../../../hooks/useUserData';
-import { refreshProfile, updateAlternateLibraryCard } from '../../../util/api/user';
-import { decodeHTML } from '../../../helpers/helpers';
-import { completeAction } from '../../../util/api/userHelper';
-import { getTermFromDictionary } from '../../../translations/TranslationService';
-import { getCopies } from '../../../util/api/item';
+import { useLibrary } from '@/src/hooks/useLibrarySystemData';
+import { useUserState, useAccounts, useLocations, useSublocations, useUpdateUserProfile } from '@/src/hooks/useUserData';
+import { refreshProfile, updateAlternateLibraryCard } from '@/src/util/api/user';
+import { decodeHTML } from '@/src/helpers/helpers';
+import { completeAction } from '@/src/util/api/userHelper';
+import { getTermFromDictionary } from '@/src/translations/TranslationService';
+import { getCopies } from '@/src/util/api/item';
 import { HoldNotificationPreferences } from './HoldNotificationPreferences';
 import { SelectItemHold } from './SelectItem';
 import { SelectVolume } from './SelectVolume';
 import { SelectNewHoldSublocation } from './SelectNewHoldSublocation';
+import { PasswordVisibilityToggle, ThemedCloseIcon as CloseIcon, ThemedFormControl as FormControl, ThemedInput as Input, ThemedInputField as InputField, ThemedFormControlLabelText as FormControlLabelText, ThemedFormControlLabel as FormControlLabel } from '../../themed/ThemedFormControls';
+import { logDebugMessage, logInfoMessage, logWarnMessage, getErrorMessage } from '@/src/util/logging';
+import { useTheme } from '@/src/themes/theme';
+import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../themed/ThemedButton';
+import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
+import { ThemedCheckbox as Checkbox, ThemedCheckboxIcon as CheckboxIcon, ThemedCheckboxIndicator as CheckboxIndicator, ThemedCheckboxLabel as CheckboxLabel } from '../../themed/ThemedCheckbox';
+import { ThemedHeading as Heading } from '@/src/components/themed/ThemedHeading';
+import { ThemedModal as Modal, ThemedModalBackdrop as ModalBackdrop, ThemedModalBody as ModalBody, ThemedModalCloseButton as ModalCloseButton, ThemedModalContent as ModalContent, ThemedModalFooter as ModalFooter, ThemedModalHeader as ModalHeader } from '@/src/components/themed/ThemedModal';
+import { ThemedSelect as Select, ThemedSelectBackdrop as SelectBackdrop, ThemedSelectContent as SelectContent, ThemedSelectDragIndicator as SelectDragIndicator, ThemedSelectDragIndicatorWrapper as SelectDragIndicatorWrapper, ThemedSelectInput as SelectInput, ThemedSelectItem as SelectItem, ThemedSelectPortal as SelectPortal, ThemedSelectScrollView as SelectScrollView, ThemedSelectTrigger as SelectTrigger } from '../../themed/ThemedSelect';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
 
-import { logDebugMessage, logInfoMessage, logWarnMessage, getErrorMessage } from '../../../util/logging.js';
-import { useTheme } from '../../../themes/theme';
-
+/**
+ * HoldPrompt component for displaying a prompt to the user for placing holds on items.
+ * @param props
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const HoldPrompt = (props) => {
      // 1. ALL HOOK DECLARATIONS FIRST (Unconditional & Predictable Order)
      const queryClient = useQueryClient();
-     const insets = useSafeAreaInsets();
      const { width } = useWindowDimensions();
 
      // Contexts
@@ -78,7 +46,7 @@ export const HoldPrompt = (props) => {
      const { data: sublocations } = useSublocations();
      const updateUserProfile = useUpdateUserProfile();
      const library = useLibrary();
-     const { theme, colorMode, textColor } = useTheme();
+     const { neutralPairs, neutrals, brand, colorMode, textColor } = useTheme();
 
      const {
           language,
@@ -118,7 +86,6 @@ export const HoldPrompt = (props) => {
      // Basic State Hooks
      const [userHasAlternateLibraryCard, setUserHasAlternateLibraryCard] = React.useState(props.userHasAlternateLibraryCard ?? false);
      const [promptAlternateLibraryCard, setPromptAlternateLibraryCard] = React.useState(props.shouldPromptAlternateLibraryCard ?? false);
-     const [loading, setLoading] = React.useState(false);
      const [showModal, setShowModal] = React.useState(false);
      const [showAddAlternateLibraryCardModal, setShowAddAlternateLibraryCardModal] = React.useState(false);
      const [activeAccount, setActiveAccount] = React.useState(user.id ?? '');
@@ -349,68 +316,62 @@ export const HoldPrompt = (props) => {
 
      return (
           <>
-               <Button minWidth="100%" maxWidth="100%" bgColor={theme.tokens.colors.primary['500']} onPress={() => setShowModal(true)}>
-                    <ButtonText color={theme.tokens.colors.primary['500-text']}>{title}</ButtonText>
+               <Button colorScheme="primary" className="min-w-full max-w-full" onPress={() => setShowModal(true)}>
+                    <ButtonText>{title}</ButtonText>
                </Button>
                <Modal isOpen={showAddAlternateLibraryCardModal} onClose={() => setShowAddAlternateLibraryCardModal(false)} closeOnOverlayClick={false} size="lg" useRNModal={true}>
                     <ModalBackdrop />
-                    <ModalContent maxWidth="90%" bgColor={colorMode === 'light' ? '$warmGray50' : '$coolGray700'}>
-                         <ModalHeader borderBottomWidth="$1" borderBottomColor={colorMode === 'light' ? '$warmGray300' : '$coolGray500'}>
-                              <Heading size="md" color={textColor}>
+                    <ModalContent className="max-w-[90%]">
+                         <ModalHeader>
+                              <Heading>
                                    {getTermFromDictionary(language, 'add_alternate_library_card')}
                               </Heading>
                               <ModalCloseButton
-                                   p="$3"
                                    onPress={() => {
                                         setShowAddAlternateLibraryCardModal(false);
                                    }}>
-                                   <Icon as={CloseIcon} color={textColor} />
+                                   <CloseIcon />
                               </ModalCloseButton>
                          </ModalHeader>
-                         <ModalBody mt="$3">
+                         <ModalBody className="mt-3">
                               {formMessage ? <RenderHtml contentWidth={width} source={source} tagsStyles={tagsStyles} /> : null}
-                              <FormControl mb="$2">
+                              <FormControl className="mb-2">
                                    <FormControlLabel>
-                                        <FormControlLabelText color={textColor} size="sm">
+                                        <FormControlLabelText size="sm">
                                              {cardLabel}
                                         </FormControlLabelText>
                                    </FormControlLabel>
-                                   <Input borderColor={colorMode === 'light' ? '$coolGray500' : '$warmGray300'}>
-                                        <InputField textContentType="none" color={textColor} name="card" defaultValue={card} accessibilityLabel={cardLabel} onChangeText={(value) => setCard(value)} />
+                                   <Input>
+                                        <InputField textContentType="none" name="card" defaultValue={card} accessibilityLabel={cardLabel} onChangeText={(value) => setCard(value)} />
                                    </Input>
                               </FormControl>
                               {showAlternateLibraryCardPassword ? (
-                                   <FormControl mb="$2">
+                                   <FormControl className="mb-2">
                                         <FormControlLabel>
-                                             <FormControlLabelText color={textColor} size="sm">
+                                             <FormControlLabelText size="sm">
                                                   {passwordLabel}
                                              </FormControlLabelText>
                                         </FormControlLabel>
-                                        <Input borderColor={colorMode === 'light' ? '$coolGray500' : '$warmGray300'}>
-                                             <InputField textContentType="none" type={showPassword ? 'text' : 'password'} color={textColor} name="password" defaultValue={password} accessibilityLabel={passwordLabel} onChangeText={(value) => setPassword(value)} />
-                                             <InputSlot onPress={toggleShowPassword}>
-                                                  <InputIcon as={showPassword ? Eye : EyeOff} mr="$2" color={textColor} />
-                                             </InputSlot>
+                                        <Input>
+                                             <InputField textContentType="none" type={showPassword ? 'text' : 'password'} name="password" defaultValue={password} accessibilityLabel={passwordLabel} onChangeText={(value) => setPassword(value)} />
+                                             <PasswordVisibilityToggle showPassword={showPassword} onPress={toggleShowPassword} />
                                         </Input>
                                    </FormControl>
                               ) : null}
                          </ModalBody>
-                         <ModalFooter borderTopWidth="$1" borderTopColor={colorMode === 'light' ? '$warmGray300' : '$coolGray500'}>
+                         <ModalFooter>
                               <ButtonGroup space="sm">
                                    <Button
                                         variant="outline"
-                                        borderColor={colorMode === 'light' ? '$warmGray300' : '$coolGray500'}
+                                        style={{ borderColor: neutrals.border }}
                                         onPress={() => {
                                              setShowAddAlternateLibraryCardModal(false);
-                                             setLoading(false);
                                         }}>
-                                        <ButtonText color={colorMode === 'light' ? '$warmGray500' : '$coolGray300'}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
+                                        <ButtonText style={{ color: neutrals.textMain }}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                    </Button>
                                    <Button
-                                        bgColor={theme.tokens.colors.primary['500']}
-                                        isDisabled={loading}
+                                        colorScheme="primary"
                                         onPress={async () => {
-                                             setLoading(true);
                                              await updateCard();
                                              await completeAction(id, action, activeAccount, '', '', location, sublocation, rememberHoldPickupLocation, library.baseUrl, volume, holdType, holdNotificationPreferences, item).then(async (result) => {
                                                   logDebugMessage('Completed Action - Hold Prompt footer');
@@ -450,7 +411,6 @@ export const HoldPrompt = (props) => {
                                                             setHoldSelectItemResponse(tmp);
                                                        }
 
-                                                       setLoading(false);
                                                        setShowAddAlternateLibraryCardModal(false);
                                                        if (result?.confirmationNeeded && result.confirmationNeeded) {
                                                             setHoldConfirmationIsOpen(true);
@@ -462,7 +422,7 @@ export const HoldPrompt = (props) => {
                                                   }
                                              });
                                         }}>
-                                        {loading ? <ButtonSpinner color={theme.tokens.colors.primary['500-text']} /> : <ButtonText color={theme.tokens.colors.primary['500-text']}>{title}</ButtonText>}
+                                       <ButtonText>{title}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </ModalFooter>
@@ -470,22 +430,21 @@ export const HoldPrompt = (props) => {
                </Modal>
                <Modal isOpen={showModal} onClose={() => setShowModal(false)} closeOnOverlayClick={false} size="lg" useRNModal={true}>
                     <ModalBackdrop />
-                    <ModalContent maxWidth="90%" bgColor={colorMode === 'light' ? '$warmGray50' : '$coolGray700'}>
-                         <ModalHeader borderBottomWidth="$1" borderBottomColor={colorMode === 'light' ? '$warmGray300' : '$coolGray500'}>
-                              <Heading size="md" color={textColor}>
+                    <ModalContent className="max-w-[90%]">
+                         <ModalHeader>
+                              <Heading>
                                    {isPlacingHold ? getTermFromDictionary(language, 'hold_options') : getTermFromDictionary(language, 'checkout_options')}
                               </Heading>
                               <ModalCloseButton
-                                   p="$3"
                                    onPress={() => {
                                         setShowModal(false);
                                    }}>
-                                   <Icon as={CloseIcon} color={textColor} />
+                                   <CloseIcon />
                               </ModalCloseButton>
                          </ModalHeader>
-                         <ModalBody mt="$3">
-                              {alreadyOnHold ? <Text color={textColor}>{getTermFromDictionary(language, 'already_on_hold')}</Text> : null}
-                              {!preferredPickupLocationIsValid ? <Text color={textColor}>{preferredPickupLocationWarning}</Text> : null}
+                         <ModalBody className="mt-3">
+                              {alreadyOnHold ? <Text>{getTermFromDictionary(language, 'already_on_hold')}</Text> : null}
+                              {!preferredPickupLocationIsValid ? <Text>{preferredPickupLocationWarning}</Text> : null}
                               {promptForHoldNotifications ? (
                                    <HoldNotificationPreferences
                                         user={user}
@@ -504,40 +463,40 @@ export const HoldPrompt = (props) => {
                                         setPhoneNumber={setPhoneNumber}
                                         url={library.baseUrl}
                                         textColor={textColor}
-                                        theme={theme}
+                                        neutralPairs={neutralPairs}
+                                        brand={brand}
                                         colorMode={colorMode}
                                    />
                               ) : null}
-                              {data !== undefined && !isFetching && _.isEmpty(volumeId) && (holdType === 'either' || holdType === 'item') ? <SelectItemHold theme={theme} colorMode={colorMode} id={id} item={item} setItem={setItem} language={language} data={data} holdType={holdType} setHoldType={setHoldType} holdTypeForFormat={holdTypeForFormat} url={library.baseUrl} showModal={showModal} textColor={textColor} /> : null}
-                              {promptForHoldType || (holdType === 'volume' && _.isEmpty(volumeId)) ? <SelectVolume theme={theme} id={id} language={language} volume={volume} setVolume={setVolume} promptForHoldType={promptForHoldType} holdType={holdType} setHoldType={setHoldType} showModal={showModal} url={library.baseUrl} textColor={textColor} colorMode={colorMode} /> : null}
+                              {data !== undefined && !isFetching && _.isEmpty(volumeId) && (holdType === 'either' || holdType === 'item') ? <SelectItemHold neutralPairs={neutralPairs} brand={brand} colorMode={colorMode} id={id} item={item} setItem={setItem} language={language} data={data} holdType={holdType} setHoldType={setHoldType} holdTypeForFormat={holdTypeForFormat} url={library.baseUrl} showModal={showModal} textColor={textColor} /> : null}
+                              {promptForHoldType || (holdType === 'volume' && _.isEmpty(volumeId)) ? <SelectVolume neutralPairs={neutralPairs} brand={brand} id={id} language={language} volume={volume} setVolume={setVolume} promptForHoldType={promptForHoldType} holdType={holdType} setHoldType={setHoldType} showModal={showModal} url={library.baseUrl} textColor={textColor} colorMode={colorMode} /> : null}
                               {(_.isArray(locations) && (_.size(locations) > 1 || !preferredPickupLocationIsValid) && !isEContent && !user.rememberHoldPickupLocation) || (_.isArray(locations) && _.size(locations) > 1 && !isEContent && _.size(accounts) > 0) ? (
-                                   <FormControl mt="$1">
+                                   <FormControl className="mt-1">
                                         <FormControlLabel>
-                                             <FormControlLabelText size="sm" color={textColor}>
+                                             <FormControlLabelText size="sm">
                                                   {getTermFromDictionary(language, 'select_pickup_location')}
                                              </FormControlLabelText>
                                         </FormControlLabel>
-                                        <Select name="pickupLocations" selectedValue={location} minWidth={200} mt="$1" mb="$2" onValueChange={(itemValue) => setLocation(itemValue)}>
-                                             <SelectTrigger variant="outline" size="md">
+                                        <Select name="pickupLocations" selectedValue={location} minWidth={200} className="mt-1 mb-2" onValueChange={(itemValue) => setLocation(itemValue)}>
+                                             <SelectTrigger>
                                                   {locations.map((selectedLocation, index) => {
                                                        if (selectedLocation.code === location) {
-                                                            return <SelectInput py={0} value={selectedLocation.name} color={textColor} key={index} />;
+                                                            return <SelectInput value={selectedLocation.name} key={index} />;
                                                        }
                                                   })}
-                                                  <SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
                                              </SelectTrigger>
                                              <SelectPortal useRNModal={true}>
                                                   <SelectBackdrop />
-                                                  <SelectContent bgColor={colorMode === 'light' ? '$warmGray50' : '$coolGray700'} pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}>
+                                                  <SelectContent>
                                                        <SelectDragIndicatorWrapper>
                                                             <SelectDragIndicator />
                                                        </SelectDragIndicatorWrapper>
                                                        <SelectScrollView>
                                                             {locations.map((availableLocations, index) => {
                                                                  if (availableLocations.code === location) {
-                                                                      return <SelectItem label={availableLocations.name} value={availableLocations.code} key={index} bgColor={theme.tokens.colors.tertiary['300']} sx={{ _text: { color: theme.tokens.colors.tertiary['500-text'] } }} />;
+                                                                    return <SelectItem label={availableLocations.name} value={availableLocations.code} key={index} style={{ backgroundColor: brand.tertiary[300] }} textStyle={{ color: brand.tertiary['500-text'] }} />;
                                                                  }
-                                                                 return <SelectItem label={availableLocations.name} value={availableLocations.code} key={index} bgColor={location === availableLocations.code ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: location === availableLocations.code ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />;
+                                                                 return <SelectItem label={availableLocations.name} value={availableLocations.code} key={index} style={{ backgroundColor: location === availableLocations.code ? brand.tertiary[300] : 'transparent' }} textStyle={{ color: location === availableLocations.code ? brand.tertiary['500-text'] : textColor }} />;
                                                             })}
                                                        </SelectScrollView>
                                                   </SelectContent>
@@ -545,32 +504,30 @@ export const HoldPrompt = (props) => {
                                         </Select>
                                    </FormControl>
                               ) : null}
-                              {!user.rememberHoldPickupLocation ? <SelectNewHoldSublocation sublocations={sublocations ?? []} location={location} activeSublocation={sublocation} setActiveSublocation={setSublocation} language={language} textColor={textColor} theme={theme} colorMode={colorMode} /> : null}
+                              {!user.rememberHoldPickupLocation ? <SelectNewHoldSublocation sublocations={sublocations ?? []} location={location} activeSublocation={sublocation} setActiveSublocation={setSublocation} language={language} textColor={textColor} neutralPairs={neutralPairs} brand={brand} colorMode={colorMode} /> : null}
                               {_.size(locations) > 1 && _.size(accounts) === 0 && !isEContent && library.allowRememberPickupLocation && !user.rememberHoldPickupLocation ? (
-                                   <FormControl mb="$3">
+                                   <FormControl className="mb-3">
                                         <Checkbox
-                                             size="sm"
                                              defaultIsChecked={rememberPickupLocation}
                                              accessibilityLabel={getTermFromDictionary(language, 'always_use_pickup_location')}
                                              onChange={(value) => {
                                                   setRememberPickupLocation(value);
                                              }}>
-                                             <CheckboxIndicator mr="$2">
-                                                  <CheckboxIcon as={CheckIcon} color={textColor} />
+                                             <CheckboxIndicator className="mr-2">
+                                                  <CheckboxIcon style={{ color: textColor }} />
                                              </CheckboxIndicator>
-                                             <CheckboxLabel color={textColor}>{getTermFromDictionary(language, 'always_use_pickup_location')}</CheckboxLabel>
+                                             <CheckboxLabel>{getTermFromDictionary(language, 'always_use_pickup_location')}</CheckboxLabel>
                                         </Checkbox>
                                    </FormControl>
                               ) : null}
                               {_.isArray(accounts) && _.size(accounts) > 0 ? (
                                    <FormControl>
                                         <FormControlLabel>
-                                             <FormControlLabelText color={textColor}>{isPlacingHold ? getTermFromDictionary(language, 'linked_place_hold_for_account') : getTermFromDictionary(language, 'linked_checkout_to_account')}</FormControlLabelText>
+                                             <FormControlLabelText>{isPlacingHold ? getTermFromDictionary(language, 'linked_place_hold_for_account') : getTermFromDictionary(language, 'linked_checkout_to_account')}</FormControlLabelText>
                                         </FormControlLabel>
-                                        <Select name="linkedAccount" selectedValue={activeAccount} minWidth={200} mt="$1" mb="$3" onValueChange={(itemValue) => updateActiveAccount(itemValue)}>
-                                             <SelectTrigger variant="outline" size="md">
+                                        <Select name="linkedAccount" selectedValue={activeAccount} minWidth={200} className="mt-1 mb-3" onValueChange={(itemValue) => updateActiveAccount(itemValue)}>
+                                             <SelectTrigger>
                                                   <SelectInput
-                                                       py={0}
                                                        value={(() => {
                                                             if (activeAccount === user.id) {
                                                                  return user.displayName;
@@ -578,23 +535,19 @@ export const HoldPrompt = (props) => {
                                                             const found = accounts.find((item) => activeAccount === item.id);
                                                             return found ? found.displayName : '';
                                                        })()}
-                                                       color={textColor}
                                                        placeholder={getTermFromDictionary(language, 'select_an_account')}
                                                   />
-                                                  <SelectIcon mr="$3">
-                                                       <Icon as={ChevronDownIcon} color={textColor} />
-                                                  </SelectIcon>
                                              </SelectTrigger>
                                              <SelectPortal useRNModal={true}>
                                                   <SelectBackdrop />
-                                                  <SelectContent bgColor={colorMode === 'light' ? '$warmGray50' : '$coolGray700'} pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}>
+                                                  <SelectContent>
                                                        <SelectDragIndicatorWrapper>
                                                             <SelectDragIndicator />
                                                        </SelectDragIndicatorWrapper>
                                                        <SelectScrollView>
-                                                            <SelectItem label={user.displayName} value={user.id} color={textColor} bgColor={activeAccount === user.id ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: activeAccount === user.id ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />
+                                                            <SelectItem label={user.displayName} value={user.id} style={{ backgroundColor: activeAccount === user.id ? brand.tertiary[300] : 'transparent' }} textStyle={{ color: activeAccount === user.id ? brand.tertiary['500-text'] : textColor }} />
                                                             {accounts.map((item, index) => {
-                                                                 return <SelectItem label={item.displayName} value={item.id} key={index} color={textColor} bgColor={activeAccount === item.id ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: activeAccount === item.id ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />;
+                                                                 return <SelectItem label={item.displayName} value={item.id} key={index} style={{ backgroundColor: activeAccount === item.id ? brand.tertiary[300] : 'transparent' }} textStyle={{ color: activeAccount === item.id ? brand.tertiary['500-text'] : textColor }} />;
                                                             })}
                                                        </SelectScrollView>
                                                   </SelectContent>
@@ -603,32 +556,29 @@ export const HoldPrompt = (props) => {
                                    </FormControl>
                               ) : null}
                          </ModalBody>
-                         <ModalFooter borderTopWidth="$1" borderTopColor={colorMode === 'light' ? '$warmGray300' : '$coolGray500'}>
+                         <ModalFooter>
                               <ButtonGroup space="sm">
                                    <Button
                                         variant="outline"
-                                        borderColor={colorMode === 'light' ? '$warmGray300' : '$coolGray500'}
+                                        style={{ borderColor: neutrals.border }}
                                         onPress={() => {
                                              setShowModal(false);
-                                             setLoading(false);
                                         }}>
-                                        <ButtonText color={colorMode === 'light' ? '$warmGray500' : '$coolGray300'}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
+                                        <ButtonText style={{ color: neutrals.textMain }}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                    </Button>
                                    {promptAlternateLibraryCard && !userHasAlternateLibraryCard ? (
                                         <Button
-                                             bgColor={theme.tokens.colors.primary['500']}
+                                             colorScheme="primary"
                                              onPress={() => {
                                                   setShowModal(false);
                                                   setShowAddAlternateLibraryCardModal(true);
                                              }}>
-                                             <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'next')}</ButtonText>
+                                             <ButtonText>{getTermFromDictionary(language, 'next')}</ButtonText>
                                         </Button>
                                    ) : (
                                         <Button
-                                             bgColor={theme.tokens.colors.primary['500']}
-                                             isDisabled={loading}
+                                             colorScheme="primary"
                                              onPress={async () => {
-                                                  setLoading(true);
                                                   await completeAction(id, action, activeAccount, '', '', location, sublocation, rememberPickupLocation, library.baseUrl, volumeId ?? volume, holdType, holdNotificationPreferences, item).then(async (result) => {
                                                        setResponse(result);
                                                        logDebugMessage('Completed Action Hold Prompt Alternate Library Card');
@@ -685,7 +635,6 @@ export const HoldPrompt = (props) => {
                                                                  setResponse(result);
                                                             }
 
-                                                            setLoading(false);
                                                             setShowModal(false);
                                                             if (result?.confirmationNeeded && result.confirmationNeeded) {
                                                                  setHoldConfirmationIsOpen(true);
@@ -703,7 +652,7 @@ export const HoldPrompt = (props) => {
                                                        }
                                                   });
                                              }}>
-                                             {loading ? <ButtonSpinner color={theme.tokens.colors.primary['500-text']} /> : <ButtonText color={theme.tokens.colors.primary['500-text']}>{title}</ButtonText>}
+                                            <ButtonText>{title}</ButtonText>
                                         </Button>
                                    )}
                               </ButtonGroup>

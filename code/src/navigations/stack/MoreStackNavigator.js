@@ -1,6 +1,6 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
-import { BackIcon } from '../../themes/theme';
+import { BackIcon } from '../../themes/ThemeSwitcher';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import TitleWithLogo from '../../components/TitleWithLogo';
 import { AllLocations } from '../../screens/Library/AllLocations';
@@ -23,6 +23,11 @@ import { useActiveLanguage } from '../../hooks/useLanguageData';
 
 const Stack = createNativeStackNavigator();
 
+/**
+ * MoreStackNavigator component that sets up a stack navigator for the "More" section of the app, including screens for locations, library, preferences, and permissions.
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 const MoreStackNavigator = () => {
      const language = useActiveLanguage();
      return (
@@ -42,7 +47,6 @@ const MoreStackNavigator = () => {
                               const title = getTermFromDictionary(language, 'nav_more');
                               return <TitleWithLogo title={title} hideBack={true} />;
                          },
-                         //title: getTermFromDictionary(language, 'nav_more')
                     }}
                />
                <Stack.Screen
@@ -53,7 +57,6 @@ const MoreStackNavigator = () => {
                               const title = getTermFromDictionary(language, 'locations');
                               return <TitleWithLogo title={title} />;
                          },
-                         //title: getTermFromDictionary(language, 'locations'),
                     })}
                />
                <Stack.Screen
@@ -64,7 +67,6 @@ const MoreStackNavigator = () => {
                               const title = route?.params?.title ?? getTermFromDictionary(language, 'location');
                               return <TitleWithLogo title={title} />;
                          },
-                         //title: route?.params?.title ?? getTermFromDictionary(language, 'location'),
                     })}
                />
                <Stack.Screen
@@ -75,7 +77,6 @@ const MoreStackNavigator = () => {
                               const title = route?.params?.title ?? getTermFromDictionary(language, 'my_library');
                               return <TitleWithLogo title={title} />;
                          },
-                         //title: route?.params?.title ?? getTermFromDictionary(language, 'my_library'),
                     })}
                />
                <Stack.Group>
@@ -87,7 +88,6 @@ const MoreStackNavigator = () => {
                                    const title = getTermFromDictionary(language, 'preferences');
                                    return <TitleWithLogo title={title} />;
                               },
-                              //title: getTermFromDictionary(language, 'preferences')
                          }}
                     />
                     <Stack.Screen
@@ -98,7 +98,6 @@ const MoreStackNavigator = () => {
                                    const title = getTermFromDictionary(language, 'manage_browse_categories');
                                    return <TitleWithLogo title={title} />;
                               },
-                              //title: getTermFromDictionary(language, 'manage_browse_categories')
                          }}
                     />
                     <Stack.Screen
@@ -119,7 +118,6 @@ const MoreStackNavigator = () => {
                                    const title = getTermFromDictionary(language, 'manage_language');
                                    return <TitleWithLogo title={title} />;
                               },
-                              //title: getTermFromDictionary(language, 'manage_browse_categories')
                          }}
                     />
                     <Stack.Screen
@@ -130,7 +128,6 @@ const MoreStackNavigator = () => {
                                    const title = getTermFromDictionary(language, 'manage_appearance');
                                    return <TitleWithLogo title={title} />;
                               },
-                              //title: getTermFromDictionary(language, 'manage_browse_categories')
                          }}
                     />
                     <Stack.Screen
@@ -142,7 +139,6 @@ const MoreStackNavigator = () => {
                                    return <TitleWithLogo title={title} />;
                               },
                               gestureEnabled: false,
-                              //title: getTermFromDictionary(language, 'support')
                          }}
                     />
                     <Stack.Screen
@@ -165,7 +161,6 @@ const MoreStackNavigator = () => {
                                    const title = getTermFromDictionary(language, 'device_permissions');
                                    return <TitleWithLogo title={title} />;
                               },
-                              //title: getTermFromDictionary(language, 'device_permissions')
                          }}
                     />
                     <Stack.Screen
@@ -176,7 +171,6 @@ const MoreStackNavigator = () => {
                                    const title = getTermFromDictionary(language, 'camera_permission');
                                    return <TitleWithLogo title={title} />;
                               },
-                              //title: getTermFromDictionary(language, 'camera_permission')
                          }}
                     />
                     <Stack.Screen
@@ -187,7 +181,6 @@ const MoreStackNavigator = () => {
                                    const title = getTermFromDictionary(language, 'calendar_permission');
                                    return <TitleWithLogo title={title} />;
                               },
-                              //title: getTermFromDictionary(language, 'calendar_permission')
                          }}
                     />
                     <Stack.Screen
@@ -198,7 +191,6 @@ const MoreStackNavigator = () => {
                                    const title = getTermFromDictionary(language, 'geolocation_permission');
                                    return <TitleWithLogo title={title} />;
                               },
-                              //title: getTermFromDictionary(language, 'geolocation_permission')
                          }}
                     />
                     <Stack.Screen
@@ -209,7 +201,6 @@ const MoreStackNavigator = () => {
                                    const title = getTermFromDictionary(language, 'notification_permission');
                                    return <TitleWithLogo title={title} />;
                               },
-                              //title: getTermFromDictionary(language, 'notification_permission')
                          }}
                     />
                     <Stack.Screen
@@ -220,7 +211,6 @@ const MoreStackNavigator = () => {
                                    const title = getTermFromDictionary(language, 'screen_brightness_permission');
                                    return <TitleWithLogo title={title} />;
                               },
-                              //title: getTermFromDictionary(language, 'screen_brightness_permission')
                          }}
                     />
                </Stack.Group>

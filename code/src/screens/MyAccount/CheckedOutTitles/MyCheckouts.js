@@ -1,63 +1,41 @@
-import { MaterialIcons } from '@expo/vector-icons';
+import { ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/ThemedMaterialIcons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useIsFetching, useQuery, useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
-import {
-     AlertDialog,
-     AlertDialogBackdrop,
-     AlertDialogContent,
-     AlertDialogHeader,
-     AlertDialogCloseButton,
-     AlertDialogBody,
-     AlertDialogFooter,
-     Box,
-     Button,
-     ButtonGroup,
-     ButtonText,
-     ButtonIcon,
-     Center,
-     CheckIcon,
-     FlatList,
-     FormControl,
-     HStack,
-     Icon,
-     ScrollView,
-     Select,
-     SelectTrigger,
-     SelectInput,
-     SelectIcon,
-     SelectPortal,
-     SelectBackdrop,
-     SelectContent,
-     SelectDragIndicatorWrapper,
-     SelectDragIndicator,
-     SelectItem,
-     SelectScrollView,
-     Text,
-     VStack,
-     CloseIcon,
-     Heading,
-     ChevronDownIcon
-} from '@gluestack-ui/themed';
 import React from 'react';
-import { Platform } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-// custom components and helper files
-import { loadingSpinner } from '../../../components/loadingSpinner';
-import { DisplaySystemMessage } from '../../../components/Notifications';
-import { CheckoutsContext, SystemMessagesContext } from '../../../context/initialContext';
-import { useUserState, useUpdateSortSettings, useUpdateUserProfile } from '../../../hooks/useUserData';
-import { getTermFromDictionary, getTranslationsWithValues } from '../../../translations/TranslationService';
-import { confirmRenewAllCheckouts, confirmRenewCheckout, renewAllCheckouts, getPatronCheckedOutItems, refreshProfile, setSortPreferences } from '../../../util/api/user';
-import { sortCheckouts } from '../../../util/api/userHelper';
-import { stripHTML } from '../../../helpers/helpers';
+import { FlatList } from 'react-native';
+import { ThemedAlertDialog as AlertDialog, ThemedAlertDialogBackdrop as AlertDialogBackdrop, ThemedAlertDialogBody as AlertDialogBody, ThemedAlertDialogCloseButton as AlertDialogCloseButton, ThemedAlertDialogFooter as AlertDialogFooter, ThemedAlertDialogHeader as AlertDialogHeader, ThemedAlertDialogContent as AlertDialogContent } from '@/src/components/themed/ThemedAlertDialog';
+import { Box } from '@/components/ui/box';
+import { screenContentContainerStyle } from '@/src/components/ScreenContainer';
+import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../../components/themed/ThemedButton';
+import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
+import { Center } from '@/components/ui/center';
+import { ThemedHeading as Heading } from '@/src/components/themed/ThemedHeading';
+import { HStack } from '@/components/ui/hstack';
+import { ThemedScrollView as ScrollView } from '@/src/components/themed/ThemedScrollView';
+import { ThemedSelect as Select, ThemedSelectBackdrop as SelectBackdrop, ThemedSelectContent as SelectContent, ThemedSelectDragIndicator as SelectDragIndicator, ThemedSelectDragIndicatorWrapper as SelectDragIndicatorWrapper, ThemedSelectInput as SelectInput, ThemedSelectItem as SelectItem, ThemedSelectPortal as SelectPortal, ThemedSelectScrollView as SelectScrollView, ThemedSelectTrigger as SelectTrigger } from '../../../components/themed/ThemedSelect';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
+import { VStack } from '@/components/ui/vstack';
+import { loadingSpinner } from '@/src/components/loadingSpinner';
+import { DisplaySystemMessage } from '@/src/components/Notifications';
+import { CheckoutsContext, SystemMessagesContext } from '@/src/context/initialContext';
+import { useUserState, useUpdateSortSettings, useUpdateUserProfile } from '@/src/hooks/useUserData';
+import { getTermFromDictionary, getTranslationsWithValues } from '@/src/translations/TranslationService';
+import { confirmRenewAllCheckouts, confirmRenewCheckout, renewAllCheckouts, getPatronCheckedOutItems, refreshProfile, setSortPreferences } from '@/src/util/api/user';
+import { sortCheckouts } from '@/src/util/api/userHelper';
+import { stripHTML } from '@/src/helpers/helpers';
 import { MyCheckout } from './MyCheckout';
-import { logDebugMessage, logErrorMessage, getErrorMessage } from '../../../util/logging';
-import { useActiveLanguage } from '../../../hooks/useLanguageData';
-import { useTheme } from '../../../themes/theme';
-import { useLibrary } from '../../../hooks/useLibrarySystemData';
+import { logDebugMessage, logErrorMessage, getErrorMessage } from '@/src/util/logging';
+import { useActiveLanguage } from '@/src/hooks/useLanguageData';
+import { useTheme } from '@/src/themes/theme';
+import { useLibrary } from '@/src/hooks/useLibrarySystemData';
+import { ThemedCloseIcon as CloseIcon, ThemedFormControl as FormControl } from '@/src/components/themed/ThemedFormControls';
 
+/**
+ * MyCheckouts component that displays the user's checked out items. It allows users to filter checkouts by source, sort them by various criteria, and renew all checkouts. The component fetches the user's checkouts from the API and updates the state accordingly. It also handles displaying system messages and managing the loading state.
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const MyCheckouts = () => {
      const isFetchingCheckouts = useIsFetching({ queryKey: ['checkouts'] });
      const queryClient = useQueryClient();
@@ -76,14 +54,15 @@ export const MyCheckouts = () => {
      const [renewAll, setRenewAll] = React.useState(false);
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
      const [filterByLibby, setFilterByLibby] = React.useState(false);
-     const insets = useSafeAreaInsets();
 
      const [renewConfirmationIsOpen, setRenewConfirmationIsOpen] = React.useState(false);
      const onRenewConfirmationClose = () => setRenewConfirmationIsOpen(false);
      const renewConfirmationRef = React.useRef(null);
      const [renewConfirmationResponse, setRenewConfirmationResponse] = React.useState('');
      const [confirmingRenewal, setConfirmingRenewal] = React.useState(false);
-     const { theme, textColor, colorMode } = useTheme();
+     const { brand, textColor, neutrals } = useTheme();
+     const panelBg = neutrals.surface;
+     const borderColor = neutrals.border;
 
      const [checkoutsBy, setCheckoutBy] = React.useState({
           ils: 'Checked Out Titles for Physical Materials',
@@ -276,8 +255,8 @@ export const MyCheckouts = () => {
 
      const noCheckouts = () => {
           return (
-               <Center mt="$5" mb="$5">
-                    <Text bold fontSize="$lg" color={textColor}>
+               <Center className="mt-5 mb-5">
+                   <Text bold size="lg">
                          {getTermFromDictionary(language, 'no_checkouts')}
                     </Text>
                </Center>
@@ -408,13 +387,13 @@ export const MyCheckouts = () => {
           if (numCheckedOut > 0) {
                return (
                     <VStack space="sm">
-                         <HStack space="sm">
+                         <HStack space="sm" className="items-center">
                               <Button
                                    isLoading={renewAll}
                                    isLoadingText={getTermFromDictionary(language, 'renewing_all', true)}
                                    isDisabled={renewAll}
                                    size="sm"
-                                   bgColor={theme.tokens.colors.primary['500']}
+                                   colorScheme="primary"
                                    onPress={() => {
                                         if (renewAll) return;
                                         setRenewAll(true);
@@ -426,7 +405,8 @@ export const MyCheckouts = () => {
                                                        confirmRenewalFee: result.confirmRenewalFee ?? false,
                                                        recordId: record ?? null,
                                                        action: result.api.action,
-                                                       renewType: 'all' });
+                                                       renewType: 'all',
+                                                  });
                                              }
 
                                              if (result?.confirmRenewalFee && result.confirmRenewalFee) {
@@ -438,109 +418,84 @@ export const MyCheckouts = () => {
                                              setRenewAll(false);
                                         });
                                    }}>
-                                   {!renewAll && <ButtonIcon color={theme.tokens.colors.primary['500-text']} as={MaterialIcons} name="autorenew" />}
-                                   <ButtonText color={theme.tokens.colors.primary['500-text']}>
-                                        {renewAll ? getTermFromDictionary(language, 'renewing_all', true) : getTermFromDictionary(language, 'checkout_renew_all')}
-                                   </ButtonText>
+                                   {!renewAll && <MaterialIcons name="autorenew" size={18} color={brand.primary['500-text']} className="mr-1" />}
+                                   <ButtonText>{renewAll ? getTermFromDictionary(language, 'renewing_all', true) : getTermFromDictionary(language, 'checkout_renew_all')}</ButtonText>
                               </Button>
                               <Button
-                                   borderColor={colorMode === 'light' ? "$coolGray700" : "$warmGray100"}
+                                   style={{ borderColor }}
                                    size="sm"
                                    variant="outline"
                                    onPress={() => {
                                         setLoading(true);
                                         reloadCheckouts();
                                    }}>
-                                   <ButtonText color={colorMode === 'light' ? "$coolGray600" : "$warmGray50"}>{getTermFromDictionary(language, 'checkouts_reload')}</ButtonText>
+                                   <ButtonText style={{ color: textColor }}>{getTermFromDictionary(language, 'checkouts_reload')}</ButtonText>
                               </Button>
-                              <FormControl w={checkoutsSourceLabelLength}>
-                                   <Select
-                                        name="checkoutSource"
-                                        selectedValue={checkoutSource}
-                                        defaultValue={checkoutSource}
-                                        accessibilityLabel={getTermFromDictionary(language, 'filter_by_source_label')}
-                                        onValueChange={(itemValue) => toggleCheckoutSource(itemValue)}>
-                                        <SelectTrigger variant="outline" size="sm">
-                                             <SelectInput py={0} color={textColor} value={checkoutSourceSelectLabel()} />
-                                             <SelectIcon mr="$3">
-                                                  <Icon color={textColor} as={ChevronDownIcon} />
-                                             </SelectIcon>
+                              <Box style={{ width: checkoutsSourceLabelLength }}>
+                                   <Select name="checkoutSource" selectedValue={checkoutSource} defaultValue={checkoutSource} accessibilityLabel={getTermFromDictionary(language, 'filter_by_source_label')} onValueChange={(itemValue) => toggleCheckoutSource(itemValue)}>
+                                        <SelectTrigger size="sm">
+                                             <SelectInput value={checkoutSourceSelectLabel()} />
                                         </SelectTrigger>
                                         <SelectPortal>
                                              <SelectBackdrop />
-                                             <SelectContent
-                                                  bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}
-                                                  pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
-                                             >
+                                             <SelectContent>
                                                   <SelectDragIndicatorWrapper>
                                                        <SelectDragIndicator />
                                                   </SelectDragIndicatorWrapper>
                                                   <SelectScrollView>
-                                                       <SelectItem label={getTermFromDictionary(language, 'filter_by_all') + ' (' + (user.numCheckedOut ?? 0) + ')'} value="all" key={0} bgColor={checkoutSource == "all" ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: checkoutSource == "all" ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />
-                                                       <SelectItem label={getTermFromDictionary(language, 'filter_by_ils') + ' (' + (user.numCheckedOutIls ?? 0) + ')'} value="ils" key={1} bgColor={checkoutSource == "ils" ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: checkoutSource == "ils" ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />
-                                                       {user.isValidForOverdrive ? <SelectItem label={filterByLibby + ' (' + (user.numCheckedOutOverDrive ?? 0) + ')'} value="overdrive" key={2}  bgColor={checkoutSource == "overdrive" ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: checkoutSource == "overdrive" ? theme.tokens.colors.tertiary['500-text'] : textColor } }}/> : null}
-                                                       {user.isValidForHoopla ? <SelectItem label={getTermFromDictionary(language, 'filter_by_hoopla') + ' (' + (user.numCheckedOut_Hoopla ?? 0) + ')'} value="hoopla" key={3}  bgColor={checkoutSource == "hoopla" ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: checkoutSource == "hoopla" ? theme.tokens.colors.tertiary['500-text'] : textColor } }}/> : null}
-                                                       {user.isValidForCloudLibrary ? <SelectItem label={getTermFromDictionary(language, 'filter_by_cloud_library') + ' (' + (user.numCheckedOut_cloudLibrary ?? 0) + ')'} value="cloud_library" key={4}  bgColor={checkoutSource == "cloud_library" ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: checkoutSource == "cloud_library" ? theme.tokens.colors.tertiary['500-text'] : textColor } }} /> : null}
-                                                       {user.isValidForAxis360 ? <SelectItem label={getTermFromDictionary(language, 'filter_by_boundless') + ' (' + (user.numCheckedOut_axis360 ?? 0) + ')'} value="axis360" key={5} bgColor={checkoutSource == "axis360" ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: checkoutSource == "axis360" ? theme.tokens.colors.tertiary['500-text'] : textColor } }} /> : null}
-                                                       {user.isValidForPalaceProject ? <SelectItem label={getTermFromDictionary(language, 'filter_by_palace_project') + ' (' + (user.numCheckedOut_PalaceProject ?? 0) + ')'} value="palace_project" key={6}  bgColor={checkoutSource == "palace_project" ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: checkoutSource == "palace_project" ? theme.tokens.colors.tertiary['500-text'] : textColor } }} /> : null}
+                                                       <SelectItem label={getTermFromDictionary(language, 'filter_by_all') + ' (' + (user.numCheckedOut ?? 0) + ')'} value="all" key={0} selectedValue={checkoutSource} />
+                                                       <SelectItem label={getTermFromDictionary(language, 'filter_by_ils') + ' (' + (user.numCheckedOutIls ?? 0) + ')'} value="ils" key={1} selectedValue={checkoutSource} />
+                                                       {user.isValidForOverdrive ? <SelectItem label={filterByLibby + ' (' + (user.numCheckedOutOverDrive ?? 0) + ')'} value="overdrive" key={2} selectedValue={checkoutSource} /> : null}
+                                                       {user.isValidForHoopla ? <SelectItem label={getTermFromDictionary(language, 'filter_by_hoopla') + ' (' + (user.numCheckedOut_Hoopla ?? 0) + ')'} value="hoopla" key={3} selectedValue={checkoutSource} /> : null}
+                                                       {user.isValidForCloudLibrary ? <SelectItem label={getTermFromDictionary(language, 'filter_by_cloud_library') + ' (' + (user.numCheckedOut_cloudLibrary ?? 0) + ')'} value="cloud_library" key={4} selectedValue={checkoutSource} /> : null}
+                                                       {user.isValidForAxis360 ? <SelectItem label={getTermFromDictionary(language, 'filter_by_boundless') + ' (' + (user.numCheckedOut_axis360 ?? 0) + ')'} value="axis360" key={5} selectedValue={checkoutSource} /> : null}
+                                                       {user.isValidForPalaceProject ? <SelectItem label={getTermFromDictionary(language, 'filter_by_palace_project') + ' (' + (user.numCheckedOut_PalaceProject ?? 0) + ')'} value="palace_project" key={6} selectedValue={checkoutSource} /> : null}
                                                   </SelectScrollView>
                                              </SelectContent>
                                         </SelectPortal>
                                    </Select>
-                              </FormControl>
+                              </Box>
                          </HStack>
-                         <HStack space="$2">
-                              <FormControl w={sortLength}>
-                                   <Select
-                                        name="sortBy"
-                                        selectedValue={userCheckoutSortMethod}
-                                        defaultValue={userCheckoutSortMethod}
-                                        accessibilityLabel={getTermFromDictionary(language, 'select_sort_method')}
-                                        onValueChange={(itemValue) => toggleSort(itemValue)}>
-                                        <SelectTrigger variant="outline" size="sm">
-                                             <SelectInput py={0} color={textColor} value={checkoutSortLabel()} />
-                                             <SelectIcon mr="$3">
-                                                  <Icon color={textColor} as={ChevronDownIcon} />
-                                             </SelectIcon>
+                         <HStack space="sm">
+                              <Box style={{ width: sortLength }}>
+                                   <Select name="sortBy" selectedValue={userCheckoutSortMethod} defaultValue={userCheckoutSortMethod} accessibilityLabel={getTermFromDictionary(language, 'select_sort_method')} onValueChange={(itemValue) => toggleSort(itemValue)}>
+                                        <SelectTrigger size="sm">
+                                             <SelectInput value={checkoutSortLabel()} />
                                         </SelectTrigger>
                                         <SelectPortal>
                                              <SelectBackdrop />
-                                             <SelectContent
-                                                  bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}
-                                                  pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
-                                             >
+                                             <SelectContent>
                                                   <SelectDragIndicatorWrapper>
                                                        <SelectDragIndicator />
                                                   </SelectDragIndicatorWrapper>
                                                   <SelectScrollView>
-                                                       <SelectItem label={sortBy.title} value="sortTitle" key={0} bgColor={userCheckoutSortMethod == "sortTitle" ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: userCheckoutSortMethod == "sortTitle" ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />
-                                                       <SelectItem label={sortBy.author} value="author" key={1} bgColor={userCheckoutSortMethod == "author" ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: userCheckoutSortMethod == "author" ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />
-                                                       <SelectItem label={sortBy.due_asc} value="dueAsc" key={2} bgColor={userCheckoutSortMethod == "dueAsc" ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: userCheckoutSortMethod == "dueAsc" ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />
-                                                       <SelectItem label={sortBy.due_desc} value="dueDesc" key={3} bgColor={userCheckoutSortMethod == "dueDesc" ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: userCheckoutSortMethod == "dueDesc" ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />
-                                                       <SelectItem label={sortBy.format} value="format" key={4} bgColor={userCheckoutSortMethod == "format" ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: userCheckoutSortMethod == "format" ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />
-                                                       <SelectItem label={sortBy.library_account} value="libraryAccount" key={5} bgColor={userCheckoutSortMethod == "libraryAccount" ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: userCheckoutSortMethod == "libraryAccount" ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />
-                                                       <SelectItem label={sortBy.times_renewed} value="timesRenewed" key={6} bgColor={userCheckoutSortMethod == "timesRenewed" ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: userCheckoutSortMethod == "timesRenewed" ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />
+                                                       <SelectItem label={sortBy.title} value="sortTitle" key={0} selectedValue={userCheckoutSortMethod} />
+                                                       <SelectItem label={sortBy.author} value="author" key={1} selectedValue={userCheckoutSortMethod} />
+                                                       <SelectItem label={sortBy.due_asc} value="dueAsc" key={2} selectedValue={userCheckoutSortMethod} />
+                                                       <SelectItem label={sortBy.due_desc} value="dueDesc" key={3} selectedValue={userCheckoutSortMethod} />
+                                                       <SelectItem label={sortBy.format} value="format" key={4} selectedValue={userCheckoutSortMethod} />
+                                                       <SelectItem label={sortBy.library_account} value="libraryAccount" key={5} selectedValue={userCheckoutSortMethod} />
+                                                       <SelectItem label={sortBy.times_renewed} value="timesRenewed" key={6} selectedValue={userCheckoutSortMethod} />
                                                   </SelectScrollView>
                                              </SelectContent>
                                         </SelectPortal>
                                    </Select>
-                              </FormControl>
+                              </Box>
                          </HStack>
                     </VStack>
                );
           } else {
                return (
-                    <HStack space="$2">
-                         <Button
-                              m="$2"
-                              borderColor={theme.tokens.colors.primary['500']}
+                    <HStack space="sm">
+                         <Button colorScheme="primary"
+                              className="m-2"
                               size="sm"
                               variant="outline"
                               onPress={() => {
                                    setLoading(true);
                                    reloadCheckouts();
                               }}>
-                              <ButtonText color={theme.tokens.colors.primary['500']}>{getTermFromDictionary(language, 'checkouts_reload')}</ButtonText>
+                              <ButtonText>{getTermFromDictionary(language, 'checkouts_reload')}</ButtonText>
                          </Button>
                     </HStack>
                );
@@ -567,8 +522,8 @@ export const MyCheckouts = () => {
      }
 
      return (
-          <Box flex={1}>
-               <Box p="$2" bgColor="coolGray.100" borderBottomWidth="$1" borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"} flexWrap="nowrap">
+          <>
+               <Box style={{ backgroundColor: panelBg, borderBottomWidth: 1, borderColor, flexWrap: 'nowrap' }} className="px-2 py-2">
                     {showSystemMessage()}
                     <ScrollView horizontal>{actionButtons()}</ScrollView>
                </Box>
@@ -577,18 +532,21 @@ export const MyCheckouts = () => {
                          <AlertDialogBackdrop />
                          <AlertDialogContent>
                               <AlertDialogHeader>
-                                   <Heading size="$md">{renewConfirmationResponse?.title ? renewConfirmationResponse.title : 'Unknown Error'}</Heading>
+                                   {/* TODO(translation): Replace hardcoded fallback title with TranslationService-backed key. */}
+                                   <Heading>{renewConfirmationResponse?.title ? renewConfirmationResponse.title : 'Unknown Error'}</Heading>
                                    <AlertDialogCloseButton>
-                                        <Icon as={CloseIcon} />
+                                        <CloseIcon />
                                    </AlertDialogCloseButton>
                               </AlertDialogHeader>
+                              {/* TODO(translation): Replace hardcoded fallback error body with TranslationService-backed key. */}
                               <AlertDialogBody><Text>{renewConfirmationResponse?.message ? decodeMessage(renewConfirmationResponse.message) : 'Unable to renew checkout for unknown error. Please contact the library.'}</Text></AlertDialogBody>
                               <AlertDialogFooter>
                                    <ButtonGroup space="md">
-                                        <Button variant="outline" borderColor={theme.tokens.colors.primary['500']} onPress={() => setRenewConfirmationIsOpen(false)}>
-                                             <ButtonText color={theme.tokens.colors.primary['500']}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
+                                        <Button colorScheme="primary" variant="outline" onPress={() => setRenewConfirmationIsOpen(false)}>
+                                             <ButtonText>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                         </Button>
                                         <Button
+                                             colorScheme="primary"
                                              isLoading={confirmingRenewal}
                                              isLoadingText={getTermFromDictionary(language, 'renewing', true)}
                                              onPress={async () => {
@@ -629,9 +587,9 @@ export const MyCheckouts = () => {
                          />
                     }
                     keyExtractor={(item, index) => index.toString()}
-                    contentContainerStyle={{ paddingBottom: 30 }}
+                    contentContainerStyle={{ paddingBottom: 30, ...screenContentContainerStyle }}
 
                />
-          </Box>
+          </>
      );
 };

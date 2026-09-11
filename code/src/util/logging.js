@@ -10,6 +10,11 @@ import * as Sentry from '@sentry/react-native';
  * 3 -> Warning and higher
  * 4 -> Error and higher
  */
+
+/**
+ * Does logging of messages to console.log depending on the value of logLevel within the app config.
+ * @param message
+ */
 export function logDebugMessage(message) {
      if (__DEV__) {
           if (GLOBALS.logLevel === 1) {
@@ -18,6 +23,10 @@ export function logDebugMessage(message) {
      }
 }
 
+/**
+ * Does logging of messages to console.log depending on the value of logLevel within the app config.
+ * @param message
+ */
 export function logInfoMessage(message) {
      if (__DEV__) {
           if (GLOBALS.logLevel === 1 || GLOBALS.logLevel === 2) {
@@ -26,6 +35,10 @@ export function logInfoMessage(message) {
      }
 }
 
+/**
+ * Does logging of messages to console.log depending on the value of logLevel within the app config.
+ * @param message
+ */
 export function logWarnMessage(message) {
      if (__DEV__) {
           if (GLOBALS.logLevel >= 1 && GLOBALS.logLevel <=3) {
@@ -36,6 +49,10 @@ export function logWarnMessage(message) {
      }
 }
 
+/**
+ * Does logging of messages to console.log depending on the value of logLevel within the app config.
+ * @param message
+ */
 export function logErrorMessage(message) {
      if (__DEV__) {
           if (GLOBALS.logLevel >= 1 && GLOBALS.logLevel <=4) {
@@ -46,6 +63,11 @@ export function logErrorMessage(message) {
      }
 }
 
+/**
+ * Does logging of messages to console.log depending on the value of logLevel within the app config.
+ * @param type
+ * @param message
+ */
 function logMessage(type, message) {
      if (message instanceof Error) {
           const errorLog = {
@@ -65,6 +87,11 @@ function logMessage(type, message) {
      }
 }
 
+/**
+ * Does logging of messages to Sentry depending on the value of logLevel within the app config.
+ * @param message
+ * @param level
+ */
 export function logSentryMessage(message, level = 'error') {
      if (!__DEV__) {
           Sentry.captureMessage(
@@ -76,6 +103,13 @@ export function logSentryMessage(message, level = 'error') {
      }
 }
 
+/**
+ * Returns an error message object based on the provided arguments. The function can handle both object and non-object arguments, extracting relevant information to construct a user-friendly error message. It also sends the error details to Sentry for monitoring and debugging purposes.
+ * @param arg1
+ * @param arg2
+ * @param arg3
+ * @returns {{title: string, message: string, code: string}|{title: string, message: string, code: string}|{title: string, message: string, code: string}|{title: string, message: string, code: string|*}|{title: string, message: string, code: number}|{title: string, message: string, code: number}|{title: string, message: string, code: number}|{title: string, message: string, code: number}|{title: string, message: string, code: number}|{title: string, message: string, code: number}|{title: string, message: string, code: number}|{title: string, message: string, code: number}|{title: string, message: string, code: number}|{title: string, message: string, code: number}|{title: string, message: string, code: number}|{title: string, message: string, code: number}|{title: string, message: string, code: number}|{title: string, message: string, code: number}|{title: string, message: string, code: number}|{title: string, message: string, code: number}|{title: string, message: string, code: number}|{title: string, message: string, code: number}|{title: string, message: string, code: number}}
+ */
 export function getErrorMessage(arg1, arg2, arg3 = false) {
      const isObjectArg = arg1 !== null && typeof arg1 === 'object' && !Array.isArray(arg1);
      const statusCode = isObjectArg ? (arg1.statusCode ?? null) : (arg1 ?? null);

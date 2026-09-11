@@ -127,7 +127,9 @@ export async function createListFromTitle(title, description, access, items, url
           }
 
           const status = result?.success ? 'success' : 'danger';
+          // TODO(api-translation): For response.ok, API should return localized alert title values.
           const alertTitle = result?.success ? 'Success' : 'Error';
+          // TODO(api-translation): For response.ok, API should return localized alert message text.
           const alertMessage = result?.numAdded ? `${result.numAdded} added to ${title}` : `Title added to ${title}`;
 
           popAlert(alertTitle, alertMessage, status);
@@ -189,8 +191,10 @@ export async function addTitlesToList(id, itemId, url = null, source = 'GroupedW
           const result = response.data?.result;
 
           if (result?.success) {
+               // TODO(api-translation): For response.ok, API should return localized success message text.
                popAlert(getTermFromDictionary(language, 'added_successfully'), `${result.numAdded} added to list`, 'success');
           } else {
+               // TODO(api-translation): For response.ok, API should return localized error message text.
                popAlert(getTermFromDictionary(language, 'error'), 'Unable to add item to list', 'error');
           }
 

@@ -1,12 +1,7 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { ChevronLeftIcon, CloseIcon, Pressable } from '@gluestack-ui/themed';
 import React from 'react';
 import { PalaceProjectInstructions } from '../../components/Action/CheckOut/PalaceProjectInstructions';
 import { EventScreen } from '../../screens/Event/Event';
-import { CreateLocalIllRequest } from '../../screens/GroupedWork/CreateLocalIllRequest';
-import { CreateLocalIllRequestEmail } from '../../screens/GroupedWork/CreateLocalIllRequestEmail';
-import { Editions } from '../../screens/GroupedWork/Editions';
-
 import { GroupedWorkScreen } from '../../screens/GroupedWork/GroupedWork';
 import { WhereIsIt } from '../../screens/GroupedWork/WhereIsIt';
 import { MyCheckouts } from '../../screens/MyAccount/CheckedOutTitles/MyCheckouts';
@@ -25,7 +20,8 @@ import { MyLinkedAccounts } from '../../screens/MyAccount/LinkedAccounts/LinkedA
 import { Settings_NotificationOptions } from '../../screens/MyAccount/Settings/NotificationOptions';
 import { PreferencesScreen } from '../../screens/MyAccount/Settings/Preferences';
 import { MyHolds } from '../../screens/MyAccount/TitlesOnHold/MyHolds';
-import { BackIcon, useTheme } from '../../themes/theme';
+import { useTheme } from '../../themes/theme';
+import { BackIcon } from '../../themes/ThemeSwitcher';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { EditionsModal } from './BrowseStackNavigator';
 import { MyCampaigns } from '../../screens/MyAccount/Campaigns/Campaigns';
@@ -36,9 +32,13 @@ import { ModalHeader } from '../../components/Headers/ModalHeader';
 
 const Stack = createNativeStackNavigator();
 
+/**
+ * AccountStackNavigator component for managing the navigation stack related to user account features.
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 const AccountStackNavigator = () => {
      const language = useActiveLanguage();
-     const { theme, textColor } = useTheme();
      return (
           <Stack.Navigator
                initialRouteName="MyPreferences"
@@ -57,7 +57,6 @@ const AccountStackNavigator = () => {
                                    const title = getTermFromDictionary(language, 'preferences');
                                    return <TitleWithLogo title={title} hideBack={true} />;
                               },
-                              //title: getTermFromDictionary(language, 'preferences')
                          }}
                     />
                     <Stack.Screen
@@ -68,7 +67,6 @@ const AccountStackNavigator = () => {
                                    const title = getTermFromDictionary(language, 'manage_browse_categories');
                                    return <TitleWithLogo title={title} hideBack={true} />;
                               },
-                              //title: getTermFromDictionary(language, 'manage_browse_categories')
                          }}
                     />
                     <Stack.Screen
@@ -79,7 +77,6 @@ const AccountStackNavigator = () => {
                                    const title = getTermFromDictionary(language, 'notification_settings');
                                    return <TitleWithLogo title={title} hideBack={true} />;
                               },
-                              //title: getTermFromDictionary(language, 'notification_settings')
                          }}
                     />
                </Stack.Group>
@@ -92,7 +89,6 @@ const AccountStackNavigator = () => {
                                    const title = getTermFromDictionary(language, 'contact_information');
                                    return <TitleWithLogo title={title} hideBack={true} />;
                               },
-                              //title: getTermFromDictionary(language, 'contact_information')
                          }}
                     />
                </Stack.Group>
@@ -105,7 +101,6 @@ const AccountStackNavigator = () => {
                                    const title = getTermFromDictionary(language, 'linked_accounts');
                                    return <TitleWithLogo title={title} hideBack={true} />;
                               },
-                              //title: getTermFromDictionary(language, 'linked_accounts')
                          }}
                     />
                </Stack.Group>
@@ -129,7 +124,6 @@ const AccountStackNavigator = () => {
                                    const title = route.params.title ?? getTermFromDictionary(language, 'item_details');
                                    return <TitleWithLogo title={title} />;
                               },
-                              //title: route.params.title ?? getTermFromDictionary(language, 'item_details'),
                          })}
                          initialParams={{ prevRoute: 'MyHolds' }}
                     />
@@ -143,7 +137,6 @@ const AccountStackNavigator = () => {
                                    const title = getTermFromDictionary(language, 'checked_out_titles');
                                    return <TitleWithLogo title={title} hideBack={true} />;
                               },
-                              //title: getTermFromDictionary(language, 'checked_out_titles'),
                          }}
                     />
                     <Stack.Screen
@@ -154,7 +147,6 @@ const AccountStackNavigator = () => {
                                    const title = route.params.title ?? getTermFromDictionary(language, 'item_details');
                                    return <TitleWithLogo title={title} />;
                               },
-                              //title: route.params.title ?? getTermFromDictionary(language, 'item_details'),
                          })}
                          initialParams={{ prevRoute: 'MyCheckouts' }}
                     />
@@ -189,7 +181,6 @@ const AccountStackNavigator = () => {
                                    const title = getTermFromDictionary(language, 'lists');
                                    return <TitleWithLogo title={title} hideBack={true} />;
                               },
-                              //title: getTermFromDictionary(language, 'lists'),
                          }}
                     />
                     <Stack.Screen
@@ -211,7 +202,6 @@ const AccountStackNavigator = () => {
                                    const title = route.params.title ?? getTermFromDictionary(language, 'item_details');
                                    return <TitleWithLogo title={title} />;
                               },
-                              //title: route.params.title ?? getTermFromDictionary(language, 'item_details'),
                          })}
                          initialParams={{ prevRoute: 'MyList' }}
                     />
@@ -223,7 +213,6 @@ const AccountStackNavigator = () => {
                                    const title = route.params.title ?? getTermFromDictionary(language, 'item_details');
                                    return <TitleWithLogo title={title} />;
                               },
-                              //title: route.params.title ?? getTermFromDictionary(language, 'event_details'),
                          })}
                          initialParams={{ prevRoute: 'MyList' }}
                     />
@@ -237,7 +226,6 @@ const AccountStackNavigator = () => {
                                    const title = getTermFromDictionary(language, 'saved_searches');
                                    return <TitleWithLogo title={title} />;
                               },
-                              //title: getTermFromDictionary(language, 'saved_searches'),
                          }}
                     />
                     <Stack.Screen
@@ -248,7 +236,6 @@ const AccountStackNavigator = () => {
                                    const title = route.params.title;
                                    return <TitleWithLogo title={title} />;
                               },
-                              //title: getTermFromDictionary(language, 'saved_searches'),
                          })}
                          initialParams={{ prevRoute: 'MySavedSearches' }}
                     />
@@ -260,7 +247,6 @@ const AccountStackNavigator = () => {
                                    const title = route.params.title ?? getTermFromDictionary(language, 'item_details');
                                    return <TitleWithLogo title={title} />;
                               },
-                              //title: route.params.title ?? getTermFromDictionary(language, 'item_details'),
                          })}
                          initialParams={{ prevRoute: 'MySavedSearch' }}
                     />
@@ -416,9 +402,13 @@ const AccountStackNavigator = () => {
 };
 
 const PalaceProjectStack = createNativeStackNavigator();
+/**
+ * PalaceProjectInstructionsModal component for displaying the Palace Project instructions in a modal.
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const PalaceProjectInstructionsModal = () => {
      const language = useActiveLanguage();
-     const {textColor} = useTheme();
      return (
           <PalaceProjectStack.Navigator
                id="PalaceProjectStack"
@@ -454,9 +444,14 @@ export const PalaceProjectInstructionsModal = () => {
 };
 
 const MyNotificationHistoryMessageStack = createNativeStackNavigator();
+/**
+ * MyNotificationHistoryMessageModal component for displaying the notification history message in a modal.
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const MyNotificationHistoryMessageModal = () => {
      const language = useActiveLanguage();
-     const { theme } = useTheme();
+     const { brand } = useTheme();
      return (
           <MyNotificationHistoryMessageStack.Navigator
                id="MyNotificationHistoryMessageStack"
@@ -473,9 +468,9 @@ export const MyNotificationHistoryMessageModal = () => {
                          headerShown: true,
                          presentation: 'card',
                          headerStyle: {
-                              backgroundColor: theme['tokens']['colors']['primary']['500'],
+                              backgroundColor: brand.primary[500],
                          },
-                         headerTintColor: theme['tokens']['colors']['primary']['500-text'],
+                         headerTintColor: brand.primary['500-text'],
                     }}
                />
           </MyNotificationHistoryMessageStack.Navigator>

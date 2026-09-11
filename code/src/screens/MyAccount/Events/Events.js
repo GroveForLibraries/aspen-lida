@@ -1,31 +1,46 @@
-import { MaterialIcons } from '@expo/vector-icons';
+import { ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/ThemedMaterialIcons';
 import { useNavigation } from '@react-navigation/native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import * as WebBrowser from 'expo-web-browser';
 import _ from 'lodash';
 import moment from 'moment';
-import { Badge, BadgeText, Box, Button, ButtonText, ButtonGroup, ButtonIcon, Center, FlatList, HStack, Pressable, ScrollView, Text, useToken, VStack } from '@gluestack-ui/themed';
-import { useColorModeValue, useTheme } from '../../../themes/theme';
 import React from 'react';
-import { loadError } from '../../../components/loadError';
-import { popAlert, popToast } from '../../../components/feedback';
-
-import { loadingSpinner } from '../../../components/loadingSpinner';
-import { DisplaySystemMessage } from '../../../components/Notifications';
-import { SystemMessagesContext } from '../../../context/initialContext';
-import { useUserState, useSavedEvents, useUpdateSavedEvents, useUpdateUserProfile } from '../../../hooks/useUserData';
-import { getCleanTitle } from '../../../helpers/item';
-import { navigate } from '../../../helpers/RootNavigator';
-import { getTermFromDictionary } from '../../../translations/TranslationService';
-import { fetchSavedEvents, removeSavedEvent } from '../../../util/api/event';
-import { refreshProfile } from '../../../util/api/user';
-import {logDebugMessage, logErrorMessage, getErrorMessage, logWarnMessage} from '../../../util/logging';
-import { useActiveLanguage } from '../../../hooks/useLanguageData';
-import { useLibrary } from '../../../hooks/useLibrarySystemData';
+import { FlatList } from 'react-native';
+import { ThemedBadge as Badge, ThemedBadgeText as BadgeText } from '@/src/components/themed/ThemedBadge';
+import { Box } from '@/components/ui/box';
+import { ScreenContainer, screenContentContainerStyle } from '@/src/components/ScreenContainer';
+import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../../components/themed/ThemedButton';
+import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
+import { Center } from '@/components/ui/center';
+import { HStack } from '@/components/ui/hstack';
+import { Pressable } from '@/components/ui/pressable';
+import { ThemedScrollView as ScrollView } from '@/src/components/themed/ThemedScrollView';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
+import { VStack } from '@/components/ui/vstack';
+import { useTheme } from '@/src/themes/theme';
+import { loadError } from '@/src/components/loadError';
+import { popAlert, popToast } from '@/src/components/feedback';
+import { loadingSpinner } from '@/src/components/loadingSpinner';
+import { DisplaySystemMessage } from '@/src/components/Notifications';
+import { SystemMessagesContext } from '@/src/context/initialContext';
+import { useUserState, useSavedEvents, useUpdateSavedEvents, useUpdateUserProfile } from '@/src/hooks/useUserData';
+import { getCleanTitle } from '@/src/helpers/item';
+import { navigate } from '@/src/helpers/RootNavigator';
+import { getTermFromDictionary } from '@/src/translations/TranslationService';
+import { fetchSavedEvents, removeSavedEvent } from '@/src/util/api/event';
+import { refreshProfile } from '@/src/util/api/user';
+import {logDebugMessage, logErrorMessage, getErrorMessage, logWarnMessage} from '@/src/util/logging';
+import { useActiveLanguage } from '@/src/hooks/useLanguageData';
+import { useLibrary } from '@/src/hooks/useLibrarySystemData';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
+/**
+ * MyEvents component that displays a list of saved events for the user. It allows users to filter events by upcoming, past, or all events, and provides pagination for navigating through the list. The component handles API calls to fetch saved events and remove events from the user's saved list. It also displays system messages and handles loading and error states.
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const MyEvents = () => {
      const navigation = useNavigation();
      const queryClient = useQueryClient();
@@ -38,9 +53,11 @@ export const MyEvents = () => {
      const { data: savedEvents } = useSavedEvents();
      const updateSavedEvents = useUpdateSavedEvents();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
-     const { theme, colorMode, textColor} = useTheme();
+     const { neutrals } = useTheme();
      const pageSize = 25;
      const systemMessagesForScreen = [];
+     const surfaceBg = neutrals.surface;
+     const borderColor = neutrals.border;
 
      const [filterBy, setFilterBy] = React.useState('upcoming');
      const [paginationLabel, setPaginationLabel] = React.useState('Page 1 of 1');
@@ -107,46 +124,40 @@ export const MyEvents = () => {
      const getActionButtons = () => {
           return (
                <Box
-                    alignItems="center"
-                    p="$2"
-                    borderBottomWidth="$1"
-                    bgColor={colorMode==='light'?"$coolGray100" : '$coolGray700'}
-                    borderColor={colorMode==='light'?"$coolGray200" : '$coolGray600'}
+                   className="px-2 py-2"
+                   style={{ alignItems: 'center', borderBottomWidth: 1, backgroundColor: surfaceBg, borderColor }}
                >
-                    <ButtonGroup alignItems="center" space="md" isAttached size="sm" pb="$1">
-                         <Button
-                              variant={filterBy === 'all' ? 'solid' : 'outline'}
-                              onPress={() => setFilterBy('all')}
-                              bgColor={filterBy === 'all' ?  theme.tokens.colors.primary['500'] : (colorMode === 'light' ? "$warmGray50" : "$coolGray900")}
-                              borderColor={theme.tokens.colors.primary['500']}
-                              action="primary">
-                              <ButtonText color={filterBy === 'all' ? theme.tokens.colors.primary['500-text'] : theme.tokens.colors.primary['500']}>{getTermFromDictionary(language, 'all_events')}</ButtonText>
-                         </Button>
-                         <Button
-                              variant={filterBy === 'upcoming' ? 'solid' : 'outline'}
-                              action="primary"
-                              bgColor={filterBy === 'upcoming' ?  theme.tokens.colors.primary['500'] : (colorMode === 'light' ? "$warmGray50" : "$coolGray900")}
-                              borderColor={theme.tokens.colors.primary['500']}
-                              onPress={() => setFilterBy('upcoming')}>
-                              <ButtonText color={filterBy === 'upcoming' ? theme.tokens.colors.primary['500-text'] : theme.tokens.colors.primary['500']}>{getTermFromDictionary(language, 'upcoming_events')}</ButtonText>
-                         </Button>
-                         <Button
-                              action="primary"
-                              variant={filterBy === 'past' ? 'solid' : 'outline'}
-                              bgColor={filterBy === 'past' ?  theme.tokens.colors.primary['500'] : (colorMode === 'light' ? "$warmGray50" : "$coolGray900")}
-                              borderColor={theme.tokens.colors.primary['500']}
-                              onPress={() => setFilterBy('past')}>
-                              <ButtonText color={filterBy === 'past' ? theme.tokens.colors.primary['500-text'] : theme.tokens.colors.primary['500']}>{getTermFromDictionary(language, 'past_events')}</ButtonText>
-                         </Button>
-                    </ButtonGroup>
+                   <ButtonGroup alignItems="center" space="md" isAttached size="sm" className="pb-1">
+                        <Button
+                             variant={filterBy === 'all' ? 'solid' : 'outline'}
+                             colorScheme="primary"
+                             onPress={() => setFilterBy('all')}
+                             style={{ backgroundColor: filterBy === 'all' ? undefined : surfaceBg }}>
+                             <ButtonText>{getTermFromDictionary(language, 'all_events')}</ButtonText>
+                        </Button>
+                        <Button
+                             variant={filterBy === 'upcoming' ? 'solid' : 'outline'}
+                             colorScheme="primary"
+                             onPress={() => setFilterBy('upcoming')}
+                             style={{ backgroundColor: filterBy === 'upcoming' ? undefined : surfaceBg }}>
+                             <ButtonText>{getTermFromDictionary(language, 'upcoming_events')}</ButtonText>
+                        </Button>
+                        <Button
+                             variant={filterBy === 'past' ? 'solid' : 'outline'}
+                             colorScheme="primary"
+                             onPress={() => setFilterBy('past')}
+                             style={{ backgroundColor: filterBy === 'past' ? undefined : surfaceBg }}>
+                             <ButtonText>{getTermFromDictionary(language, 'past_events')}</ButtonText>
+                        </Button>
+                   </ButtonGroup>
                </Box>
           );
      };
 
      const Empty = () => {
           return (
-               <Center mt={5} mb={5}>
-                    <Text bold fontSize="$lg" color={textColor}>
+               <Center className="mt-5 mb-5">
+                   <Text bold size="lg">
                          {filterBy === 'upcoming' ? getTermFromDictionary(language, 'no_events_upcoming') : filterBy === 'past' ? getTermFromDictionary(language, 'no_events_past') : getTermFromDictionary(language, 'no_events_all')}
                     </Text>
                </Center>
@@ -157,22 +168,15 @@ export const MyEvents = () => {
           if (savedEvents?.totalResults > 0) {
                return (
                     <Box
-                         p="$2"
-                         backgroundColor="$coolGray100"
-                         borderTopWidth="$1"
-                         _dark={{
-                              borderColor: '$coolGray600',
-                              backgroundColor: '$coolGray700' }}
-                         borderColor="$coolGray200"
-                         flexWrap="nowrap"
-                         alignItems="center">
+                         className="px-4 py-2"
+                         style={{ borderTopWidth: 1, borderColor, flexWrap: 'nowrap', alignItems: 'center' }}>
                          <ScrollView horizontal>
                               <ButtonGroup size="sm" space="md">
-                                   <Button onPress={() => setPage(page - 1)} isDisabled={page === 1} action="primary">
+                                   <Button onPress={() => setPage(page - 1)} isDisabled={page === 1} colorScheme="primary">
                                         <ButtonText>{getTermFromDictionary(language, 'previous')}</ButtonText>
                                    </Button>
                                    <Button
-                                        action="primary"
+                                        colorScheme="primary"
                                         onPress={() => {
                                              if (!isPreviousData && data?.hasMore) {
                                                   logDebugMessage('Adding to page');
@@ -184,7 +188,7 @@ export const MyEvents = () => {
                                    </Button>
                               </ButtonGroup>
                          </ScrollView>
-                         <Text mt="$2" fontSize="$sm" color={textColor}>
+                         <Text size="sm" className="mt-2">
                               {paginationLabel}
                          </Text>
                     </Box>
@@ -207,22 +211,29 @@ export const MyEvents = () => {
      const savedEventKeys = Object.keys(savedEvents ?? {});
 
      return (
-          <Box style={{ flex: 1 }}>
-               {_.size(systemMessagesForScreen) > 0 ? <Box safeArea={2}>{showSystemMessage()}</Box> : null}
+          <>
                {getActionButtons()}
-               {events.length === 0 || status === 'loading' || isFetching ? (
-                    loadingSpinner()
-               ) : status === 'error' ? (
-                    loadError('Error', '')
+               {events.length === 0 || status === 'loading' || isFetching || status === 'error' ? (
+                    <ScreenContainer>
+                         {_.size(systemMessagesForScreen) > 0 ? <Box className="p-2">{showSystemMessage()}</Box> : null}
+                         {status === 'error' ? loadError('Error', '') : loadingSpinner()}
+                    </ScreenContainer>
                ) : (
                     <>
-                         <FlatList data={savedEventKeys} ListEmptyComponent={Empty} ListFooterComponent={Paging} renderItem={({ item }) => <Item data={savedEvents[item]} filterBy={filterBy} setLoading={setLoading} />} keyExtractor={(item, index) => index.toString()} contentContainerStyle={{ paddingBottom: 30 }} />
+                         {_.size(systemMessagesForScreen) > 0 ? <Box className="p-2 px-4">{showSystemMessage()}</Box> : null}
+                         <FlatList data={savedEventKeys} ListEmptyComponent={Empty} ListFooterComponent={Paging} renderItem={({ item }) => <Item data={savedEvents[item]} filterBy={filterBy} setLoading={setLoading} />} keyExtractor={(item, index) => index.toString()} contentContainerStyle={{ paddingBottom: 30, ...screenContentContainerStyle }} />
                     </>
                )}
-          </Box>
+          </>
      );
 };
 
+/**
+ * Item component that represents a single event item in the list of saved events. It displays the event's cover image, title, date, time, and registration requirement. The component also provides functionality to open the event details or remove the event from the saved list. It handles API calls to remove the event and refresh the user's profile.
+ * @param data
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 const Item = (data) => {
      const filterBy = data.filterBy;
      const setLoading = data.setLoading;
@@ -233,10 +244,9 @@ const Item = (data) => {
      const updateUserProfile = useUpdateUserProfile();
      const language = useActiveLanguage();
      const library = useLibrary();
-     const {colorMode} = useTheme();
-
-     const backgroundColor = useToken('colors', useColorModeValue('warmGray.200', 'coolGray.900'));
-     const textColor = useToken('colors', useColorModeValue('gray.800', 'coolGray.200'));
+     const { textColor, neutrals } = useTheme();
+     const backgroundColor = neutrals.surface;
+     const borderColor = neutrals.border;
 
      const refreshAndSaveUserProfile = React.useCallback(async () => {
           const profileResponse = await refreshProfile(library.baseUrl);
@@ -372,14 +382,14 @@ const Item = (data) => {
      };
 
      return (
-          <Pressable borderBottomWidth="$1" _dark={{ borderColor: '$coolGray600' }} borderColor="$coolGray200" pl="$4" pr="$5" py="$2" onPress={openEvent}>
+         <Pressable className="py-2" style={{ borderBottomWidth: 1, borderColor }} onPress={openEvent}>
                <HStack space="md">
                     {event.cover ? (
-                         <VStack maxW="35%">
+                        <VStack className="max-w-[35%]">
                               {hasPassed ? (
-                                   <Box width="$full" zIndex={1}>
-                                        <Badge action="warning" variant="solid" mb="-$3" ml="-$1" borderRadius="$sm">
-                                             <BadgeText fontSize="$xs">
+                                   <Box style={{ width: '100%', zIndex: 1 }}>
+                                        <Badge colorScheme="warning" variant="solid" className="mb-[-12px] ml-[-4px] rounded-lg">
+                                             <BadgeText colorScheme="warning" size="xs">
                                                   {getTermFromDictionary(language, 'flag_past')}
                                              </BadgeText>
                                         </Badge>
@@ -388,60 +398,57 @@ const Item = (data) => {
                               <Image
                                    alt={event.title}
                                    source={coverUrl}
-                                   style={{
-                                        width: 100,
-                                        height: 150,
-                                        borderRadius: "$sm" }}
+                                   style={{ width: 100.0, height: 150.0, borderRadius: 8 }}
                                    placeholder={blurhash}
                                    transition={1000}
                                    contentFit="cover"
                               />
 
                               <Button size="sm" variant="ghost" action="negative" onPress={() => removeEvent()}>
-                                   <ButtonIcon as={MaterialIcons} name="delete" size="xs" mr="$1" />
+                                   <MaterialIcons name="delete" size={14} className="mr-1" />
                                    <ButtonText>{getTermFromDictionary(language, 'remove')}</ButtonText>
                               </Button>
                          </VStack>
                     ) : null}
 
-                    <VStack w={event.cover ? '65%' : '100%'}>
+                    <VStack style={{ width: event.cover ? '65%' : '100%' }}>
                          <Text
-                              color={colorMode==='light'?"$coolGray800" : "$warmGray50"}
-                              fontWeight="$bold"
-                              fontSize="$md">
+                              bold
+                              size="md"
+                             >
                               {event.title}
                          </Text>
                          {event.startDate && event.endDate ? (
                               <>
-                                   <Text color={colorMode==='light'?"$coolGray800" : "$warmGray50"}>
+                                   <Text>
                                         {displayDay}
                                    </Text>
-                                   <Text color={colorMode==='light'?"$coolGray800" : "$warmGray50"}>
+                                   <Text>
                                         {displayStartTime} - {displayEndTime}
                                    </Text>
                               </>
                          ) : event.startDate && !event.endDate ? (
                               <>
-                                   <Text color={colorMode==='light'?"$coolGray800" : "$warmGray50"}>
+                                   <Text>
                                         {displayDay}
                                    </Text>
-                                   <Text color={colorMode==='light'?"$coolGray800" : "$warmGray50"}>
+                                   <Text>
                                         {displayStartTime}
                                    </Text>
                               </>
                          ) : null}
                          {!event.cover ? (
-                              <Box alignItems="flex-start" pt="$2">
-                                   <Button p="$0" size="sm" variant="ghost" action="negative" onPress={() => removeEvent()}>
-                                        <ButtonIcon as={MaterialIcons} name="delete" size="xs" mr="$1" />
+                              <Box className="items-start pt-2">
+                                   <Button size="sm" variant="ghost" action="negative" className="p-0" onPress={() => removeEvent()}>
+                                        <MaterialIcons name="delete" size={14} className="mr-1" />
                                         <ButtonText>{getTermFromDictionary(language, 'remove')}</ButtonText>
                                    </Button>
                               </Box>
                          ) : null}
                          {registrationRequired ? (
-                              <HStack mt="$1.5" space="xs" flexWrap="wrap">
-                                   <Badge key={0} action="secondary" mt="$1" variant="outline" borderRadius="$sm">
-                                        <BadgeText fontSize="$sm">
+                              <HStack className="mt-[6px] flex-wrap" space="xs">
+                                   <Badge key={0} colorScheme="muted" variant="outline" className="mt-1 rounded-lg">
+                                        <BadgeText colorScheme="muted" size="sm">
                                              {getTermFromDictionary(language, 'registration_required')}
                                         </BadgeText>
                                    </Badge>

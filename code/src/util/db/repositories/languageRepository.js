@@ -1,7 +1,7 @@
 import { getDb } from '../sqlite';
 import { safeStringify } from '../serialize';
 import {logDebugMessage} from '../../logging';
-import { loadLibraryLanguages, saveLibraryLanguages } from './librarySystemRepository';
+import { loadLibraryLanguages, saveLibraryLanguages } from '@/src/util/db';
 
 function safeParse(json) {
      if (!json || typeof json !== 'string') return null;

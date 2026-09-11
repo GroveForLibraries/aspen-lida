@@ -1,54 +1,44 @@
-import { MaterialIcons } from '@expo/vector-icons';
+import { ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/ThemedMaterialIcons';
 import { Image } from 'expo-image';
 import * as WebBrowser from 'expo-web-browser';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-     Badge,
-     BadgeText,
-     Box,
-     Button,
-     ButtonGroup,
-     ButtonIcon,
-     ButtonText,
-     ChevronDownIcon,
-     FlatList,
-     FormControl,
-     HStack,
-     Icon,
-     Pressable,
-     ScrollView,
-     Select,
-     SelectBackdrop,
-     SelectContent, SelectDragIndicator,
-     SelectDragIndicatorWrapper,
-     SelectIcon,
-     SelectInput, SelectItem,
-     SelectPortal,
-     SelectScrollView,
-     SelectTrigger,
-     Text,
-     VStack } from '@gluestack-ui/themed';
 import React from 'react';
-import { Platform } from 'react-native';
-import { loadError } from '../../../components/loadError';
-import { popToast } from '../../../components/feedback';
-
-// custom components and helper files
-import { loadingSpinner } from '../../../components/loadingSpinner';
-import { DisplaySystemMessage } from '../../../components/Notifications';
-import { SystemMessagesContext } from '../../../context/initialContext';
-import { getCleanTitle } from '../../../helpers/item';
-import { navigateStack } from '../../../helpers/RootNavigator';
+import { FlatList } from 'react-native';
+import { ThemedBadge as Badge, ThemedBadgeText as BadgeText } from '@/src/components/themed/ThemedBadge';
+import { Box } from '@/components/ui/box';
+import { ScreenContainer, screenContentContainerStyle } from '@/src/components/ScreenContainer';
+import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../../components/themed/ThemedButton';
+import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
+import { ThemedFormControl as FormControl } from '@/src/components/themed/ThemedFormControls';
+import { HStack } from '@/components/ui/hstack';
+import { Pressable } from '@/components/ui/pressable';
+import { ThemedScrollView as ScrollView } from '@/src/components/themed/ThemedScrollView';
+import { ThemedSelect as Select, ThemedSelectBackdrop as SelectBackdrop, ThemedSelectContent as SelectContent, ThemedSelectDragIndicator as SelectDragIndicator, ThemedSelectDragIndicatorWrapper as SelectDragIndicatorWrapper, ThemedSelectInput as SelectInput, ThemedSelectItem as SelectItem, ThemedSelectPortal as SelectPortal, ThemedSelectScrollView as SelectScrollView, ThemedSelectTrigger as SelectTrigger } from '../../../components/themed/ThemedSelect';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
+import { VStack } from '@/components/ui/vstack';
+import { loadError } from '@/src/components/loadError';
+import { popToast } from '@/src/components/feedback';
+import { loadingSpinner } from '@/src/components/loadingSpinner';
+import { DisplaySystemMessage } from '@/src/components/Notifications';
+import { SystemMessagesContext } from '@/src/context/initialContext';
+import { getCleanTitle } from '@/src/helpers/item';
+import { navigateStack } from '@/src/helpers/RootNavigator';
 import { getTermFromDictionary as getTermFromDictionaryHelper } from '../../../translations/TranslationHelper';
-import { getListTitles, removeTitlesFromList } from '../../../util/api/list';
+import { getListTitles, removeTitlesFromList } from '@/src/util/api/list';
 import EditList from './EditList';
-import {logDebugMessage, logErrorMessage, logInfoMessage} from '../../../util/logging';
-import { useActiveLanguage, useDictionary } from '../../../hooks/useLanguageData';
-import { useTheme } from '../../../themes/theme';
-import { useLibrary } from '../../../hooks/useLibrarySystemData';
+import {logDebugMessage, logErrorMessage, logInfoMessage} from '@/src/util/logging';
+import { useActiveLanguage, useDictionary } from '@/src/hooks/useLanguageData';
+import { useTheme } from '@/src/themes/theme';
+import { useLibrary } from '@/src/hooks/useLibrarySystemData';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
+/**
+ * MyList component that displays a list of titles in a user's list. It fetches data from the API based on the provided list ID and renders a list of titles with sorting and pagination options. It also handles system messages, error states, and allows users to remove titles from the list.
+ * @param param0
+ * @param param0.route
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const MyList = ({ route }) => {
      const providedList = route?.params?.details ?? {};
      const id = providedList.id;
@@ -59,14 +49,13 @@ export const MyList = ({ route }) => {
      const [list] = React.useState(providedList);
      const language = useActiveLanguage();
      const dictionary = useDictionary();
-     const insets = useSafeAreaInsets();
      const [sortBy, setSortBy] = React.useState({
           title: 'Sort By Title',
           dateAdded: 'Sort By Date Added',
           recentlyAdded: 'Sort By Recently Added',
           custom: 'Sort By User Defined' });
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
-     const { textColor, theme, colorMode } = useTheme();
+     const { textColor, neutralPairs, neutrals } = useTheme();
      const [paginationLabel, setPaginationLabel] = React.useState('Page 1 of 1');
      const [isLoading, setIsLoading] = React.useState(true);
      const [fetchError, setFetchError] = React.useState(null);
@@ -79,7 +68,10 @@ export const MyList = ({ route }) => {
           sort,
           message: null });
      const hasAppliedDefaultSort = React.useRef(false);
-     const browserBackgroundColor = colorMode === 'light' ? '#ffffff' : '#111827';
+     const browserBackgroundColor = neutrals.surface;
+     const panelBg = neutrals.surfaceMuted;
+     const borderColor = neutrals.border;
+     const dangerColor = neutralPairs.danger;
      const t = React.useCallback((key, ellipsis = false, forcedLanguage) => {
           const lang = forcedLanguage || language;
           return getTermFromDictionaryHelper(lang, key, ellipsis, dictionary);
@@ -239,16 +231,13 @@ export const MyList = ({ route }) => {
                const displayEndTime = endDate ? timeFormatter.format(endDate) : '';
 
                return (
-                    <Pressable borderBottomWidth="$1" _dark={{ borderColor: 'gray.600' }} borderColor="coolGray.200" pl="$4" pr="$5" py="$2" onPress={() => handleOpenEvent(item)}>
+                    <Pressable className="py-2" style={{ borderBottomWidth: 1, borderColor }} onPress={() => handleOpenEvent(item)}>
                          <HStack space="sm">
-                              <VStack maxW="35%">
+                              <VStack className="max-w-[35%]">
                                    <Image
                                         alt={item.title}
                                         source={imageUrl}
-                                        style={{
-                                             width: 100,
-                                             height: 150,
-                                             borderRadius: "$sm" }}
+                                        style={{ width: 100.0, height: 150.0, borderRadius: 8 }}
                                         placeholder={blurhash}
                                         transition={1000}
                                         contentFit="cover"
@@ -256,35 +245,31 @@ export const MyList = ({ route }) => {
                                    <Button
                                         onPress={() => {
                                              removeTitlesFromList(id, item.id, library.baseUrl, 'Events').then(async () => {
-                                                       await loadListDetails(page, sort);
+                                                  await loadListDetails(page, sort);
                                              });
                                         }}
-                                        size="$sm"
+                                        size="sm"
                                         variant="link">
-                                        <ButtonIcon color="$warning500" as={MaterialIcons} name="delete" />
-                                        <ButtonText color="$warning500">{t('delete')}</ButtonText>
+                                        <MaterialIcons name="delete" size={18} color={dangerColor} />
+                                        <ButtonText style={{ color: dangerColor }}>{t('delete')}</ButtonText>
                                    </Button>
                               </VStack>
-                              <VStack w="65%">
-                                   <Text
-                                        color={textColor}
-                                        bold
-                                        fontSize="$sm"
-                                        >
+                              <VStack className="w-[65%]">
+                                   <Text bold size="sm">
                                         {item.title}
                                    </Text>
                                    {item.start_date && item.end_date ? (
                                         <>
-                                             <Text color={textColor} fontSize="$xs">{displayDay}</Text>
-                                             <Text color={textColor} fontSize="$xs">
+                                             <Text size="xs">{displayDay}</Text>
+                                             <Text size="xs">
                                                   {displayStartTime} - {displayEndTime}
                                              </Text>
                                         </>
                                    ) : null}
                                    {registrationRequired ? (
-                                        <HStack mt="$1" direction="row" space="sm" flexWrap="wrap">
-                                             <Badge key={0} colorScheme="secondary" mt="$1" variant="outline" borderRadius="$sm" fontSize="$xs">
-                                                  <BadgeText>{t('registration_required')}</BadgeText>
+                                        <HStack className="mt-1 flex-row flex-wrap" space="sm">
+                                             <Badge key={0} colorScheme="info" variant="outline" size="sm" className="mt-1 rounded-lg">
+                                                  <BadgeText colorScheme="info">{t('registration_required')}</BadgeText>
                                              </Badge>
                                         </HStack>
                                    ) : null}
@@ -295,17 +280,13 @@ export const MyList = ({ route }) => {
           }
 
           return (
-               <Pressable borderBottomWidth="$1" borderColor={colorMode === 'light' ? "$coolGray200" : "$warmGray600"} pl="$4" pr="$5" py="$2" onPress={() => handleOpenItem(item.id, item.title)}>
+               <Pressable className="py-2" style={{ borderBottomWidth: 1, borderColor }} onPress={() => handleOpenItem(item.id, item.title)}>
                     <HStack space="sm">
-                         <VStack maxW="35%">
+                         <VStack className="max-w-[35%]">
                               <Image
                                    alt={item.title}
                                    source={imageUrl}
-                                   style={{
-                                        width: 100,
-                                        height: 150,
-                                        borderRadius: "$sm"
-                                   }}
+                                   style={{ width: 100.0, height: 150.0, borderRadius: 8 }}
                                    placeholder={blurhash}
                                    transition={1000}
                                    contentFit="cover"
@@ -318,20 +299,20 @@ export const MyList = ({ route }) => {
                                    }}
                                    size="sm"
                                    variant="link">
-                                   <ButtonIcon color="$warning500" as={MaterialIcons} name="delete" mr="$1" />
-                                   <ButtonText color="$warning500">{t('delete')}</ButtonText>
+                                   <MaterialIcons name="delete" size={18} color={dangerColor} className="mr-1" />
+                                   <ButtonText style={{ color: dangerColor }}>{t('delete')}</ButtonText>
                               </Button>
                          </VStack>
-                         <VStack w="65%">
+                         <VStack className="w-[65%]">
                               <Text
-                                   color={textColor}
                                    bold
-                                   fontSize="$sm"
+                                   size="sm"
+                                  
                                    >
                                    {item.title}
                               </Text>
                               {item.author ? (
-                                   <Text color={textColor} fontSize="$xs">
+                                   <Text size="xs">
                                         {t('by')} {item.author}
                                    </Text>
                               ) : null}
@@ -344,19 +325,15 @@ export const MyList = ({ route }) => {
      const Paging = () => {
           return (
                <Box
-                    p="$2"
-                    bgColor={colorMode === 'light' ? "$coolGray100" : "$coolGray700"}
-                    borderBottomWidth="$1"
-                    borderColor={colorMode === 'light' ? "$coolGray200" : "$warmGray600"}
-                    flexWrap="nowrap"
-                    alignItems="center">
+                    className="px-4 py-2"
+                    style={{ flexWrap: 'nowrap', alignItems: 'center' }}>
                     <ScrollView horizontal>
                          <ButtonGroup size="sm">
-                              <Button bgColor={theme.tokens.colors.primary['500']} onPress={() => setPage(page - 1)} isDisabled={page === 1}>
-                                   <ButtonText color={theme.tokens.colors.primary['500-text']}>{t('previous')}</ButtonText>
+                              <Button colorScheme="primary" onPress={() => setPage(page - 1)} isDisabled={page === 1}>
+                                   <ButtonText>{t('previous')}</ButtonText>
                               </Button>
                               <Button
-                                   bgColor={theme.tokens.colors.primary['500']}
+                                   colorScheme="primary"
                                    onPress={() => {
                                         if (listData?.hasMore) {
                                              logDebugMessage('Adding to page');
@@ -364,11 +341,11 @@ export const MyList = ({ route }) => {
                                         }
                                    }}
                                    isDisabled={isLoading || !listData?.hasMore}>
-                                   <ButtonText color={theme.tokens.colors.primary['500-text']}>{t('next')}</ButtonText>
+                                   <ButtonText>{t('next')}</ButtonText>
                               </Button>
                          </ButtonGroup>
                     </ScrollView>
-                    <Text mt="$2" fontSize="$sm" color={textColor}>
+                    <Text size="sm" className="mt-2">
                          {paginationLabel}
                     </Text>
                </Box>
@@ -404,45 +381,36 @@ export const MyList = ({ route }) => {
 
           return (
                <Box
-                    p="$2"
-                    bgColor={colorMode === 'light' ? "$coolGray100" : "$coolGray700"}
-                    borderBottomWidth="$1"
-                    borderColor={colorMode === 'light' ? "$coolGray200" : "$warmGray600"}
-                    flexWrap="nowrap">
+                    className="px-4 py-2"
+                    style={{ backgroundColor: panelBg, borderBottomWidth: 1, borderColor, flexWrap: 'nowrap' }}>
                     <ScrollView horizontal>
                          <HStack space="sm">
-                              <FormControl w={sortLength}>
+                              <Box style={{ width: sortLength }}>
                                    <Select
                                         name="sortBy"
                                         selectedValue={sort}
                                         defaultValue={sort}
                                         accessibilityLabel={t('select_sort_method')}
                                         onValueChange={(itemValue) => setSort(itemValue)}>
-                                        <SelectTrigger variant="outline" size="sm">
-                                             <SelectInput py={0} color={textColor} value={sortLabel()} />
-                                             <SelectIcon mr="$3">
-                                                  <Icon color={textColor} as={ChevronDownIcon} />
-                                             </SelectIcon>
+                                        <SelectTrigger size="sm">
+                                             <SelectInput value={sortLabel()} />
                                         </SelectTrigger>
                                         <SelectPortal>
                                              <SelectBackdrop />
-                                             <SelectContent
-                                                  bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}
-                                                  pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
-                                             >
+                                             <SelectContent>
                                                   <SelectDragIndicatorWrapper>
                                                        <SelectDragIndicator />
                                                   </SelectDragIndicatorWrapper>
                                                   <SelectScrollView>
-                                                       <SelectItem label={sortBy.title} value="title" key={0} bgColor={sort == "title" ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: sort == "title" ? theme.tokens.colors.tertiary['500-text'] : textColor } }}/>
-                                                       <SelectItem label={sortBy.dateAdded} value="dateAdded" key={1} bgColor={sort == "dateAdded" ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: sort == "dateAdded" ? theme.tokens.colors.tertiary['500-text'] : textColor } }}/>
-                                                       <SelectItem label={sortBy.recentlyAdded} value="recentlyAdded" key={2} bgColor={sort == "recentlyAdded" ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: sort == "recentlyAdded" ? theme.tokens.colors.tertiary['500-text'] : textColor } }}/>
-                                                       <SelectItem label={sortBy.custom} value="custom" key={3} bgColor={sort == "custom" ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: sort == "custom" ? theme.tokens.colors.tertiary['500-text'] : textColor } }}/>
+                                                       <SelectItem label={sortBy.title} value="title" key={0} selectedValue={sort} />
+                                                       <SelectItem label={sortBy.dateAdded} value="dateAdded" key={1} selectedValue={sort} />
+                                                       <SelectItem label={sortBy.recentlyAdded} value="recentlyAdded" key={2} selectedValue={sort} />
+                                                       <SelectItem label={sortBy.custom} value="custom" key={3} selectedValue={sort} />
                                                   </SelectScrollView>
                                              </SelectContent>
                                         </SelectPortal>
                                    </Select>
-                              </FormControl>
+                              </Box>
                               <EditList data={list} listId={id} />
                          </HStack>
                     </ScrollView>
@@ -463,20 +431,16 @@ export const MyList = ({ route }) => {
      };
 
      return (
-          <Box style={{ flex: 1 }}>
-               {systemMessagesForScreen.length > 0 ? <Box safeArea={2}>{showSystemMessage()}</Box> : null}
+          <>
+               {!isLoading && !fetchError ? getActionButtons() : null}
+               {systemMessagesForScreen.length > 0 ? <ScreenContainer><Box className="p-2">{showSystemMessage()}</Box></ScreenContainer> : null}
                {isLoading ? (
-                    loadingSpinner()
+                    <ScreenContainer>{loadingSpinner()}</ScreenContainer>
                ) : fetchError ? (
-                    loadError('Error', '')
+                    <ScreenContainer>{loadError('Error', '')}</ScreenContainer>
                ) : (
-                    <>
-                         <Box style={{ paddingBottom: 100 }}>
-                              {getActionButtons()}
-                              <FlatList data={listData.listTitles} ListFooterComponent={Paging} renderItem={({ item }) => renderItem(item, library.baseUrl)} keyExtractor={(item, index) => index.toString()} />
-                         </Box>
-                    </>
+                    <FlatList className="pb-25" contentContainerStyle={screenContentContainerStyle} data={listData.listTitles} ListFooterComponent={Paging} renderItem={({ item }) => renderItem(item, library.baseUrl)} keyExtractor={(item, index) => index.toString()} />
                )}
-          </Box>
+          </>
      );
 };

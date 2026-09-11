@@ -1,29 +1,5 @@
 import React from 'react';
 import _ from 'lodash';
-import {
-     CloseIcon,
-     Modal,
-     ModalBackdrop,
-     ModalContent,
-     ModalHeader,
-     ModalCloseButton,
-     ModalBody,
-     ModalFooter,
-     FormControl,
-     FormControlLabel,
-     FormControlLabelText,
-     Heading,
-     Button,
-     ButtonGroup,
-     ButtonText,
-     Icon,
-     ButtonSpinner,
-     Input,
-     InputField,
-     InputSlot,
-     InputIcon
-} from '@gluestack-ui/themed';
-
 import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useUserState, useUpdateUserProfile } from '../../hooks/useUserData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
@@ -32,12 +8,22 @@ import { decodeHTML } from '../../helpers/helpers';
 import { completeAction } from '../../util/api/userHelper';
 import { useWindowDimensions } from 'react-native';
 import RenderHtml from 'react-native-render-html';
-import { EyeOff, Eye } from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { logDebugMessage, logWarnMessage, getErrorMessage } from '../../util/logging';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 import { useTheme } from '../../themes/theme';
+import { PasswordVisibilityToggle, ThemedCloseIcon as CloseIcon, ThemedFormControl as FormControl, ThemedInput as Input, ThemedInputField as InputField, ThemedFormControlLabelText as FormControlLabelText, ThemedFormControlLabel as FormControlLabel } from '../themed/ThemedFormControls';
+import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../themed/ThemedButton';
+import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
+import { ThemedHeading as Heading } from '@/src/components/themed/ThemedHeading';
+import { ThemedModal as Modal, ThemedModalBackdrop as ModalBackdrop, ThemedModalBody as ModalBody, ThemedModalCloseButton as ModalCloseButton, ThemedModalContent as ModalContent, ThemedModalFooter as ModalFooter, ThemedModalHeader as ModalHeader } from '@/src/components/themed/ThemedModal';
 
+/**
+ * AddAlternateLibraryCard component for adding an alternate library card and password.
+ * @param props
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const AddAlternateLibraryCard = (props) => {
      const {
           id,
@@ -79,13 +65,15 @@ export const AddAlternateLibraryCard = (props) => {
      const user = userState?.user ?? {};
      const updateUserProfile = useUpdateUserProfile();
      const language = useActiveLanguage();
-     const { theme, textColor, colorMode } = useTheme();
+     const { neutrals, textColor } = useTheme();
      const queryClient = useQueryClient();
      const { width } = useWindowDimensions();
      const [card, setCard] = React.useState(user?.alternateLibraryCard ?? '');
      const [password, setPassword] = React.useState(user?.alternateLibraryCardPassword ?? '');
      const [showModal, setShowModal] = React.useState(true);
-     const [loading, setLoading] = React.useState(false);
+     const inputBorderColor = neutrals.border;
+     const surfaceColor = neutrals.surface;
+     const modalBorderColor = neutrals.border;
 
      const [showPassword, setShowPassword] = React.useState(false);
      const toggleShowPassword = () => setShowPassword(!showPassword);
@@ -147,59 +135,54 @@ export const AddAlternateLibraryCard = (props) => {
      return (
           <Modal isOpen={showModal} onClose={() => setShowModal(false)} closeOnOverlayClick={false} size="lg">
                <ModalBackdrop />
-               <ModalContent maxWidth="90%" bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
-                    <ModalHeader borderBottomWidth="$1" borderBottomColor={colorMode === 'light' ? "$warmGray300" : "$coolGray500"}>
-                         <Heading size="md" color={textColor}>
+               <ModalContent style={{ maxWidth: '90%', backgroundColor: surfaceColor }}>
+                    <ModalHeader style={{ borderBottomWidth: 1, borderBottomColor: modalBorderColor }}>
+                         <Heading>
                               {isPlacingHold ? getTermFromDictionary(language, 'hold_options') : getTermFromDictionary(language, 'checkout_options')}
                          </Heading>
-                         <ModalCloseButton p="$3" onPress={() => { setShowModal(false); }}>
-                              <Icon as={CloseIcon} color={textColor} />
+                         <ModalCloseButton onPress={() => { setShowModal(false); }}>
+                              <CloseIcon />
                          </ModalCloseButton>
                     </ModalHeader>
-                    <ModalBody mt="$3">
+                    <ModalBody className="mt-3">
                          {formMessage ? <RenderHtml contentWidth={width} source={source} tagsStyles={tagsStyles} /> : null}
-                         <FormControl mb="$2">
+                         <FormControl className="mb-2">
                               <FormControlLabel>
-                                   <FormControlLabelText color={textColor} size="sm">
+                                   <FormControlLabelText size="sm">
                                         {cardLabel}
                                    </FormControlLabelText>
                               </FormControlLabel>
-                              <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
-                                   <InputField textContentType="none" color={textColor} name="card" defaultValue={card} accessibilityLabel={cardLabel} onChangeText={(value) => setCard(value)} />
+                              <Input style={{ borderColor: inputBorderColor }}>
+                                   <InputField textContentType="none" name="card" defaultValue={card} accessibilityLabel={cardLabel} onChangeText={(value) => setCard(value)} />
                               </Input>
                          </FormControl>
                          {showAlternateLibraryCardPassword ? (
-                              <FormControl mb="$2">
+                              <FormControl className="mb-2">
                                    <FormControlLabel>
-                                        <FormControlLabelText color={textColor} size="sm">
+                                        <FormControlLabelText size="sm">
                                              {passwordLabel}
                                         </FormControlLabelText>
                                    </FormControlLabel>
-                                   <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
-                                        <InputField textContentType="none" type={showPassword ? 'text' : 'password'} color={textColor} name="password" defaultValue={password} accessibilityLabel={passwordLabel} onChangeText={(value) => setPassword(value)} />
-                                        <InputSlot onPress={toggleShowPassword}>
-                                             <InputIcon as={showPassword ? Eye : EyeOff} mr="$2" color={textColor} />
-                                        </InputSlot>
+                                   <Input style={{ borderColor: inputBorderColor }}>
+                                        <InputField textContentType="none" type={showPassword ? 'text' : 'password'} name="password" defaultValue={password} accessibilityLabel={passwordLabel} onChangeText={(value) => setPassword(value)} />
+                                        <PasswordVisibilityToggle showPassword={showPassword} onPress={toggleShowPassword} />
                                    </Input>
                               </FormControl>
                          ) : null}
                     </ModalBody>
-                    <ModalFooter borderTopWidth="$1" borderTopColor={colorMode === 'light' ? "$warmGray300" : "$coolGray500"}>
+                    <ModalFooter style={{ borderTopWidth: 1, borderTopColor: modalBorderColor }}>
                          <ButtonGroup space="sm">
                               <Button
                                    variant="outline"
-                                   borderColor={colorMode === 'light' ? "$warmGray300" : "$coolGray500"}
+                                   style={{ borderColor: modalBorderColor }}
                                    onPress={() => {
                                         setShowModal(false);
-                                        setLoading(false);
                                    }}>
-                                   <ButtonText color={colorMode === 'light' ? "$warmGray500" : "$coolGray300"}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
+                                   <ButtonText style={{ color: textColor }}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                               </Button>
                               <Button
-                                   bgColor={theme.tokens.colors.primary['500']}
-                                   isDisabled={loading}
+                                   colorScheme="primary"
                                    onPress={async () => {
-                                        setLoading(true);
                                         await completeAction(id, action, activeAccount, '', '', location, null, null, library.baseUrl, volume, holdType, holdNotificationPreferences, item).then(async (result) => {
                                              setResponse(result);
                                              logDebugMessage("Completed Action after add alternate library card");
@@ -236,7 +219,6 @@ export const AddAlternateLibraryCard = (props) => {
                                                        setHoldSelectItemResponse(tmp);
                                                   }
 
-                                                  setLoading(false);
                                                   setShowModal(false);
                                                   if (result?.confirmationNeeded && result.confirmationNeeded) {
                                                        setHoldConfirmationIsOpen(true);
@@ -248,7 +230,7 @@ export const AddAlternateLibraryCard = (props) => {
                                              }
                                         });
                                    }}>
-                                   {loading ? <ButtonSpinner color={theme.tokens.colors.primary['500-text']} /> : <ButtonText color={theme.tokens.colors.primary['500-text']}>{title}</ButtonText>}
+                                  <ButtonText>{title}</ButtonText>
                               </Button>
                          </ButtonGroup>
                     </ModalFooter>

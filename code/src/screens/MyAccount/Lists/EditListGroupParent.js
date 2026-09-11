@@ -1,65 +1,44 @@
 import React from 'react';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useListGroups, useUpdateLists, useUpdateListGroups } from '@/src/hooks/useUserData';
+import { ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/ThemedMaterialIcons';
+import { getTermFromDictionary } from '@/src/translations/TranslationService';
+import { editListGroupParent, getLists, getListGroups } from '@/src/util/api/list';
+import { popAlert } from '@/src/components/feedback';
+import { navigateStack } from '@/src/helpers/RootNavigator';
+import { toArray } from '@/src/helpers/helpers';
+import { useActiveLanguage } from '@/src/hooks/useLanguageData';
+import { useTheme } from '@/src/themes/theme';
+import { useLibrary } from '@/src/hooks/useLibrarySystemData';
+import { ThemedCloseIcon as CloseIcon, ThemedFormControl as FormControl, ThemedFormControlLabelText as FormControlLabelText, ThemedFormControlLabel as FormControlLabel } from '@/src/components/themed/ThemedFormControls';
+import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../../components/themed/ThemedButton';
+import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
+import { Center } from '@/components/ui/center';
+import { ThemedHeading as Heading } from '@/src/components/themed/ThemedHeading';
+import { ThemedModal as Modal, ThemedModalBackdrop as ModalBackdrop, ThemedModalBody as ModalBody, ThemedModalCloseButton as ModalCloseButton, ThemedModalContent as ModalContent, ThemedModalFooter as ModalFooter, ThemedModalHeader as ModalHeader } from '@/src/components/themed/ThemedModal';
+import { ThemedSelect as Select, ThemedSelectBackdrop as SelectBackdrop, ThemedSelectContent as SelectContent, ThemedSelectDragIndicator as SelectDragIndicator, ThemedSelectDragIndicatorWrapper as SelectDragIndicatorWrapper, ThemedSelectInput as SelectInput, ThemedSelectItem as SelectItem, ThemedSelectPortal as SelectPortal, ThemedSelectScrollView as SelectScrollView, ThemedSelectTrigger as SelectTrigger } from '../../../components/themed/ThemedSelect';
 
-import { useUserState, useListGroups, useUpdateLists, useUpdateListGroups } from '../../../hooks/useUserData';
-import {
-     Center,
-     Button,
-     ButtonIcon,
-     ButtonText,
-     Modal,
-     ModalBackdrop,
-     ModalContent,
-     ModalHeader,
-     Heading,
-     ModalCloseButton,
-     Icon,
-     CloseIcon,
-     ModalBody,
-     ModalFooter,
-     ButtonGroup,
-     FormControlLabel,
-     FormControlLabelText,
-     Select,
-     SelectTrigger,
-     SelectInput,
-     SelectIcon,
-     ChevronDownIcon,
-     SelectPortal,
-     SelectBackdrop,
-     SelectContent,
-     SelectDragIndicatorWrapper,
-     SelectDragIndicator,
-     SelectItem,
-     SelectScrollView,
-     FormControl
-} from '@gluestack-ui/themed';
-import { MaterialIcons } from '@expo/vector-icons';
-import { getTermFromDictionary } from '../../../translations/TranslationService';
-import { editListGroupParent, getLists, getListGroups } from '../../../util/api/list';
-import { popAlert } from '../../../components/feedback';
-import { navigateStack } from '../../../helpers/RootNavigator';
-import { Platform } from 'react-native';
-import { toArray } from '../../../helpers/helpers';
-import { useActiveLanguage } from '../../../hooks/useLanguageData';
-import { useTheme } from '../../../themes/theme';
-import { useLibrary } from '../../../hooks/useLibrarySystemData';
-
+/**
+ * EditListGroupParent component that allows users to edit the parent group of a list group. It provides a modal interface for selecting a new parent group from existing list groups and updates the backend accordingly.
+ * @param param0
+ * @param param0.id
+ * @param param0.parentId
+ * @param param0.handleUpdate
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const EditListGroupParent = ({id, parentId, handleUpdate}) => {
-      const { data: userState } = useUserState();
       const { data: listGroups } = useListGroups();
       const updateLists = useUpdateLists();
       const updateListGroups = useUpdateListGroups();
       const library = useLibrary();
       const language = useActiveLanguage();
-      const { textColor, theme, colorMode } = useTheme();
+      const { brand } = useTheme();
       const [showModal, setShowModal] = React.useState(false);
       const [loading, setLoading] = React.useState(false);
 
       const [selectedGroup, setSelectedGroup] = React.useState(null);
       const [newListGroupParentId, setNewListGroupParentId] = React.useState(parentId); // default state is current list group parent id
 
-      const insets = useSafeAreaInsets();
 
       React.useEffect(() => {
            if (listGroups && listGroups.groups && parentId != null) {
@@ -82,51 +61,47 @@ export const EditListGroupParent = ({id, parentId, handleUpdate}) => {
 
      return (
           <Center>
-               <Button onPress={toggle} size="xs" bgColor={theme.tokens.colors.primary['500']}>
-                    <ButtonIcon color={theme.tokens.colors.primary['500-text']} as={MaterialIcons} name="edit" mr="$1" />
-                    <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'move_list_group')}</ButtonText>
+               <Button onPress={toggle} size="xs" colorScheme="primary">
+                   <MaterialIcons name="edit" size={18} color={brand.primary['500-text']} className="mr-1" />
+                   <ButtonText>{getTermFromDictionary(language, 'move_list_group')}</ButtonText>
                </Button>
-               <Modal isOpen={showModal} onClose={toggle} size="full" avoidKeyboard>
+               <Modal isOpen={showModal} onClose={toggle} size="full">
                     <ModalBackdrop />
-                    <ModalContent maxWidth="90%"  bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
+                    <ModalContent className="max-w-[90%]">
                          <ModalHeader>
-                              <Heading size="md" color={textColor}>{getTermFromDictionary(language, 'move_list_group')}</Heading>
-                              <ModalCloseButton p="$3" onPress={toggle}>
-                                   <Icon as={CloseIcon} color={textColor} />
+                              <Heading>{getTermFromDictionary(language, 'move_list_group')}</Heading>
+                              <ModalCloseButton onPress={toggle}>
+                                   <CloseIcon />
                               </ModalCloseButton>
                          </ModalHeader>
                          <ModalBody>
-                              <FormControl pb="$5">
+                              <FormControl>
                                    <FormControlLabel>
-                                        <FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'move_list_group_to')}</FormControlLabelText>
+                                        <FormControlLabelText>{getTermFromDictionary(language, 'move_list_group_to')}</FormControlLabelText>
                                    </FormControlLabel>
                                    <Select
                                         name="newListGroupParent"
                                         selectedValue={newListGroupParentId}
                                         accessibilityLabel={getTermFromDictionary(language, 'move_list_group_to')}
                                         onValueChange={(itemValue) => updateSelectedGroup(itemValue)}>
-                                         <SelectTrigger variant="outline" size="md">
+                                         <SelectTrigger>
                                               {selectedGroup === null && parentId !== null ? (
                                                         toArray(listGroups.groups).map((group) => {
                                                              if (group.id === parentId) {
-                                                                  return <SelectInput value={group.title} color={textColor} />;
+                                                                  return <SelectInput value={group.title} />;
                                                              }
                                                         })
                                                    ) :
                                                    (selectedGroup === null && parentId === null ? (
-                                                        <SelectInput color={textColor} value={getTermFromDictionary(language, 'choose_existing_list_group')} />
+                                                        <SelectInput value={getTermFromDictionary(language, 'choose_existing_list_group')} />
                                                    ) : (
-                                                        <SelectInput color={textColor} value={selectedGroup.title} />
+                                                        <SelectInput value={selectedGroup.title} />
                                                    ))
                                               }
-                                            <SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
                                          </SelectTrigger>
                                         <SelectPortal>
                                              <SelectBackdrop />
-                                             <SelectContent
-                                                  bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}
-                                                  pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
-                                             >
+                                             <SelectContent>
                                                   <SelectDragIndicatorWrapper>
                                                        <SelectDragIndicator />
                                                   </SelectDragIndicatorWrapper>
@@ -135,7 +110,7 @@ export const EditListGroupParent = ({id, parentId, handleUpdate}) => {
                                                              if(item.id === id || item.id === parentId || item.parentGroupId === id) {
                                                                   return null;
                                                              }
-                                                             return <SelectItem key={index} value={item.id} label={item.title} bgColor={newListGroupParentId === item.id ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: newListGroupParentId === item.id ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />;
+                                                             return <SelectItem key={index} value={item.id} label={item.title} selectedValue={newListGroupParentId} />;
                                                         })}
                                                    </SelectScrollView>
                                              </SelectContent>
@@ -145,10 +120,10 @@ export const EditListGroupParent = ({id, parentId, handleUpdate}) => {
                          </ModalBody>
                          <ModalFooter>
                               <ButtonGroup>
-                                   <Button variant="outline" onPress={toggle} borderColor={theme.tokens.colors.primary['500']}>
-                                        <ButtonText color={theme.tokens.colors.primary['500']}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
+                                   <Button colorScheme="primary" variant="outline" onPress={toggle}>
+                                        <ButtonText>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                    </Button>
-                                     <Button bgColor={theme.tokens.colors.primary['500']}
+                                     <Button colorScheme="primary"
                                              isLoading={loading}
                                              isDisabled={selectedGroup === null}
                                              isLoadingText={getTermFromDictionary(language, 'saving', true)}
@@ -181,7 +156,7 @@ export const EditListGroupParent = ({id, parentId, handleUpdate}) => {
                                                       }
                                                  });
                                             }}>
-                                         <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'save')}</ButtonText>
+                                         <ButtonText>{getTermFromDictionary(language, 'save')}</ButtonText>
                                     </Button>
                               </ButtonGroup>
                          </ModalFooter>

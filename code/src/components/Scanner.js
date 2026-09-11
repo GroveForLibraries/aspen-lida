@@ -1,17 +1,23 @@
 import { useIsFocused } from '@react-navigation/native';
 import { useCameraPermissions, CameraView } from 'expo-camera';
-import { Button, ButtonText, View } from '@gluestack-ui/themed';
 import React from 'react';
-import { Platform, StyleSheet } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import BarcodeMask from 'react-native-barcode-mask';
-
+import { ThemedButton as Button, ThemedButtonText as ButtonText } from './themed/ThemedButton';
 import { useNavigation } from '@react-navigation/native';
 import { navigateStack } from '../helpers/RootNavigator';
 import { getTermFromDictionary } from '../translations/TranslationService';
 import { LoadError } from './loadError';
 import { LoadingSpinner } from './loadingSpinner';
+import { ScreenContainer } from './ScreenContainer';
 import { useActiveLanguage } from '../hooks/useLanguageData';
+import { TOKENS } from '../themes/theme';
 
+/**
+ * Scanner component for scanning barcodes using the device camera.
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export default function Scanner() {
      const navigation = useNavigation();
      const isFocused = useIsFocused();
@@ -40,39 +46,39 @@ export default function Scanner() {
 
      if (!permission) {
           return (
-               <View style={{ flex: 1 }}>
+               <ScreenContainer>
                     <LoadingSpinner message={getTermFromDictionary(language, 'scanner_request_permissions')} />
-               </View>
+               </ScreenContainer>
           );
      }
 
      if (!permission.granted) {
           if (permission.canAskAgain) {
                return (
-                    <View style={{ flex: 1 }}>
+                    <ScreenContainer>
                          <LoadingSpinner message={getTermFromDictionary(language, 'scanner_request_permissions')} />
-                    </View>
+                    </ScreenContainer>
                );
           }
           return (
-               <View style={{ flex: 1 }}>
+               <ScreenContainer>
                     <LoadError error={getTermFromDictionary(language, 'scanner_denied_permissions')} />
-               </View>
+               </ScreenContainer>
           );
      }
 
      return (
-          <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'flex-end' }}>
+          <View className="flex-1 flex-col justify-end">
                {isFocused && (
                     <>
                          <CameraView onBarcodeScanned={scanned ? undefined : handleBarCodeScanned} style={[StyleSheet.absoluteFillObject, styles.container]} barcodeScannerSettings={{ barcodeTypes: allowedBarcodes }}>
                               <BarcodeMask edgeColor="#62B1F6" showAnimatedLine={false} />
                               <View style={styles.buttonContainer}>
-                                   <Button variant="outline" action="secondary" onPress={() => navigation.goBack()} bgColor="rgba(0,0,0,0.5)" borderColor="$white">
-                                        <ButtonText color="$white">Cancel</ButtonText>
+                                   <Button variant="outline" colorScheme="secondary" onPress={() => navigation.goBack()} style={{ backgroundColor: 'rgba(0,0,0,0.5)', borderColor: TOKENS.primitives.singletons.white }}>
+                                       <ButtonText style={{ color: TOKENS.primitives.singletons.white }}>Cancel</ButtonText>
                                    </Button>
                                    {scanned && (
-                                        <Button onPress={() => setScanned(false)} ml="$4">
+                                       <Button onPress={() => setScanned(false)} className="ml-4">
                                              <ButtonText>{getTermFromDictionary(language, 'scan_again')}</ButtonText>
                                         </Button>
                                    )}

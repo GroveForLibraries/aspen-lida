@@ -1,13 +1,9 @@
-import { Badge, BadgeText, Box, HStack, Pressable, Text, VStack } from '@gluestack-ui/themed';
 import { Image } from 'expo-image';
 import * as WebBrowser from 'expo-web-browser';
 import _ from 'lodash';
 import moment from 'moment';
 import React from 'react';
 import { popToast } from '../../components/feedback';
-
-// custom components and helper files
-
 import { getCleanTitle } from '../../helpers/item';
 import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
@@ -17,16 +13,28 @@ import { logDebugMessage, logErrorMessage } from '../../util/logging';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 import { useTheme } from '../../themes/theme';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
+import { Box } from '@/components/ui/box';
+import { HStack } from '@/components/ui/hstack';
+import { Pressable } from '@/components/ui/pressable';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
+import { VStack } from '@/components/ui/vstack';
+import { ThemedBadge as Badge, ThemedBadgeText as BadgeText } from '../../components/themed/ThemedBadge';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
+/**
+ * DisplayEventResult component that displays an individual event result with its image, title, date, time, location, and registration requirement. It handles user interaction to navigate to the event details or open the event URL in a web browser.
+ * @param props
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const DisplayEventResult = (props) => {
      const item = props.data;
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { theme, textColor, colorMode } = useTheme();
+     const { neutrals, textColor } = useTheme();
 
-     const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
+     const backgroundColor = neutrals.surface;
 
      const id = item.key ?? item.id;
      const keyParts = item.key.split('_');
@@ -57,7 +65,6 @@ export const DisplayEventResult = (props) => {
      displayEndTime = moment(displayEndTime).format('h:mm A');
 
      let locationData = item?.location ?? [];
-     let roomData = item?.room ?? null;
 
      const handlePressItem = () => {
           let eventSource = item.source;
@@ -131,17 +138,15 @@ export const DisplayEventResult = (props) => {
      };
 
      return (
-          <Pressable borderBottomWidth="$1" borderColor={colorMode === 'light' ? "$warmGray400" : "$warmGray600"} pl="$4" pr="$5" py="$2" onPress={handlePressItem}>
+         <Pressable className="pl-4 pr-5 py-2" style={{ borderBottomWidth: 1, borderColor: neutrals.border }} onPress={handlePressItem}>
                <HStack space="md">
-                    <VStack sx={{ '@base': { width: 100 }, '@lg': { width: 180 } }}>
-                         <Box sx={{ '@base': { height: 150 }, '@lg': { height: 250 } }}>
+                    <VStack className="w-25">
+                         <Box className="h-[150px]">
                               <Image
                                    alt={item.title}
                                    source={url}
-                                   style={{
-                                        width: '100%',
-                                        height: '100%',
-                                        borderRadius: "$sm" }}
+                                   className="rounded-lg"
+                                   style={{ width: '100%', height: '100%' }}
                                    placeholder={blurhash}
                                    transition={1000}
                                    contentFit="cover"
@@ -149,29 +154,29 @@ export const DisplayEventResult = (props) => {
                          </Box>
                          {item.canAddToList ? <AddToList source="Events" itemId={item.key} btnStyle="sm" /> : null}
                     </VStack>
-                    <VStack w="65%" pt="$1">
-                         <Text color={textColor} bold sx={{ '@base': { fontSize: 14, lineHeight: 17, paddingBottom: 4 }, '@lg': { fontSize: 22, lineHeight: 25, paddingBottom: 4 } }}>
+                    <VStack className="w-[65%] pt-1">
+                         <Text bold className="pb-1" style={{ lineHeight: 17 }} size="sm">
                               {decodeHTML(item.title)}
                          </Text>
                          {item.start_date && item.end_date ? (
                               <>
-                                   <Text color={textColor} sx={{ '@base': { fontSize: 12, lineHeight: 15 }, '@lg': { fontSize: 18, lineHeight: 21 } }}>
+                                   <Text style={{ lineHeight: 15 }} size="xs">
                                         {displayDay}
                                    </Text>
-                                   <Text color={textColor} sx={{ '@base': { fontSize: 12, lineHeight: 15 }, '@lg': { fontSize: 18, lineHeight: 21 } }}>
+                                   <Text style={{ lineHeight: 15 }} size="xs">
                                         {displayStartTime} - {displayEndTime}
                                    </Text>
                               </>
                          ) : null}
                          {locationData.name ? (
-                              <Text color={textColor} sx={{ '@base': { fontSize: 12, lineHeight: 15 }, '@lg': { fontSize: 18, lineHeight: 21 } }}>
+                              <Text style={{ lineHeight: 15 }} size="xs">
                                    {locationData.name}
                               </Text>
                          ) : null}
                          {registrationRequired ? (
-                              <HStack mt="$4" direction="row" space="xs" flexWrap="wrap">
-                                   <Badge key={0} borderRadius="$sm" borderColor={theme['tokens']['colors']['secondary']['400']} variant="outline" bg="transparent">
-                                        <BadgeText textTransform="none" color={theme['tokens']['colors']['secondary']['400']} sx={{ '@base': { fontSize: 10, lineHeight: 14 }, '@lg': { fontSize: 16, lineHeight: 20 } }}>
+                              <HStack space="xs" className="mt-4 flex-wrap">
+                                   <Badge key={0} colorScheme="secondary" variant="outline">
+                                        <BadgeText colorScheme="secondary" style={{ fontSize: 10, lineHeight: 14 }}>
                                              {getTermFromDictionary(language, 'registration_required')}
                                         </BadgeText>
                                    </Badge>

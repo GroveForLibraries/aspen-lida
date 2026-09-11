@@ -1,13 +1,16 @@
-import {Button, ButtonText} from '@gluestack-ui/themed';
+import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../themed/ThemedButton';
 import React from 'react';
-import {navigate} from '../../../helpers/RootNavigator';
+import {navigate} from '@/src/helpers/RootNavigator';
+import { useTheme } from '@/src/themes/theme';
 
-
-import { logDebugMessage, logInfoMessage, logWarnMessage, logErrorMessage } from '../../../util/logging.js';
-import { useTheme } from '../../../themes/theme';
-
+/**
+ * StartLocalIllRequestEmail component for displaying a button that navigates to the "Create Local ILL Request Email" screen.
+ * @param props
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const StartLocalIllRequestEmail = (props) => {
-     const { theme } = useTheme();
+     const {  } = useTheme();
      //logDebugMessage("Props for StartLocalIllRequest");
      //logDebugMessage(props);
      const openLocalIllRequestEmail = () => {
@@ -26,12 +29,10 @@ export const StartLocalIllRequestEmail = (props) => {
      return (
           <Button
                size="md"
-               bgColor={theme.tokens.colors.primary['500']}
                variant="solid"
-               minWidth="100%"
-               maxWidth="100%"
+               colorScheme="primary" className="min-w-full max-w-full"
                onPress={openLocalIllRequestEmail}>
-               <ButtonText color={theme.tokens.colors.primary['500-text']} textAlign="center">
+               <ButtonText className="text-center">
                     {props.title}
                </ButtonText>
           </Button>

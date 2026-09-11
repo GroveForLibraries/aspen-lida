@@ -1,12 +1,9 @@
-import { ScanBarcode, SearchIcon, XIcon, Settings, RotateCwIcon, ClockIcon } from 'lucide-react-native';
-import { Center, Box, Button, ButtonGroup, ButtonIcon, ButtonText, ButtonSpinner, FormControl, Input, InputField, InputSlot, InputIcon, FlatList } from '@gluestack-ui/themed';
+import { ThemedMaterialCommunityIcons as MaterialCommunityIcons, ThemedMaterialIcons as MaterialIcons } from '../../components/themed/ThemedMaterialIcons';
 import { useFocusEffect, useIsFocused, useNavigation } from '@react-navigation/native';
 import React from 'react';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-// custom components and helper files
 import { loadingSpinner } from '../../components/loadingSpinner';
 import { DisplayAndroidEndOfSupportMessage, DisplaySystemMessage } from '../../components/Notifications';
 import { SearchContext, SystemMessagesContext } from '../../context/initialContext';
@@ -24,16 +21,27 @@ import { logDebugMessage, getErrorMessage } from '../../util/logging';
 import HomeScreenLinkGrid from './Link';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 import { useTheme } from '../../themes/theme';
+import { Box } from '@/components/ui/box';
+import { ThemedButton as Button, ThemedButtonSpinner as ButtonSpinner, ThemedButtonText as ButtonText } from '../../components/themed/ThemedButton';
+import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
+import { Center } from '@/components/ui/center';
+import { FlatList } from '@/components/ui/flat-list';
+import { ThemedFormControl as FormControl, ThemedInput as Input, ThemedInputField as InputField, ThemedInputSlot as InputSlot } from '../../components/themed/ThemedFormControls';
+import { ScreenContainer } from '@/src/components/ScreenContainer';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
+/**
+ * DiscoverHomeScreen component that displays the home screen of the discovery interface, including a search bar, home screen links, and browse categories. It fetches data from the API and updates the state accordingly.
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const DiscoverHomeScreen = () => {
      const navigation = useNavigation();
      const isFocused = useIsFocused();
      const [loading, setLoading] = React.useState(false);
      const insets = useSafeAreaInsets();
 
-     const { textColor, colorMode } = useTheme();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
      const { updateIndexes, updateSources, updateCurrentIndex, updateCurrentSource } = React.useContext(SearchContext);
      const { data: userState } = useUserState();
@@ -296,26 +304,26 @@ export const DiscoverHomeScreen = () => {
      const listBottomPadding = insets.bottom + 96;
 
      return (
-          <Box>
+          <ScreenContainer safeArea>
                <FlatList
                     contentContainerStyle={{ paddingBottom: listBottomPadding }}
                     ListHeaderComponent={
-                         <Box p="$5">
+                         <Box className="py-[10px]">
                               {androidEndSupportMessage()}
                               {showSystemMessage()}
-                              <FormControl pb="$5">
+                              <FormControl className="px-2">
                                    <Input>
                                         <InputSlot>
-                                             <InputIcon as={SearchIcon} ml="$2" color={textColor} />
+                                             <MaterialIcons name="search" size={20} className="ml-2" />
                                         </InputSlot>
-                                        <InputField returnKeyType="search" variant="outline" autoCapitalize="none" onChangeText={(term) => setSearchTerm(term)} status="info" placeholder={getTermFromDictionary(language, 'search')} onSubmitEditing={search} value={searchTerm} size="$lg" sx={{ color: textColor, borderColor: textColor, ':focus': { borderColor: textColor } }} />
+                                        <InputField returnKeyType="search" variant="outline" autoCapitalize="none" onChangeText={(term) => setSearchTerm(term)} placeholder={getTermFromDictionary(language, 'search')} onSubmitEditing={search} value={searchTerm} />
                                         {searchTerm ? (
                                              <InputSlot onPress={() => clearSearch()}>
-                                                  <InputIcon as={XIcon} mr="$2" color={textColor} />
+                                                  <MaterialIcons name="close" size={20} className="mr-2" />
                                              </InputSlot>
                                         ) : null}
                                         <InputSlot onPress={() => openScanner()}>
-                                             <InputIcon as={ScanBarcode} mr="$2" color={textColor} />
+                                             <MaterialCommunityIcons name="barcode-scan" size={20} className="mr-2" />
                                         </InputSlot>
                                    </Input>
                               </FormControl>
@@ -329,12 +337,12 @@ export const DiscoverHomeScreen = () => {
                          return `${item?.id ?? item?.textId ?? item?.sourceListId ?? item?.label ?? `${item?.source ?? 'browse'}-${item?.sourceListId ?? 'category'}`}-${index}`;
                     }}
                     renderItem={({ item }) => (
-                         <Box px="$5">
+                         <Box className="px-2">
                               <DisplayBrowseCategory category={item} />
                          </Box>
                     )}
                     ListFooterComponent={
-                         <Box p="$5">
+                         <Box className="py-5">
                               <ButtonOptions language={language} showManageCategories={showManageCategories} onRefreshCategories={onRefreshCategories} discoveryVersion={library.discoveryVersion} onLoadAllCategories={onLoadAllCategories} />
                               {showErrorDialog && (
                                    <DisplayErrorAlertDialog title={errorTitle} message={errorMessage} />
@@ -342,12 +350,18 @@ export const DiscoverHomeScreen = () => {
                          </Box>
                     }
                />
-          </Box>
+          </ScreenContainer>
      );
 };
 
+/**
+ * ButtonOptions component that renders a group of buttons for managing browse categories, including loading all categories, managing categories, and refreshing categories. It uses the theme colors and handles loading states for each button.
+ * @param props
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 const ButtonOptions = (props) => {
-     const { theme } = useTheme();
+     const { brand } = useTheme();
      const [loading, setLoading] = React.useState(false);
      const [refreshing, setRefreshing] = React.useState(false);
      const { language, showManageCategories, onRefreshCategories, onLoadAllCategories } = props;
@@ -355,14 +369,11 @@ const ButtonOptions = (props) => {
      return (
           <Center>
                <ButtonGroup
-                    sx={{
-                         '@base': {
-                              flexDirection: 'column' },
-                         '@lg': {
-                              flexDirection: 'row' } }}>
+                    className="flex-col">
                     <Button
+                         autoLoading={false}
                          isDisabled={loading}
-                         bg={theme.tokens.colors.primary['500']}
+                         colorScheme="primary"
                          size="md"
                          onPress={async () => {
                               setLoading(true);
@@ -373,57 +384,58 @@ const ButtonOptions = (props) => {
                               }
                          }}>
                          {loading ? (
-                           <ButtonSpinner key="spinner" color={theme.tokens.colors.primary['500-text']} mr="$1" />
+                          <ButtonSpinner key="spinner" className="mr-1" style={{ color: brand.primary['500-text'] }} />
                          ) : (
-                              <ButtonIcon
-                                   key="icon"
-                                   as={ClockIcon}
-                                   color={theme.tokens.colors.primary['500-text']}
-                                   mr="$1"
-                                   size="sm"
-                              />
+                             <MaterialIcons
+                                  key="icon"
+                                  name="schedule"
+                                  size={16}
+                                  color={brand.primary['500-text']}
+                                  className="mr-1"
+                             />
                          )}
                          <ButtonText
-                              color={theme.tokens.colors.primary['500-text']}
-                              size="sm"
-                              fontWeight="$medium">
-                              {getTermFromDictionary(language, 'browse_categories_load_all')}
+                             className="font-medium"
+                             size="sm"
+                         >
+                             {getTermFromDictionary(language, 'browse_categories_load_all')}
                          </ButtonText>
                     </Button>
 
                     <Button
-                         bg={theme['tokens']['colors']['primary']['500']}
+                         colorScheme="primary"
                          onPress={() => {
-                              showManageCategories();
+                             showManageCategories();
                          }}>
-                         <ButtonIcon
-                              as={Settings}
-                              color={theme.tokens.colors.primary['500-text']}
-                              mr="$1"
-                              size="sm"
+                         <MaterialIcons
+                             name="settings"
+                             size={16}
+                             color={brand.primary['500-text']}
+                             className="mr-1"
                          />
                          <ButtonText
-                              color={theme.tokens.colors.primary['500-text']}
-                              size="sm"
-                              fontWeight="$medium">
-                              {getTermFromDictionary(language, 'browse_categories_manage')}
+                             className="font-medium"
+                             size="sm"
+                         >
+                             {getTermFromDictionary(language, 'browse_categories_manage')}
                          </ButtonText>
                     </Button>
 
                     <Button
+                         autoLoading={false}
                          isDisabled={refreshing}
-                         bg={theme.tokens.colors.primary['500']}
-                          onPress={async () => {
-                              setRefreshing(true);
-                              try {
+                         colorScheme="primary"
+                         onPress={async () => {
+                             setRefreshing(true);
+                             try {
                                    await onRefreshCategories();
                               } finally {
                                    setRefreshing(false);
                               }
                          }}>
-                         {refreshing ? <ButtonSpinner color={theme.tokens.colors.primary['500-text']} /> : <ButtonIcon as={RotateCwIcon} color={theme.tokens.colors.primary['500-text']} mr="$1" size="sm" />}
+                         {refreshing ? <ButtonSpinner style={{ color: brand.primary['500-text'] }} /> : <MaterialIcons name="refresh" size={16} color={brand.primary['500-text']} className="mr-1" />}
 
-                         <ButtonText size="sm" fontWeight="$medium" color={theme.tokens.colors.primary['500-text']}>
+                         <ButtonText size="sm" className="font-medium">
                               {getTermFromDictionary(language, 'browse_categories_refresh')}
                          </ButtonText>
                     </Button>

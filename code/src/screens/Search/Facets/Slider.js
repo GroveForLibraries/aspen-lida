@@ -1,20 +1,27 @@
 import _ from 'lodash';
-import { Box, FormControl, HStack, Input, InputField } from '@gluestack-ui/themed';
 import React from 'react';
-import { ScrollView } from 'react-native';
+import { ThemedScrollView as ScrollView } from '@/src/components/themed/ThemedScrollView';
+import { LoadingSpinner } from '@/src/components/loadingSpinner';
+import { getTermFromDictionary } from '@/src/translations/TranslationService';
+import { addAppliedFilter } from '@/src/util/api/searchHelper';
+import { Box } from '@/components/ui/box';
+import { HStack } from '@/components/ui/hstack';
+import { ThemedFormControl as FormControl, ThemedInput as Input, ThemedInputField as InputField } from '@/src/components/themed/ThemedFormControls';
 
-// custom components and helper files
-import { LoadingSpinner } from '../../../components/loadingSpinner';
-import { getTermFromDictionary } from '../../../translations/TranslationService';
-import { addAppliedFilter } from '../../../util/api/searchHelper';
-import { useTheme } from '../../../themes/theme';
-
-
+/**
+ * Facet_Slider component that renders a slider input for filtering search results based on a numeric range facet. It manages the start and end values of the range, updates the applied filters, and triggers an update to the parent component when the values change.
+ * @param param0
+ * @param param0.data
+ * @param param0.category
+ * @param param0.updater
+ * @param param0.language
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const Facet_Slider = ({ data, category, updater, language }) => {
      const [isLoading, setIsLoading] = React.useState(true);
      const [startValue, setStartValue] = React.useState('*');
      const [endValue, setEndValue] = React.useState('*');
-     const {theme, textColor, colorMode } = useTheme();
 
      React.useEffect(() => {
           appliedStartValue();
@@ -68,13 +75,12 @@ export const Facet_Slider = ({ data, category, updater, language }) => {
 
      return (
           <ScrollView>
-               <Box p="$5">
-                    <FormControl mb="$2">
-                         <HStack space="sm" justifyContent="center">
+               <Box className="p-5">
+                    <FormControl className="mb-2">
+                         <HStack space="sm" className="justify-center">
                               <Input
                                    size="lg"
-                                   flex={1}
-                                   borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}
+                                   className="flex-1"
                               >
                                    <InputField
                                         placeholder={getTermFromDictionary(language, 'from')}
@@ -84,13 +90,11 @@ export const Facet_Slider = ({ data, category, updater, language }) => {
                                         onChangeText={(value) => {
                                              updateValue('startValue', value);
                                         }}
-                                        color={textColor}
                                    />
                               </Input>
                               <Input
                                    size="lg"
-                                   flex={1}
-                                   borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}
+                                   className="flex-1"
                               >
                                    <InputField
                                         placeholder={getTermFromDictionary(language, 'to')}
@@ -100,7 +104,6 @@ export const Facet_Slider = ({ data, category, updater, language }) => {
                                         onChangeText={(value) => {
                                              updateValue('endValue', value);
                                         }}
-                                        color={textColor}
                                    />
                               </Input>
                          </HStack>

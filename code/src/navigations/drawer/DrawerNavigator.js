@@ -6,6 +6,11 @@ import TabNavigator from '../tab/TabNavigator';
 
 const Drawer = createDrawerNavigator();
 
+/**
+ * AccountDrawer component that sets up a drawer navigator with a custom drawer content and a tab navigator as the main screen.
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 const AccountDrawer = () => {
      return (
           <Drawer.Navigator

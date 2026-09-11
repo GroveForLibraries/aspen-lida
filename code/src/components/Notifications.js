@@ -2,18 +2,26 @@ import Constants from 'expo-constants';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import _ from 'lodash';
-import { Alert, AlertIcon, AlertText, CloseIcon, HStack, Button, ButtonIcon, VStack, Pressable, Text } from '@gluestack-ui/themed';
-import React, {useContext} from 'react';
+import React from 'react';
 import { Platform } from 'react-native';
+import { ThemedAlert as Alert, ThemedAlertIcon as AlertIcon, ThemedAlertText as AlertText } from './themed/ThemedAlert';
+import { ThemedButton as Button, ThemedButtonIcon as ButtonIcon } from './themed/ThemedButton';
+import { ThemedCloseIcon as CloseIcon } from './themed/ThemedFormControls';
+import { ThemedMaterialIcons as MaterialIcons } from './themed/ThemedMaterialIcons';
+import { HStack } from '@/components/ui/hstack';
+import { VStack } from '@/components/ui/vstack';
+import { Pressable } from '@/components/ui/pressable';
 import { getTermFromDictionary } from '../translations/TranslationService';
 import { dismissSystemMessage } from '../util/api/system';
-
-
-// custom components and helper files
 import { normalizeDisplayText, stripHTML } from '../helpers/helpers';
 import { logDebugMessage, logErrorMessage } from '../util/logging.js';
 import { useTheme } from '../themes/theme';
 
+/**
+ * Registers the device for push notifications and returns the Expo push token.
+ * @param updateUserDebugMessage
+ * @returns {Promise<string|boolean>}
+ */
 export async function registerForPushNotificationsAsync(updateUserDebugMessage) {
      try {
           updateUserDebugMessage("Registering for push notifications async");
@@ -151,9 +159,9 @@ export function showILSMessage(type, message, index = 0) {
      const formattedMessage = stripHTML(message);
      logDebugMessage("Showing ILS Message");
      return (
-          <Alert mx="$2" mb="$1" action={type} key={index}>
-               <AlertIcon mr="$3" />
-               <AlertText size="xs" fontWeight="$medium">
+          <Alert action={type} key={index} className="mx-2 mb-1">
+               <AlertIcon action={type} className="mr-3" />
+               <AlertText action={type} size="xs" bold>
                     {formattedMessage}
                </AlertText>
           </Alert>
@@ -167,10 +175,10 @@ export const DisplayMessage = (props) => {
      const displayMessage = safeMessage || fallbackMessage;
 
      return (
-          <Alert action={props.type} variant="solid" mb="$2" py="$3" px="$3" alignItems="flex-start" sx={{ height: 'auto', minHeight: 0 }}>
-               <Text color="$coolGray900" size="sm" fontWeight="$medium" flexShrink={1} style={{ flexWrap: 'wrap' }}>
+          <Alert action={props.type} variant="solid" className="mb-2 py-3 px-3 items-start min-h-0 h-[auto]">
+               <AlertText action={props.type} variant="solid" size="sm" bold>
                     {displayMessage}
-               </Text>
+               </AlertText>
           </Alert>
      );
 };
@@ -192,16 +200,16 @@ export const DisplayAndroidEndOfSupportMessage = (props) => {
      const setIsOpen = props.setIsOpen;
      const language = props.language;
      return (
-          <Alert action="error" mb="$3">
-               <VStack space="xs" width="$full">
+          <Alert action="error" className="mb-3">
+               <VStack space="xs" className="w-full">
                     <HStack alignItems="flex-start" justifyContent="space-between">
-                         <AlertText size="sm">
+                         <AlertText action="error" size="sm">
                               {getTermFromDictionary(language, 'android_end_of_life')}
                          </AlertText>
                          <Button
                               variant="link"
                               onPress={() => setIsOpen(false)}>
-                              <ButtonIcon as={CloseIcon} size="md" />
+                              <ButtonIcon as={MaterialIcons} name="close" size="md" />
                          </Button>
                     </HStack>
                </VStack>
@@ -210,6 +218,7 @@ export const DisplayAndroidEndOfSupportMessage = (props) => {
 };
 /** status/colorScheme options: success, error, info, warning **/
 export const DisplaySystemMessage = (props) => {
+     const { neutrals } = useTheme();
      const queryClient = props.queryClient;
      const updateSystemMessages = props.updateSystemMessages;
      let style = props.style;
@@ -221,10 +230,10 @@ export const DisplaySystemMessage = (props) => {
      logDebugMessage("System Message Style is " + style);
 
      return (
-          <Alert height="$50" action={style} variant="solid" mb="$2" borderRadius="$sm">
-               <VStack space="sm" width="$full" p="$3">
+          <Alert action={style} variant="solid" className="min-h-50 mb-2 rounded">
+               <VStack space="sm" className="w-full p-3">
                     <HStack alignItems="flex-start" justifyContent="space-between">
-                         <AlertText mr="$2">{props.message}</AlertText>
+                         <AlertText action={style} variant="solid" className="mr-2">{props.message}</AlertText>
                          <Pressable
                               onPress={async () => {
                                    await hideSystemMessage(props.all, props.id, props.dismissable, props.url).then((result) => {
@@ -232,7 +241,7 @@ export const DisplaySystemMessage = (props) => {
                                         updateSystemMessages(result);
                                    });
                               }}>
-                              <CloseIcon color="$black" />
+                              <CloseIcon color={neutrals.icon} />
                          </Pressable>
                     </HStack>
                </VStack>

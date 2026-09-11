@@ -1,4 +1,3 @@
-import { FormControl, FormControlLabel, FormControlLabelText, Select, SelectTrigger, SelectInput, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, Radio, RadioGroup, RadioIndicator, RadioIcon, RadioLabel, CircleIcon, Icon, ChevronDownIcon } from '@gluestack-ui/themed';
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
@@ -7,7 +6,17 @@ import { loadingSpinner } from '../../components/loadingSpinner';
 import { loadError } from '../../components/loadError';
 import _ from 'lodash';
 import { getTermFromDictionary } from '../../translations/TranslationService';
+import { ThemedFormControl as FormControl, ThemedFormControlLabelText as FormControlLabelText, ThemedFormControlLabel as FormControlLabel } from '../../components/themed/ThemedFormControls';
+import { ThemedMaterialIcons as MaterialIcons } from '../../components/themed/ThemedMaterialIcons';
+import { ThemedRadio as Radio, ThemedRadioGroup as RadioGroup, ThemedRadioIcon as RadioIcon, ThemedRadioIndicator as RadioIndicator, ThemedRadioLabel as RadioLabel } from '../../components/themed/ThemedRadio';
+import { ThemedSelect as Select, ThemedSelectBackdrop as SelectBackdrop, ThemedSelectContent as SelectContent, ThemedSelectDragIndicator as SelectDragIndicator, ThemedSelectDragIndicatorWrapper as SelectDragIndicatorWrapper, ThemedSelectInput as SelectInput, ThemedSelectItem as SelectItem, ThemedSelectPortal as SelectPortal, ThemedSelectTrigger as SelectTrigger } from '../../components/themed/ThemedSelect';
 
+/**
+ * SelectVolume component that allows users to select a volume for a specific item. It fetches available volumes from the API and provides options for selecting either the first available item or a specific volume.
+ * @param props
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const SelectVolume = (props) => {
      const { language, id, holdType, setHoldType, volume, setVolume, shouldLoad, promptForHoldType } = props;
      const library = useLibrary();
@@ -27,21 +36,21 @@ export const SelectVolume = (props) => {
                ) : (
                     <>
                          {promptForHoldType ? (
-                              <FormControl mb="$4">
+                              <FormControl className="mb-4">
                                    <RadioGroup
                                         value={holdType}
                                         onChange={(nextValue) => {
                                              setHoldType(nextValue);
                                         }}>
-                                        <Radio value="item" size="sm" mb="$2">
-                                             <RadioIndicator mr="$2">
-                                                  <RadioIcon as={CircleIcon} />
+                                        <Radio value="item" size="sm" className="mb-2">
+                                             <RadioIndicator className="mr-2">
+                                                  <RadioIcon as={MaterialIcons} name="circle" />
                                              </RadioIndicator>
                                              <RadioLabel>{getTermFromDictionary(language, 'first_available')}</RadioLabel>
                                         </Radio>
                                         <Radio value="volume" size="sm">
-                                             <RadioIndicator mr="$2">
-                                                  <RadioIcon as={CircleIcon} />
+                                             <RadioIndicator className="mr-2">
+                                                  <RadioIcon as={MaterialIcons} name="circle" />
                                              </RadioIndicator>
                                              <RadioLabel>{getTermFromDictionary(language, 'specific_volume')}</RadioLabel>
                                         </Radio>
@@ -56,9 +65,8 @@ export const SelectVolume = (props) => {
                                    <Select
                                         selectedValue={volume}
                                         onValueChange={(itemValue) => setVolume(itemValue)}>
-                                        <SelectTrigger variant="outline" size="md">
-                                             <SelectInput py={0} placeholder={getTermFromDictionary(language, 'select_volume')} />
-                                             <Icon as={ChevronDownIcon} mr="$3" />
+                                        <SelectTrigger>
+                                             <SelectInput placeholder={getTermFromDictionary(language, 'select_volume')} />
                                         </SelectTrigger>
                                         <SelectPortal>
                                              <SelectBackdrop />

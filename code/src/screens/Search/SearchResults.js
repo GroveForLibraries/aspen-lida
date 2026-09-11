@@ -1,36 +1,16 @@
-import {
-     Button,
-     ButtonGroup,
-     ButtonIcon,
-     ButtonText,
-     Heading,
-     Box,
-     Center,
-     FlatList,
-     HStack,
-     Pressable,
-     Text,
-     SafeAreaView,
-     Badge,
-     BadgeText,
-     VStack,
-     Input, InputSlot, InputIcon, InputField, FormControl
-} from '@gluestack-ui/themed';
 import { CommonActions, useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import * as WebBrowser from 'expo-web-browser';
 import _ from 'lodash';
-import {ScanBarcode, SearchIcon, SlidersHorizontalIcon, XIcon} from 'lucide-react-native';
+import { ThemedMaterialCommunityIcons as MaterialCommunityIcons, ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/ThemedMaterialIcons';
 import moment from 'moment';
-
 import React from 'react';
-import { ScrollView } from 'react-native';
+import { ThemedScrollView as ScrollView } from '@/src/components/themed/ThemedScrollView';
 import { loadError } from '../../components/loadError';
-import { popToast } from '../../components/feedback/toastService';
+import { popToast } from '@/src/components/feedback';
 import { LoadingSpinner } from '../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../components/Notifications';
-
 import { SearchContext, SystemMessagesContext } from '../../context/initialContext';
 import { getCleanTitle } from '../../helpers/item';
 import { useLibraryScope, useLibraryLocation } from '../../hooks/useLibraryBranchData';
@@ -40,16 +20,33 @@ import { GLOBALS, SearchGlobal } from '../../util/globals';
 import { decodeHTML, isValidUrl } from '../../helpers/helpers';
 import { getAppliedFilters, getAvailableFacetsKeys, getSortList } from '../../util/api/search';
 import { setDefaultFacets } from '../../util/api/searchHelper';
-
 import AddToList from './AddToList';
 import {logDebugMessage, logErrorMessage, logInfoMessage} from '../../util/logging';
 import { createApiClient } from '../../util/api/apiFactory';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 import { useTheme } from '../../themes/theme';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
+import { ThemedBadge as Badge, ThemedBadgeText as BadgeText } from '../../components/themed/ThemedBadge';
+import { ThemedFormControl as FormControl, ThemedInput as Input, ThemedInputField as InputField, ThemedInputSlot as InputSlot } from '../../components/themed/ThemedFormControls';
+import { Box } from '@/components/ui/box';
+import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../components/themed/ThemedButton';
+import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
+import { Center } from '@/components/ui/center';
+import { FlatList } from '@/components/ui/flat-list';
+import { ThemedHeading as Heading } from '@/src/components/themed/ThemedHeading';
+import { HStack } from '@/components/ui/hstack';
+import { Pressable } from '@/components/ui/pressable';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
+import { VStack } from '@/components/ui/vstack';
+import { ScreenContainer } from '@/src/components/ScreenContainer';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
+/**
+ * SearchResults component that displays search results based on the provided search term, page number, and other parameters. It fetches data from the API and renders a list of results with pagination controls. It also handles system messages and error states.
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const SearchResults = () => {
      const navigation = useNavigation();
      const route = useRoute();
@@ -58,8 +55,8 @@ export const SearchResults = () => {
       const library = useLibrary();
       const language = useActiveLanguage();
       const scope = useLibraryScope();
-      const { currentIndex, currentSource, updateCurrentIndex, updateCurrentSource, updateIndexes, updateSources } = React.useContext(SearchContext);
-     const { theme, textColor, colorMode } = useTheme();
+      const { currentIndex, currentSource } = React.useContext(SearchContext);
+     const { brand, neutrals, textColor } = useTheme();
      const url = library.baseUrl;
      const [paginationLabel, setPaginationLabel] = React.useState('Page 1 of 1');
 
@@ -72,8 +69,6 @@ export const SearchResults = () => {
      let isScannerSearch = useRoute().params.scannerSearch ?? false;
 
      let params = useRoute().params.pendingParams ?? [];
-
-     const prevRoute = useRoute().params.prevRoute ?? 'SearchHome';
 
      const type = useRoute().params.type ?? 'catalog';
      const id = useRoute().params.id ?? null;
@@ -98,7 +93,7 @@ export const SearchResults = () => {
 
      React.useEffect(() => {
           if (_.isArray(systemMessages)) {
-               systemMessages.map((obj, index, collection) => {
+               systemMessages.map((obj) => {
                     if (obj.showOn === '0') {
                          systemMessagesForScreen.push(obj);
                     }
@@ -160,9 +155,9 @@ export const SearchResults = () => {
                     label = num + ' ' + getTermFromDictionary(language, 'result');
                }
                return (
-                    <Box bgColor={colorMode === 'light' ? "$coolGray100" : "$coolGray700"} borderBottomWidth="$1" borderColor={colorMode === 'light' ? "$coolGray200" : "$warmGray600"}>
-                         <Box m="$2">
-                              <Text color={textColor}>{label}</Text>
+                    <Box style={{ backgroundColor: neutrals.surfaceMuted, borderBottomWidth: 1, borderColor: neutrals.border }}>
+                         <Box className="m-2">
+                              <Text>{label}</Text>
                          </Box>
                     </Box>
                );
@@ -174,14 +169,14 @@ export const SearchResults = () => {
      const Paging = () => {
           if (data.totalPages > 1) {
                return (
-                    <Box p="$2" bgColor={colorMode === 'light' ? "$coolGray100" : "$coolGray700"} borderTopWidth="$1" borderColor={colorMode === 'light' ? "$coolGray200" : "$warmGray600"} flexWrap="nowrap" alignItems="center">
+                    <Box className="px-4 py-2" style={{ borderTopWidth: 1, borderColor: neutrals.border, flexWrap: 'nowrap', alignItems: 'center' }}>
                          <ScrollView horizontal>
                               <ButtonGroup>
-                                   <Button onPress={() => setPage(page - 1)} isDisabled={page === 1} size="sm" bgColor={theme.tokens.colors.primary['500']}>
-                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'previous')}</ButtonText>
+                                   <Button onPress={() => setPage(page - 1)} isDisabled={page === 1} size="sm" colorScheme="primary">
+                                        <ButtonText>{getTermFromDictionary(language, 'previous')}</ButtonText>
                                    </Button>
                                    <Button
-                                        bgColor={theme.tokens.colors.primary['500']}
+                                        colorScheme="primary"
                                         onPress={() => {
                                              if (!isPreviousData && data.hasMore) {
                                                   setPage(page + 1);
@@ -189,11 +184,11 @@ export const SearchResults = () => {
                                         }}
                                         isDisabled={isPreviousData || !data.hasMore}
                                         size="sm">
-                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'next')}</ButtonText>
+                                        <ButtonText>{getTermFromDictionary(language, 'next')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </ScrollView>
-                         <Text mt="$2" fontSize="$2xs" color={textColor}>
+                         <Text className="mt-2" size="2xs">
                               {paginationLabel}
                          </Text>
                     </Box>
@@ -205,10 +200,11 @@ export const SearchResults = () => {
 
      const showSystemMessage = () => {
           if (_.isArray(systemMessages)) {
-               return systemMessages.map((obj, index, collection) => {
+               return systemMessages.map((obj, index) => {
                     if (obj.showOn === '0') {
                          return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
                     }
+                    return null;
                });
           }
           return null;
@@ -217,12 +213,12 @@ export const SearchResults = () => {
      const NoResults = () => {
           return (
                <>
-                    {_.size(systemMessagesForScreen) > 0 ? <Box p="$2">{showSystemMessage()}</Box> : null}
-                    <Center flex={1}>
-                         <Heading pt="$5" color={textColor}>
+                    {_.size(systemMessagesForScreen) > 0 ? <Box className="p-2">{showSystemMessage()}</Box> : null}
+                    <Center className="flex-1">
+                         <Heading className="pt-5">
                               {getTermFromDictionary(language, 'no_results')}
                          </Heading>
-                         <Text bold w="75%" textAlign="center" color={textColor}>
+                         <Text bold className="w-[75%] text-center">
                               {route.params?.term}
                          </Text>
                     </Center>
@@ -231,20 +227,20 @@ export const SearchResults = () => {
      };
 
      return (
-          <SafeAreaView style={{ flex: 1 }}>
-               {_.size(systemMessagesForScreen) > 0 ? <Box p="$2">{showSystemMessage()}</Box> : null}
+          <ScreenContainer safeArea style={{ flex: 1 }}>
+               {_.size(systemMessagesForScreen) > 0 ? <Box className="p-2">{showSystemMessage()}</Box> : null}
                {status === 'loading' || isFetching ? (
                     <LoadingSpinner />
                ) : status === 'error' ? (
                     loadError('Error', '')
                ) : (
-                    <Box flex={1}>
+                    <Box className="flex-1">
                          {data.totalResults > 0 ? <FilterBar navigation={navigation} /> : null}
                          <SearchBox term={term} navigation={navigation} />
                          <FlatList data={data.results} ListHeaderComponent={Header} ListFooterComponent={Paging} ListEmptyComponent={NoResults} renderItem={({ item }) => <DisplayResult data={item} />} keyExtractor={(item, index) => index.toString()} />
                     </Box>
                )}
-          </SafeAreaView>
+          </ScreenContainer>
      );
 };
 
@@ -252,9 +248,9 @@ const DisplayResult = (data) => {
      const item = data.data;
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { theme, textColor, colorMode } = useTheme();
+     const { neutrals, textColor } = useTheme();
      const { currentSource } = React.useContext(SearchContext);
-     const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
+     const backgroundColor = neutrals.surface;
 
      const handlePressItem = () => {
           if (currentSource === 'events') {
@@ -294,8 +290,8 @@ const DisplayResult = (data) => {
           }
 
           return (
-               <Badge key={n.key} borderRadius="$sm" borderColor={theme.tokens.colors.primary['400']} variant="outline" bg="transparent">
-                    <BadgeText textTransform="none" color={theme.tokens.colors.primary['400']} fontSize="$xs">
+               <Badge key={n.key} colorScheme="secondary" variant="outline">
+                    <BadgeText colorScheme="secondary">
                          {n.name}
                     </BadgeText>
                </Badge>
@@ -384,18 +380,15 @@ const DisplayResult = (data) => {
           let roomData = item?.room ?? null;
 
           return (
-               <Pressable borderBottomWidth={1} borderColor={colorMode === 'light' ? '$warmGray400' : '$warmGray600'} pl="$4" pr="$5" py="$2" onPress={handlePressItem}>
+               <Pressable className="pl-4 pr-5 py-2" style={{ borderBottomWidth: 1, borderColor: neutrals.border }} onPress={handlePressItem}>
                     <HStack space="md">
-                         <VStack sx={{ '@base': { width: 100 }, '@lg': { width: 180 } }}>
-                              <Box sx={{ '@base': { height: 150 }, '@lg': { height: 250 } }}>
+                         <VStack className="w-25">
+                              <Box className="h-[150px]">
                                    <Image
                                         alt={item.title}
                                         source={url}
-                                        style={{
-                                             width: '100%',
-                                             height: '100%',
-                                             borderRadius: 4,
-                                        }}
+                                        className="rounded"
+                                        style={{ width: '100%', height: '100%' }}
                                         placeholder={blurhash}
                                         transition={1000}
                                         contentFit="cover"
@@ -403,29 +396,29 @@ const DisplayResult = (data) => {
                               </Box>
                               {item.canAddToList ? <AddToList source="Events" itemId={item.key} btnStyle="sm" /> : null}
                          </VStack>
-                         <VStack w="65%" pt="$1">
-                              <Text color={textColor} bold fontSize="$sm" pb="$1">
+                         <VStack className="w-[65%] pt-1">
+                              <Text bold className="pb-1" size="sm">
                                    {decodeHTML(item.title)}
                               </Text>
                               {item.start_date && item.end_date ? (
                                    <>
-                                        <Text color={textColor} fontSize="$xs">
+                                        <Text size="xs">
                                              {displayDay}
                                         </Text>
-                                        <Text color={textColor} fontSize="$xs">
+                                        <Text size="xs">
                                              {displayStartTime} - {displayEndTime}
                                         </Text>
                                    </>
                               ) : null}
                               {locationData.name ? (
-                                   <Text color={textColor} fontSize="$xs">
+                                   <Text size="xs">
                                         {locationData.name}
                                    </Text>
                               ) : null}
                               {registrationRequired ? (
-                                   <HStack mt="$4" direction="row" space="xs" flexWrap="wrap">
-                                        <Badge key={0} borderRadius="$sm" borderColor={theme.tokens.colors.secondary['400']} variant="outline" bg="transparent">
-                                             <BadgeText textTransform="none" color={theme.tokens.colors.secondary['400']} fontSize="$xs">
+                                   <HStack space="xs" className="mt-4 flex-row flex-wrap">
+                                        <Badge key={0} colorScheme="secondary" variant="outline">
+                                             <BadgeText colorScheme="secondary" className="text-xs">
                                                   {getTermFromDictionary(language, 'registration_required')}
                                              </BadgeText>
                                         </Badge>
@@ -438,32 +431,26 @@ const DisplayResult = (data) => {
      }
 
      return (
-          <Pressable borderBottomWidth="$1" borderColor={colorMode === 'light' ? "$warmGray400" : "$warmGray600"} pl="$4" pr="$5" py="$2" onPress={handlePressItem}>
+          <Pressable className="pl-4 pr-5 py-2" style={{ borderBottomWidth: 1, borderColor: neutrals.border }} onPress={handlePressItem}>
                <HStack space="md">
-                    <VStack sx={{ '@base': { width: 100 }, '@lg': { width: 180 } }}>
-                         <Box sx={{ '@base': { height: 150 }, '@lg': { height: 250 } }}>
+                    <VStack className="w-25">
+                         <Box className="h-[150px]">
                               <Image
                                    alt={item.title}
                                    source={url}
-                                   style={{
-                                        width: '100%',
-                                        height: '100%',
-                                        borderRadius: 4 }}
+                                   className="rounded"
+                                   style={{ width: '100%', height: '100%' }}
                                    placeholder={blurhash}
                                    transition={1000}
                                    contentFit="cover"
                               />
                          </Box>
                          {item.language ? (
-                              <Center
-                                   mt="$1"
-                                   sx={{
-                                        bgColor: colorMode === 'light' ? "$warmGray200" : "$coolGray900" }}>
+                              <Center className="mt-1">
                                    <Badge
-                                        size="$sm"
-                                        sx={{
-                                             bgColor: colorMode === 'light' ? "$warmGray200" : "$coolGray900" }}>
-                                        <BadgeText textTransform="none" color={colorMode === 'light' ? "$coolGray600" : "$warmGray400"} sx={{ '@base': { fontSize: 10 }, '@lg': { fontSize: 16, padding: 4, textAlign: 'center' } }}>
+                                        size="sm"
+                                        style={{ backgroundColor: neutrals.surfaceMuted }}>
+                                        <BadgeText style={{ color: neutrals.iconMuted, fontSize: 10, textAlign: 'center' }}>
                                              {item.language}
                                         </BadgeText>
                                    </Badge>
@@ -471,16 +458,16 @@ const DisplayResult = (data) => {
                          ) : null}
                          <AddToList itemId={item.key} btnStyle="sm" />
                     </VStack>
-                    <VStack w="65%" pt="$1">
-                         <Text color={textColor} bold fontSize="$sm" pb="$1">
+                    <VStack className="w-[65%] pt-1">
+                         <Text bold className="pb-1" size="sm">
                               {item.title}
                          </Text>
                          {item.author ? (
-                              <Text color={textColor} fontSize="$xs">
+                              <Text size="xs">
                                    {getTermFromDictionary(language, 'by')} {item.author}
                               </Text>
                          ) : null}
-                         <HStack mt="$4" direction="row" space="xs" flexWrap="wrap">
+                         <HStack space="xs" className="mt-4 flex-row flex-wrap">
                               {_.compact(_.map(formats, getFormat))}
                          </HStack>
                     </VStack>
@@ -491,8 +478,7 @@ const DisplayResult = (data) => {
 
 const FilterBar = ({ navigation }) => {
      const language = useActiveLanguage();
-     const library = useLibrary();
-     const { theme, colorMode, textColor } = useTheme();
+     const { brand, neutrals } = useTheme();
      const type = useRoute().params.type ?? 'catalog';
 
      if (navigation === undefined) {
@@ -501,13 +487,13 @@ const FilterBar = ({ navigation }) => {
      }
      if (type === 'catalog') {
           return (
-               <Box padding="$2" paddingBottom="$0" bgColor={colorMode === 'light' ? '$coolGray100' : '$coolGray700'} borderColor={colorMode === 'light' ? '$coolGray200' : '$warmGray600'} flexWrap="nowrap">
+               <Box className="p-2 pb-0" style={{ backgroundColor: neutrals.surface, borderColor: neutrals.border, flexWrap: 'nowrap' }}>
                     <ScrollView horizontal>
                          <Button
                               size="sm"
                               variant="solid"
-                              mr="$1"
-                              bg={theme.tokens.colors.primary['600']}
+                              colorScheme="primary"
+                              className="mr-1"
                               onPress={() => {
                                    navigation.push('modal', {
                                         screen: 'Filters',
@@ -516,8 +502,8 @@ const FilterBar = ({ navigation }) => {
                                         },
                                    });
                               }}>
-                              <ButtonIcon color={theme.tokens.colors.primary['600-text']} as={SlidersHorizontalIcon} mr="$1" />
-                              <ButtonText color={theme.tokens.colors.primary['600-text']}>{getTermFromDictionary(language, 'filters')}</ButtonText>
+                              <MaterialCommunityIcons name="tune" size={18} color={brand.primary['500-text']} className="mr-1" />
+                              <ButtonText>{getTermFromDictionary(language, 'filters')}</ButtonText>
                          </Button>
                          <CreateFilterButton navigation={navigation} />
                     </ScrollView>
@@ -528,7 +514,7 @@ const FilterBar = ({ navigation }) => {
 
 const SearchBox = ({term, navigation}) => {
      const language = useActiveLanguage();
-     const { colorMode, textColor } = useTheme();
+     const { neutrals } = useTheme();
      const [searchTerm, setSearchTerm] = React.useState(term);
 
      const openScanner = async () => {
@@ -545,20 +531,20 @@ const SearchBox = ({term, navigation}) => {
      };
 
      return (
-          <Box padding="$2" bgColor={colorMode === 'light' ? '$coolGray100' : '$coolGray700'} borderColor={colorMode === 'light' ? '$coolGray200' : '$warmGray600'} borderBottomWidth="$1">
-               <FormControl pb="$5">
-                    <Input borderColor={colorMode === 'light' ? '$coolGray500' : '$warmGray300'}>
+          <Box className="p-2" style={{ backgroundColor: neutrals.surface, borderColor: neutrals.border, borderBottomWidth: 1 }}>
+               <FormControl>
+                    <Input>
                          <InputSlot>
-                              <InputIcon as={SearchIcon} ml="$2" color={textColor} />
+                              <MaterialIcons name="search" size={20} className="ml-2" />
                          </InputSlot>
-                         <InputField returnKeyType="search" variant="outline" autoCapitalize="none" onChangeText={(term) => setSearchTerm(term)} status="info" placeholder={getTermFromDictionary(language, 'search')} onSubmitEditing={updateSearch} value={searchTerm} size="$lg" sx={{ color: textColor, borderColor: textColor, ':focus': { borderColor: textColor } }} />
+                         <InputField returnKeyType="search" variant="outline" autoCapitalize="none" onChangeText={(term) => setSearchTerm(term)} placeholder={getTermFromDictionary(language, 'search')} onSubmitEditing={updateSearch} value={searchTerm} />
                          {searchTerm ? (
                               <InputSlot onPress={() => clearSearch()}>
-                                   <InputIcon as={XIcon} mr="$2" color={textColor} />
+                                   <MaterialIcons name="close" size={20} className="mr-2" />
                               </InputSlot>
                          ) : null}
                          <InputSlot onPress={() => openScanner()}>
-                              <InputIcon as={ScanBarcode} mr="$2" color={textColor} />
+                              <MaterialCommunityIcons name="barcode-scan" size={20} className="mr-2" />
                          </InputSlot>
                     </Input>
                </FormControl>
@@ -570,7 +556,7 @@ const CreateFilterButtonDefaults = ({navigation}) => {
      const defaults = SearchGlobal.defaultFacets;
      const location = useLibraryLocation();
      const library = useLibrary();
-     const { theme, colorMode, textColor } = useTheme();
+     const { neutrals, brand, textColor } = useTheme();
 
      const locationGroupedWorkDisplaySettings = location.groupedWorkDisplaySettings ?? [];
      const libraryGroupedWorkDisplaySettings = library.groupedWorkDisplaySettings ?? [];
@@ -610,7 +596,7 @@ const CreateFilterButtonDefaults = ({navigation}) => {
      }
 
      return (
-          <ButtonGroup space="sm" vertical>
+          <ButtonGroup space="sm">
                {defaults.map((obj, index) => {
                     if (obj['field'] === 'availability_toggle') {
                          const label = obj['label'] + ': ' + defaultAvailabilityToggleLabel;
@@ -619,7 +605,7 @@ const CreateFilterButtonDefaults = ({navigation}) => {
                                    key={index}
                                    size="sm"
                                    variant="outline"
-                                   borderColor={colorMode === 'light' ? '$trueGray300' : '$warmGray400'}
+                                   style={{ borderColor: neutrals.border }}
                                    onPress={() => {
                                         navigation.push('modal', {
                                              screen: 'Facet',
@@ -633,7 +619,7 @@ const CreateFilterButtonDefaults = ({navigation}) => {
                                              },
                                         });
                                    }}>
-                                   <ButtonText color={textColor}>{label}</ButtonText>
+                                   <ButtonText style={{ color: textColor }}>{label}</ButtonText>
                               </Button>
                          );
                     }
@@ -643,7 +629,7 @@ const CreateFilterButtonDefaults = ({navigation}) => {
                               key={index}
                               size="sm"
                               variant="outline"
-                              borderColor={colorMode === 'light' ? theme.tokens.colors.primary['400'] : '$warmGray400'}
+                              colorScheme="primary"
                               onPress={() => {
                                    navigation.push('modal', {
                                         screen: 'Facet',
@@ -657,7 +643,7 @@ const CreateFilterButtonDefaults = ({navigation}) => {
                                         },
                                    });
                               }}>
-                              <ButtonText color={textColor}>{obj['label']}</ButtonText>
+                              <ButtonText>{obj['label']}</ButtonText>
                          </Button>
                     );
                })}
@@ -667,7 +653,7 @@ const CreateFilterButtonDefaults = ({navigation}) => {
 
 const CreateFilterButton = ({navigation}) => {
      const { currentSource } = React.useContext(SearchContext);
-     const { theme, colorMode, textColor } = useTheme();
+     const { neutrals, textColor } = useTheme();
      const appliedFacets = SearchGlobal.appliedFilters;
      const sort = _.find(appliedFacets['Sort By'], {
           field: 'sort_by',
@@ -676,11 +662,11 @@ const CreateFilterButton = ({navigation}) => {
      if ((_.size(appliedFacets) > 0 && _.size(sort) === 0) || (_.size(appliedFacets) >= 1 && _.size(sort) > 1) || (_.size(appliedFacets) >= 1 && currentSource === 'events')) {
           console.log("using applied filters bar")
           return (
-               <ButtonGroup space="sm" vertical>
-                    {_.map(appliedFacets, function (item, index, collection) {
+               <ButtonGroup space="sm">
+                    {_.map(appliedFacets, function (item, index) {
                          const cluster = _.filter(SearchGlobal.availableFacets, ['field', item[0]['field']]);
                          let labels = '';
-                         _.forEach(item, function (value, key) {
+                         _.forEach(item, function (value) {
                               let label = value['display'];
                               if (item[0].field === 'sort_by') {
                                    label = getSortLabel(label);
@@ -697,7 +683,7 @@ const CreateFilterButton = ({navigation}) => {
                                    variant="outline"
                                    size="sm"
                                    key={index}
-                                   borderColor={colorMode === 'light' ? '$trueGray300' : '$warmGray400'}
+                                   style={{ borderColor: neutrals.border }}
                                    onPress={() => {
                                         navigation.push('modal', {
                                              screen: 'Facet',
@@ -713,7 +699,7 @@ const CreateFilterButton = ({navigation}) => {
                                              },
                                         });
                                    }}>
-                                   <ButtonText color={textColor}>{label}</ButtonText>
+                                   <ButtonText style={{ color: textColor }}>{label}</ButtonText>
                               </Button>
                          );
                     })}

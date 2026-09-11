@@ -4,13 +4,13 @@ import {
      saveThemeState,
      saveThemeColors,
      saveThemeColorMode,
-     saveThemeTextColor,
      resetThemeState,
      loadThemeCatalog,
 } from '../util/db';
 
 const subscribers = new Set();
 const themeSnapshotCache = new Map();
+const inFlightLoads = new Map();
 
 function getSnapshotCacheKey(queryKey) {
      return JSON.stringify(queryKey ?? []);
@@ -70,7 +70,17 @@ function useSqliteReadQuery(queryKey, queryFn, options = {}) {
 
           setIsLoading(true);
           try {
-               const nextData = await queryFn();
+               let loadPromise = inFlightLoads.get(cacheKey);
+               if (!loadPromise) {
+                    loadPromise = queryFn();
+                    inFlightLoads.set(cacheKey, loadPromise);
+                    loadPromise.finally(() => {
+                         if (inFlightLoads.get(cacheKey) === loadPromise) {
+                              inFlightLoads.delete(cacheKey);
+                         }
+                    });
+               }
+               const nextData = await loadPromise;
                themeSnapshotCache.set(cacheKey, nextData);
                setData(nextData);
                setError(null);
@@ -146,7 +156,7 @@ export function useThemeState(options) {
           themeId: data?.themeId ?? null,
           locationId: data?.locationId ?? null,
           colorMode,
-          textColor: colorMode === 'dark' ? '$coolGray200' : '$warmGray600',
+          textColor: colorMode === 'dark' ? '#e5e7eb' : '#57534e',
           themeColors: data?.themeColors ?? null,
           header: data?.header ?? null,
           updatedAt: data?.updatedAt ?? 0,
@@ -170,13 +180,6 @@ export function useUpdateThemeColors() {
 export function useUpdateThemeColorMode() {
      return React.useCallback(async (colorMode) => {
           await saveThemeColorMode(colorMode);
-          notifyThemeChanged(THEME_STATE_KEY);
-     }, []);
-}
-
-export function useUpdateThemeTextColor() {
-     return React.useCallback(async (textColor) => {
-          await saveThemeTextColor(textColor);
           notifyThemeChanged(THEME_STATE_KEY);
      }, []);
 }

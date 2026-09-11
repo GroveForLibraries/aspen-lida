@@ -1,9 +1,15 @@
 import _ from 'lodash';
-import { MaterialIcons } from '@expo/vector-icons';
-import { Box, Button, ButtonGroup, ButtonText, Center, CheckboxGroup, Input, InputField, Pressable, VStack, useToken } from '@gluestack-ui/themed';
+import { ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/ThemedMaterialIcons';
 import React from 'react';
-import { ScrollView } from 'react-native';
-
+import { ThemedScrollView as ScrollView } from '@/src/components/themed/ThemedScrollView';
+import { Box } from '@/components/ui/box';
+import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../components/themed/ThemedButton';
+import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
+import { Center } from '@/components/ui/center';
+import { ThemedCheckboxGroup as CheckboxGroup } from '../../components/themed/ThemedCheckbox';
+import { Pressable } from '@/components/ui/pressable';
+import { ScreenContainer } from '@/src/components/ScreenContainer';
+import { ThemedInput as Input, ThemedInputField as InputField } from '../../components/themed/ThemedFormControls';
 import { LoadingSpinner } from '../../components/loadingSpinner';
 import { useTheme } from '../../themes/theme';
 import { getTermFromDictionary } from '../../translations/TranslationService';
@@ -19,6 +25,14 @@ import { Facet_Slider } from './Facets/Slider';
 import { Facet_Year } from './Facets/Year';
 import { UnsavedChangesExit } from './UnsavedChanges';
 
+/**
+ * Facet component that displays a list of facets for filtering search results. It handles user interaction to select facets, update the search results, and manage pending changes.
+ * @param param0
+ * @param param0.route
+ * @param param0.navigation
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const Facet = ({ route, navigation }) => {
      const _isMounted = React.useRef(false);
      const [isLoading, setIsLoading] = React.useState(true);
@@ -32,8 +46,9 @@ export const Facet = ({ route, navigation }) => {
      const [values, setValues] = React.useState([]);
      const [valuesDefault, setValuesDefault] = React.useState([]);
      const [language] = React.useState(route.params?.language ?? 'en');
-     const { theme, textColor, colorMode } = useTheme();
-     const headerIconColor = useToken('colors', colorMode === 'light' ? 'coolGray600' : 'coolGray200');
+     const { neutrals } = useTheme();
+     const headerIconColor = neutrals.actionableIndicator;
+     const actionBarBackgroundColor = neutrals.surface;
 
      const preselectValues = () => {
           let newValues = [];
@@ -90,12 +105,11 @@ export const Facet = ({ route, navigation }) => {
                     headerBackVisible: false,
                     headerLeft: () => (
                          <Pressable
-                              mr={3}
                               onPress={() => {
                                    updateGlobal();
                                    navigation.goBack();
                               }}
-                              p="$1">
+                              className="mr-3 p-1">
                               <Box>
                                    <MaterialIcons name="chevron-left" size={28} color={headerIconColor} />
                               </Box>
@@ -141,10 +155,9 @@ export const Facet = ({ route, navigation }) => {
      };
 
      const searchBar = numFacets >= 0 ? (
-          <Box p="$5">
+          <Box className="py-5">
                <Input
                     size="lg"
-                    borderColor={colorMode === 'light' ? '$coolGray500' : '$warmGray300'}
                     variant="outline"
                >
                     <InputField
@@ -153,7 +166,6 @@ export const Facet = ({ route, navigation }) => {
                          autoCorrect={false}
                          returnKeyType="search"
                          placeholder={getTermFromDictionary(language, 'search') + ' ' + title}
-                         color={textColor}
                          onSubmitEditing={async () => {
                               setIsLoading(true);
                               await filterFacets();
@@ -162,7 +174,7 @@ export const Facet = ({ route, navigation }) => {
                </Input>
           </Box>
      ) : (
-          <Box pb="$5" />
+          <Box className="pb-5" />
      );
 
      const updateSearch = (resetFacetGroup = false, toFilters = false) => {
@@ -237,20 +249,20 @@ export const Facet = ({ route, navigation }) => {
      };
 
      const actionButtons = (
-          <Box p="$3" bgColor={colorMode === 'light' ? '$coolGray50' : '$coolGray700'} shadowOpacity={0.1} shadowRadius={1}>
+          <Box className="py-3" style={{ backgroundColor: actionBarBackgroundColor, shadowOpacity: 0.1, shadowRadius: 1 }}>
                <Center>
                     <ButtonGroup size="lg">
-                         <Button variant="link" onPress={resetCluster}>
-                              <ButtonText color={theme.tokens.colors.primary['500']}>
+                         <Button colorScheme="primary" variant="link" onPress={resetCluster}>
+                             <ButtonText>
                                    {getTermFromDictionary(language, 'reset')}
                               </ButtonText>
                          </Button>
                          <Button
-                              bgColor={theme.tokens.colors.primary['500']}
+                             colorScheme="primary"
                               isDisabled={isUpdating}
                               onPress={() => updateSearch()}
                          >
-                              <ButtonText color={theme.tokens.colors.primary['500-text']}>
+                             <ButtonText>
                                    {isUpdating ? getTermFromDictionary(language, 'updating', true) : getTermFromDictionary(language, 'update')}
                               </ButtonText>
                          </Button>
@@ -265,54 +277,54 @@ export const Facet = ({ route, navigation }) => {
 
      if (category === 'publishDate' || category === 'birthYear' || category === 'deathYear' || category === 'publishDateSort') {
           return (
-               <VStack flex={1}>
+               <ScreenContainer flex={1}>
                     <ScrollView>
-                         <Box p="$5">
+                         <Box className="py-5">
                               <Facet_Year category={category} updater={updateLocalValues} data={facets} language={language} />
                          </Box>
                     </ScrollView>
                     {actionButtons}
-               </VStack>
+               </ScreenContainer>
           );
      } else if (category === 'start_date') {
           return (
-               <VStack flex={1}>
+               <ScreenContainer flex={1}>
                     <ScrollView>
-                         <Box p="$5">
+                         <Box className="py-5">
                               <Facet_Date category={category} updater={updateLocalValues} data={facets} />
                          </Box>
                     </ScrollView>
                     {actionButtons}
-               </VStack>
+               </ScreenContainer>
           );
      } else if (category === 'rating_facet') {
           return (
-               <VStack flex={1}>
+               <ScreenContainer flex={1}>
                     <ScrollView>
-                         <Box p="$5">
+                         <Box className="py-5">
                               <Facet_Rating category={category} updater={updateLocalValues} data={facets} />
                          </Box>
                     </ScrollView>
                     {actionButtons}
-               </VStack>
+               </ScreenContainer>
           );
      } else if (category === 'lexile_score' || category === 'accelerated_reader_point_value' || category === 'accelerated_reader_reading_level') {
           return (
-               <VStack flex={1}>
+               <ScreenContainer flex={1}>
                     <ScrollView>
-                         <Box p="$5">
+                         <Box className="py-5">
                               <Facet_Slider category={category} data={facets} updater={updateLocalValues} language={language} />
                          </Box>
                     </ScrollView>
                     {actionButtons}
-               </VStack>
+               </ScreenContainer>
           );
      } else if (multiSelect) {
           return (
-               <VStack flex={1}>
+               <ScreenContainer flex={1}>
                     {searchBar}
                     <ScrollView>
-                         <Box px="$5">
+                         <Box>
                               <CheckboxGroup
                                    value={values}
                                    accessibilityLabel={getTermFromDictionary(language, 'filter_by')}
@@ -331,19 +343,19 @@ export const Facet = ({ route, navigation }) => {
                          </Box>
                     </ScrollView>
                     {actionButtons}
-               </VStack>
+               </ScreenContainer>
           );
      }
 
      return (
-          <VStack flex={1}>
+          <ScreenContainer flex={1}>
                {searchBar}
                <ScrollView>
-                    <Box px="$5">
+                    <Box>
                          <Facet_RadioGroup data={facets} category={category} title={title} applied={values} updater={updateLocalValues} language={language} />
                     </Box>
                </ScrollView>
                {actionButtons}
-          </VStack>
+          </ScreenContainer>
      );
 };

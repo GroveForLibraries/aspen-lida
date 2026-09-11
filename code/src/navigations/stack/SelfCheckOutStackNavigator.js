@@ -1,28 +1,27 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Pressable, Icon } from '@gluestack-ui/themed';
-import { MaterialIcons } from '@expo/vector-icons';
 import React from 'react';
-
-
 import { useAccounts } from '../../hooks/useUserData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { StartCheckOutSession } from '../../screens/SCO/StartCheckOutSession';
 import { SelfCheckOut } from '../../screens/SCO/SelfCheckOut';
-/*import { FinishCheckOutSession } from '../../screens/SCO/FinishSelfCheckoutSession';*/
 import _ from 'lodash';
 import SelfCheckScanner from '../../screens/SCO/SelfCheckScanner';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
-
 import TitleWithLogo from '../../components/TitleWithLogo'
 import { useTheme } from '../../themes/theme';
 import { ModalHeader } from '../../components/Headers/ModalHeader';
 
 const Stack = createNativeStackNavigator();
 
+/**
+ * SelfCheckOutStackNavigator component that sets up a stack navigator for self-checkout screens, including starting a checkout session, the main self-checkout screen, and a scanner modal.
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 const SelfCheckOutStackNavigator = () => {
      const language = useActiveLanguage();
      const { data: accounts } = useAccounts();
-     const {textColor} = useTheme();
+     useTheme();
 
      let defaultRoute = 'SelfCheckOut';
      if (_.size(accounts) >= 1) {
@@ -44,7 +43,6 @@ const SelfCheckOutStackNavigator = () => {
                               const title = getTermFromDictionary(language, 'nav_discover');
                               return <TitleWithLogo title={title} />;
                          },
-                         //title: getTermFromDictionary(language, 'self_checkout')
                     }}
                     initialParams={{ startNew: true }}
                />
@@ -56,7 +54,6 @@ const SelfCheckOutStackNavigator = () => {
                               const title = getTermFromDictionary(language, 'self_checkout');
                               return <TitleWithLogo title={title} hideBack={true} />;
                          },
-                         //title: getTermFromDictionary(language, 'self_checkout')
                     })}
                     initialParams={{ startNew: true }}
                />
@@ -81,19 +78,6 @@ const SelfCheckOutStackNavigator = () => {
                          ),
                     })}
                />
-               {/*
-               <Stack.Screen
-                    name="FinishCheckOutSession"
-                    component={FinishCheckOutSession}
-                    options={{
-                         header: () => {
-                              const title = getTermFromDictionary(language, 'finish_checkout_session');
-                              return <TitleWithLogo title={title} hideBack={true} />;
-                         },
-                         //title: getTermFromDictionary(language, 'finish_checkout_session')
-                    }}
-               />
-               */}
           </Stack.Navigator>
      );
 };

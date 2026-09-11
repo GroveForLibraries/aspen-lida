@@ -1,13 +1,20 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useCameraPermissions, CameraView } from 'expo-camera';
-import { Button, ButtonText, View } from '@gluestack-ui/themed';
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import BarcodeMask from 'react-native-barcode-mask';
 import { navigate } from '../helpers/RootNavigator';
 import { LoadError } from './loadError';
 import { LoadingSpinner } from './loadingSpinner';
+import { ThemedButton as Button, ThemedButtonText as ButtonText } from './themed/ThemedButton';
+import { View } from '@/components/ui/view';
+import { TOKENS } from '../themes/theme';
 
+/**
+ * LibraryCardScanner component for scanning library cards using the device camera.
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export default function LibraryCardScanner() {
      const navigation = useNavigation();
      const allowCode39 = useRoute().params?.allowCode39 ?? false;
@@ -36,7 +43,8 @@ export default function LibraryCardScanner() {
 
      if (!permission) {
           return (
-               <View style={{ flex: 1 }}>
+               <View className="flex-1">
+                    {/* TODO(translation): Replace hardcoded loading message with TranslationService-backed key. */}
                     <LoadingSpinner message="Requesting for camera permissions" />
                </View>
           );
@@ -45,13 +53,15 @@ export default function LibraryCardScanner() {
      if (!permission.granted) {
           if (permission.canAskAgain) {
                return (
-                    <View style={{ flex: 1 }}>
+                    <View className="flex-1">
+                         {/* TODO(translation): Replace hardcoded loading message with TranslationService-backed key. */}
                          <LoadingSpinner message="Requesting for camera permissions" />
                     </View>
                );
           }
           return (
-               <View style={{ flex: 1 }}>
+               <View className="flex-1">
+                    {/* TODO(translation): Replace hardcoded error message with TranslationService-backed key. */}
                     <LoadError error="No access to camera" />
                </View>
           );
@@ -62,15 +72,17 @@ export default function LibraryCardScanner() {
      }
 
      return (
-          <View style={{ flex: 1 }}>
+          <View className="flex-1">
                <CameraView onBarcodeScanned={scanned ? undefined : handleBarCodeScanned} style={[StyleSheet.absoluteFillObject, styles.container]} barcodeScannerSettings={{ barcodeTypes: allowedBarcodes }}>
                     <BarcodeMask edgeColor="#62B1F6" showAnimatedLine={false} />
                     <View style={styles.buttonContainer}>
-                         <Button variant="outline" action="secondary" onPress={() => navigation.goBack()} bgColor="rgba(0,0,0,0.5)" borderColor="$white">
-                              <ButtonText color="$white">Cancel</ButtonText>
+                         {/* TODO(translation): Replace hardcoded button label with TranslationService-backed key. */}
+                         <Button variant="outline" colorScheme="secondary" onPress={() => navigation.goBack()} style={{ backgroundColor: 'rgba(0,0,0,0.5)', borderColor: TOKENS.primitives.singletons.white }}>
+                              <ButtonText style={{ color: TOKENS.primitives.singletons.white }}>Cancel</ButtonText>
                          </Button>
+                         {/* TODO(translation): Replace hardcoded button label with TranslationService-backed key. */}
                          {scanned && (
-                              <Button onPress={() => setScanned(false)} ml="$4">
+                              <Button onPress={() => setScanned(false)} className="ml-4">
                                    <ButtonText>Scan Again</ButtonText>
                               </Button>
                          )}

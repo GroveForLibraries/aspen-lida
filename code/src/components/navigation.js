@@ -6,16 +6,13 @@ import * as Linking from 'expo-linking';
 import * as Notifications from 'expo-notifications';
 import * as SecureStore from 'expo-secure-store';
 import * as Updates from 'expo-updates';
-import { Spinner, useToken } from '@gluestack-ui/themed';
 import React from 'react';
 import { AppState, Platform } from 'react-native';
 import { enableScreens } from 'react-native-screens';
-
 import * as Sentry from '@sentry/react-native';
 import { CheckoutsProvider, GroupedWorkProvider, HoldsProvider, SearchProvider, SystemMessagesProvider } from '../context/initialContext';
 import { navigationRef } from '../helpers/RootNavigator';
 import LaunchStackNavigator from '../navigations/LaunchStackNavigator';
-
 import { LoginScreen } from '../screens/Auth/Login';
 import { SelfRegistration } from '../screens/Auth/SelfRegistration';
 import { evaluateStartupCache, SplashScreen } from '../screens/Auth/Splash';
@@ -26,9 +23,7 @@ import { RemoveData } from '../helpers/helpers';
 import { saveLibraryUrl, isSQLiteMigrationNeeded } from '../util/db';
 import LibraryCardScanner from './LibraryCardScanner';
 import TitleWithLogo from '../components/TitleWithLogo'
-
 import { useQueryClient } from '@tanstack/react-query';
-
 import { logDebugMessage, logInfoMessage, logWarnMessage, logErrorMessage } from '../util/logging.js';
 import { trackAppLaunches, trackAppResume } from '../util/analytics';
 const prefix = Linking.createURL('/');
@@ -49,7 +44,8 @@ try {
 
 import { AuthContext } from '../context/AuthContext';
 import { useActiveLanguage } from '../hooks/useLanguageData';
-import { useTheme } from '../themes/theme';
+import { useTheme, TOKENS } from '../themes/theme';
+import { Spinner } from '@/components/ui/spinner';
 export { AuthContext };
 
 const iOSRelease = Constants.expoConfig.ios.bundleIdentifier;
@@ -93,7 +89,11 @@ try {
      logErrorMessage("Could not initialize sentry " + e);
 }
 
-
+/**
+ * Main App component that manages authentication state and navigation.
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export function App() {
      const [state, dispatch] = React.useReducer(
           (prevState, action) => {
@@ -148,7 +148,7 @@ export function App() {
                               logDebugMessage('Found an update...');
                               try {
                                    logDebugMessage('Downloading update...');
-                                   await Updates.fetchUpdateAsync().then(async (r) => {
+                                   await Updates.fetchUpdateAsync().then(async () => {
                                         logInfoMessage('Updating app...');
                                         await Updates.reloadAsync();
                                    });
@@ -320,6 +320,13 @@ export function App() {
      );
 }
 
+/**
+ * AppContent component that handles navigation and theming based on the authentication state.
+ * @param param0
+ * @param param0.state
+ * @returns {(function(): void)|*|React.JSX.Element|string}
+ * @constructor
+ */
 function AppContent({state}) {
      const queryClient = useQueryClient();
 
@@ -336,18 +343,18 @@ function AppContent({state}) {
           ...DefaultTheme,
           colors: {
                ...DefaultTheme.colors,
-               background: '#f3f4f6', //coolGray.100
-               card: '#f9fafb', //coolGray.50
-               text: '#1c1917', //coolGray.900
+               background: TOKENS.semanticTokens.light.canvas,
+               card: TOKENS.semanticTokens.light.surface,
+               text: TOKENS.semanticTokens.light.textMain,
           },
      };
      const darkTheme = {
           ...DarkTheme,
           colors: {
                ...DarkTheme.colors,
-               background: '#111827', //coolGray.900
-               card: '#1f2937', //coolGray.800
-               text: '#f3f4f6', //coolGray.100
+               background: TOKENS.semanticTokens.dark.canvas,
+               card: TOKENS.semanticTokens.dark.surface,
+               text: TOKENS.semanticTokens.dark.textMain,
           },
      };
 

@@ -1,20 +1,26 @@
 import moment from 'moment';
-import { Badge, BadgeText, Box, Text, ActionsheetItemText } from '@gluestack-ui/themed';
 import React from 'react';
-
-
+import { ThemedBadge as Badge, ThemedBadgeText as BadgeText } from '../components/themed/ThemedBadge';
+import { Box } from '@/components/ui/box';
+import { ThemedActionsheetItemText as ActionsheetItemText } from '../components/themed/ThemedActionsheet';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
 import { useUserState } from '../hooks/useUserData';
 import { useLibrary } from '../hooks/useLibrarySystemData';
 import { getTermFromDictionary, getTranslationWithValuesText } from '../translations/TranslationService';
 import { useActiveLanguage } from '../hooks/useLanguageData';
 import { useTheme } from '../themes/theme';
 
+/**
+ * isOverdue component for displaying an overdue badge if the item is overdue.
+ * @param overdue
+ * @returns {React.JSX.Element|null}
+ */
 export const isOverdue = (overdue) => {
      const language = useActiveLanguage();
      if (overdue) {
           return (
-               <Badge action="error" borderRadius="$sm" mt={-2} alignSelf="flex-start">
-                    <BadgeText>
+               <Badge colorScheme="error" className="mt-[-8px] self-start rounded">
+                    <BadgeText colorScheme="error">
                          {getTermFromDictionary(language, 'checkout_overdue')}
                     </BadgeText>
                </Badge>
@@ -24,8 +30,13 @@ export const isOverdue = (overdue) => {
      }
 };
 
+/**
+ * getTitle component for displaying the title of an item, with formatting to remove any trailing slashes.
+ * @param title
+ * @returns {React.JSX.Element}
+ */
 export const getTitle = (title) => {
-     const {textColor} = useTheme();
+     const {} = useTheme();
      if (title) {
           let displayTitle = title;
           const countSlash = displayTitle.split('/').length - 1;
@@ -35,11 +46,8 @@ export const getTitle = (title) => {
           return (
                <Text
                     bold
-                    mb="$1"
-                    pr="$3"
-                    fontSize="$sm"
-                    color={textColor}
-                    maxwidth="$full">
+                    size="sm"
+                    className="mb-1 pr-3 max-w-full">
                     {displayTitle}
                </Text>
           );
@@ -47,17 +55,19 @@ export const getTitle = (title) => {
           return (
                <Text
                     bold
-                    mb="$1"
-                    pr="$3"
-                    fontSize='$sm'
-                    color={textColor}
-                    maxwidth="$full">
+                    size="sm"
+                    className="mb-1 pr-3 max-w-full">
                     Title Not Available
                </Text>
           );
      }
 };
 
+/**
+ * getCleanTitle function for returning a cleaned-up version of the title, removing any trailing slashes.
+ * @param title
+ * @returns {string}
+ */
 export function getCleanTitle(title) {
      if (title) {
           let displayTitle = title;
@@ -70,13 +80,18 @@ export function getCleanTitle(title) {
      return 'Unknown';
 }
 
+/**
+ * getCallNumber component for displaying the call number of an item, if available.
+ * @param callNumber
+ * @returns {React.JSX.Element|null}
+ */
 export const getCallNumber = (callNumber) => {
-     const {textColor} = useTheme();
+     const {} = useTheme();
      const language = useActiveLanguage();
      if (callNumber) {
           return (
-               <Text fontSize="$xs" color={textColor}>
-                    <Text bold fontSize="$xs" color={textColor}>
+               <Text size="xs">
+                    <Text bold size="xs">
                          {getTermFromDictionary(language, 'call_number')}:
                     </Text>
                     {' '}{callNumber}
@@ -86,13 +101,18 @@ export const getCallNumber = (callNumber) => {
      return null;
 }
 
+/**
+ * getVolume component for displaying the volume of an item, if available.
+ * @param volume
+ * @returns {React.JSX.Element|null}
+ */
 export const getVolume = (volume) => {
-     const {textColor} = useTheme();
+     const {} = useTheme();
      const language = useActiveLanguage();
      if (volume) {
           return (
-               <Text fontSize="$xs" color={textColor}>
-                    <Text bold fontSize="$xs" color={textColor}>
+               <Text size="xs">
+                    <Text bold size="xs">
                          {getTermFromDictionary(language, 'volume')}:
                     </Text>
                     {' '}{volume}
@@ -102,8 +122,13 @@ export const getVolume = (volume) => {
      return null;
 }
 
+/**
+ * getVolume component for displaying the volume of an item, if available.
+ * @param author
+ * @returns {React.JSX.Element|null}
+ */
 export const getAuthor = (author) => {
-     const {textColor} = useTheme();
+     const {} = useTheme();
      const language = useActiveLanguage();
      if (author) {
           let displayAuthor = author;
@@ -113,8 +138,8 @@ export const getAuthor = (author) => {
           }
 
           return (
-               <Text fontSize="$xs" color={textColor}>
-                    <Text bold fontSize="$xs" color={textColor}>
+               <Text size="xs">
+                    <Text bold size="xs">
                          {getTermFromDictionary(language, 'author')}:
                     </Text>
                     {' '}{displayAuthor}
@@ -124,10 +149,16 @@ export const getAuthor = (author) => {
      return null;
 };
 
+/**
+ * getFormat component for displaying the format of an item, along with its source if available.
+ * @param format
+ * @param source
+ * @returns {React.JSX.Element|null}
+ */
 export const getFormat = (format, source = null) => {
      const language = useActiveLanguage();
      const library = useLibrary();
-     const {textColor} = useTheme();
+     const {} = useTheme();
      if (format && format !== 'Unknown') {
           if (source) {
                if (source !== 'ils') {
@@ -149,8 +180,8 @@ export const getFormat = (format, source = null) => {
                          source = getTermFromDictionary(language, 'palace_project');
                     }
                     return (
-                         <Text fontSize="$xs" color={textColor}>
-                              <Text bold fontSize="$xs" color={textColor}>
+                         <Text size="xs">
+                              <Text bold size="xs">
                                    {getTermFromDictionary(language, 'format')}:
                               </Text>
                               {' '}{format !== '' ? format : 'Unknown'} - {source}
@@ -159,8 +190,8 @@ export const getFormat = (format, source = null) => {
                }
           }
           return (
-               <Text fontSize="$xs" color={textColor}>
-                    <Text bold fontSize="$xs" color={textColor}>
+               <Text size="xs">
+                    <Text bold size="xs">
                          {getTermFromDictionary(language, 'format')}:
                     </Text>
                     {' '}{format}
@@ -171,21 +202,30 @@ export const getFormat = (format, source = null) => {
      }
 };
 
+/**
+ * getBadge component for displaying a badge based on the status, frozen state, availability, source, and status message of an item.
+ * @param status
+ * @param frozen
+ * @param available
+ * @param source
+ * @param statusMessage
+ * @returns {React.JSX.Element|null}
+ */
 export const getBadge = (status, frozen, available, source, statusMessage) => {
      const language = useActiveLanguage();
      if (frozen) {
           if (statusMessage) {
                return (
-                    <Badge colorScheme="yellow" borderRadius="$sm" mt={-0.5} alignSelf="flex-start">
-                         <BadgeText>
+                    <Badge colorScheme="warning" className="mt-[-2px] self-start rounded">
+                         <BadgeText colorScheme="warning">
                               {statusMessage}
                          </BadgeText>
                     </Badge>
                );
           }
           return (
-               <Badge colorScheme="yellow" borderRadius="$sm" mt={-0.5} alignSelf="flex-start">
-                    <BadgeText>
+               <Badge colorScheme="warning" className="mt-[-2px] self-start rounded">
+                    <BadgeText colorScheme="warning">
                          {status}
                     </BadgeText>
                </Badge>
@@ -196,8 +236,8 @@ export const getBadge = (status, frozen, available, source, statusMessage) => {
                message = status;
           }
           return (
-               <Badge colorScheme="green" borderRadius="$sm" mt={-0.5} alignSelf="flex-start">
-                    <BadgeText>
+               <Badge colorScheme="success" className="mt-[-2px] self-start rounded">
+                    <BadgeText colorScheme="success">
                          {message}
                     </BadgeText>
                </Badge>
@@ -205,8 +245,8 @@ export const getBadge = (status, frozen, available, source, statusMessage) => {
      } else {
           if (status) {
                return (
-                    <Badge colorScheme="orange" borderRadius="$sm" mt={-0.5} alignSelf="flex-start">
-                         <BadgeText>
+                    <Badge colorScheme="warning" className="mt-[-2px] self-start rounded">
+                         <BadgeText colorScheme="warning">
                               {status}
                          </BadgeText>
                     </Badge>
@@ -216,9 +256,14 @@ export const getBadge = (status, frozen, available, source, statusMessage) => {
      return null;
 };
 
+/**
+ * getType component for displaying the type of an item, with translations for specific types.
+ * @param type
+ * @returns {React.JSX.Element|null}
+ */
 export const getType = (type) => {
      const language = useActiveLanguage();
-     const {textColor} = useTheme();
+     const {} = useTheme();
      if (type && type !== 'ils') {
           if (type === 'interlibrary_loan') {
                type = getTermFromDictionary(language, 'interlibrary_loan');
@@ -235,8 +280,8 @@ export const getType = (type) => {
           }
 
           return (
-               <Text fontSize="$xs" color={textColor}>
-                    <Text bold fontSize="$xs" color={textColor}>
+               <Text size="xs">
+                    <Text bold size="xs">
                          {getTermFromDictionary(language, 'hold_source')}:
                     </Text>
                     {' '}{type}
@@ -247,13 +292,18 @@ export const getType = (type) => {
      }
 };
 
+/**
+ * getOnHoldFor component for displaying the user for whom an item is on hold, if available.
+ * @param user
+ * @returns {React.JSX.Element|null}
+ */
 export const getOnHoldFor = (user) => {
      const language = useActiveLanguage();
-     const {textColor} = useTheme();
+     const {} = useTheme();
      if (user) {
           return (
-               <Text fontSize="$xs" color={textColor}>
-                    <Text bold fontSize="$xs" color={textColor}>
+               <Text size="xs">
+                    <Text bold size="xs">
                          {getTermFromDictionary(language, 'on_hold_for')}:
                     </Text>
                     {' '}{user}
@@ -263,16 +313,21 @@ export const getOnHoldFor = (user) => {
      return null;
 };
 
+/**
+ * getCheckedOutTo component for displaying the user to whom an item is checked out, if available and different from the current user.
+ * @param props
+ * @returns {React.JSX.Element|null}
+ */
 export const getCheckedOutTo = (props) => {
      const language = useActiveLanguage();
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const [checkedOutTo] = React.useState();
-     const {textColor} = useTheme();
+     const {} = useTheme();
      if (user.id !== checkedOutTo) {
           return (
-               <Text fontSize="$xs" color={textColor}>
-                    <Text bold fontSize="$xs" color={textColor}>
+               <Text size="xs">
+                    <Text bold size="xs">
                          {getTermFromDictionary(language, 'checked_out_to')}:
                     </Text>
                     {' '}{props}
@@ -283,17 +338,22 @@ export const getCheckedOutTo = (props) => {
      }
 };
 
+/**
+ * getDueDate component for displaying the due date of an item, if available and not zero.
+ * @param date
+ * @returns {React.JSX.Element|null}
+ */
 export const getDueDate = (date) => {
      const language = useActiveLanguage();
-     const {textColor} = useTheme();
+     const {} = useTheme();
      if (date && date !== 0) {
           //offset is in minutes we multiply 60 to get seconds
           const timezoneOffset = new Date().getTimezoneOffset() * 60;
           const dueDate = moment.unix(date - timezoneOffset);
           const itemDueOn = moment(dueDate).format('MMM D, YYYY');
           return (
-               <Text fontSize="$xs" color={textColor}>
-                    <Text bold fontSize="$xs" color={textColor}>
+               <Text size="xs">
+                    <Text bold size="xs">
                          {getTermFromDictionary(language, 'checkout_due')}:
                     </Text>
                     {' '}{itemDueOn}
@@ -304,9 +364,15 @@ export const getDueDate = (date) => {
      return null;
 };
 
+/**
+ * getDateLastUsed component for displaying the last used date of an item, if available and not zero, or indicating if the item is currently checked out.
+ * @param date
+ * @param checkedOut
+ * @returns {React.JSX.Element|null}
+ */
 export const getDateLastUsed = (date, checkedOut) => {
      const language = useActiveLanguage();
-     const {textColor} = useTheme();
+     const {} = useTheme();
      if (date && date !== 0) {
           const dateLastUsed = moment.unix(date);
           let itemLastUsedOn = moment(dateLastUsed).format('MMM D, YYYY');
@@ -314,8 +380,8 @@ export const getDateLastUsed = (date, checkedOut) => {
                itemLastUsedOn = getTermFromDictionary(language, 'in_use');
           }
           return (
-               <Text fontSize="$xs" color={textColor}>
-                    <Text bold fontSize="$xs" color={textColor}>
+               <Text size="xs">
+                    <Text bold size="xs">
                          {getTermFromDictionary(language, 'last_used')}:
                     </Text>
                     {' '}{itemLastUsedOn}
@@ -326,14 +392,19 @@ export const getDateLastUsed = (date, checkedOut) => {
      return null;
 };
 
+/**
+ * willAutoRenew component for displaying the auto-renewal information of an item, if applicable.
+ * @param props
+ * @returns {React.JSX.Element|null}
+ */
 export const willAutoRenew = (props) => {
      const language = useActiveLanguage();
-     const {textColor} = useTheme();
+     const {} = useTheme();
      if (props.autoRenew === 1 || props.autoRenew === '1') {
           return (
-               <Box mt={1} p={0.5} bgColor="trueGray100">
-                    <Text fontSize="$xs" color={textColor}>
-                         <Text bold fontSize="$xs" color={textColor}>
+               <Box style={{ marginTop: 1, padding: 2, backgroundColor: '#f5f5f5' }}>
+                    <Text size="xs">
+                         <Text bold size="xs">
                               {getTermFromDictionary(language, 'if_eligible_auto_renew')}:
                          </Text>
                          {' '}{props.renewalDate}
@@ -345,13 +416,19 @@ export const willAutoRenew = (props) => {
      }
 };
 
+/**
+ * getPickupLocation component for displaying the pickup location of an item, if available and the source is 'ils'.
+ * @param location
+ * @param source
+ * @returns {React.JSX.Element|null}
+ */
 export const getPickupLocation = (location, source) => {
      const language = useActiveLanguage();
-     const {textColor} = useTheme();
+     const {} = useTheme();
      if (location && source === 'ils') {
           return (
-               <Text fontSize="$xs" color={textColor}>
-                    <Text bold fontSize="$xs" color={textColor}>
+               <Text size="xs">
+                    <Text bold size="xs">
                          {getTermFromDictionary(language, 'hold_pickup_at')}:
                     </Text>
                     {' '}{location}
@@ -362,13 +439,18 @@ export const getPickupLocation = (location, source) => {
      }
 };
 
+/**
+ * getOutOfHoldGroupMessage component for displaying a message when an item is out of the hold group, if available.
+ * @param outOfHoldGroupMessage
+ * @returns {React.JSX.Element|null}
+ */
 export const getOutOfHoldGroupMessage = (outOfHoldGroupMessage) => {
      const language = useActiveLanguage();
-     const {textColor} = useTheme();
+     const {} = useTheme();
      if (outOfHoldGroupMessage) {
           return (
-               <Text fontSize="$xs" color={textColor}>
-                    <Text bold fontSize="$xs" color={textColor}>
+               <Text size="xs">
+                    <Text bold size="xs">
                          {getTermFromDictionary(language, 'interlibrary_loan')}:
                     </Text>
                     {' '}{outOfHoldGroupMessage}
@@ -379,14 +461,24 @@ export const getOutOfHoldGroupMessage = (outOfHoldGroupMessage) => {
      }
 }
 
+/**
+ * getPosition component for displaying the position of an item in the hold queue, if applicable.
+ * @param position
+ * @param available
+ * @param length
+ * @param holdPosition
+ * @param usesHoldPosition
+ * @param outOfHoldGroupMessage
+ * @returns {React.JSX.Element|null}
+ */
 export const getPosition = (position, available, length, holdPosition, usesHoldPosition, outOfHoldGroupMessage) => {
      const language = useActiveLanguage();
-     const {textColor} = useTheme();
+     const {} = useTheme();
      if (!outOfHoldGroupMessage && position && !available && position !== 0 && position !== '0') {
           if (length && usesHoldPosition) {
                return (
-                    <Text fontSize="$xs" color={textColor}>
-                         <Text bold fontSize="$xs" color={textColor}>
+                    <Text size="xs">
+                         <Text bold size="xs">
                               {getTermFromDictionary(language, 'hold_position')}:
                          </Text>
                          {' '}{holdPosition}
@@ -394,8 +486,8 @@ export const getPosition = (position, available, length, holdPosition, usesHoldP
                );
           }
           return (
-               <Text fontSize="$xs" color={textColor}>
-                    <Text bold fontSize="$xs" color={textColor}>
+               <Text size="xs">
+                    <Text bold size="xs">
                          {getTermFromDictionary(language, 'hold_position')}:
                     </Text>
                     {' '}{position}
@@ -406,15 +498,21 @@ export const getPosition = (position, available, length, holdPosition, usesHoldP
      }
 };
 
+/**
+ * getExpirationDate component for displaying the expiration date of an item, if available.
+ * @param expiration
+ * @param available
+ * @returns {React.JSX.Element|null}
+ */
 export const getExpirationDate = (expiration, available) => {
      const language = useActiveLanguage();
-     const {textColor} = useTheme();
+     const {} = useTheme();
      if (expiration && available) {
           const expirationDateUnix = moment.unix(expiration);
           let expirationDate = moment(expirationDateUnix).format('MMM D, YYYY');
           return (
-               <Text fontSize="$xs" color={textColor}>
-                    <Text bold fontSize="$xs" color={textColor}>
+               <Text size="xs">
+                    <Text bold size="xs">
                          {getTermFromDictionary(language, 'hold_pickup_by')}:
                     </Text>
                     {' '}{expirationDate}
@@ -425,13 +523,19 @@ export const getExpirationDate = (expiration, available) => {
      }
 };
 
+/**
+ * getRenewalCount component for displaying the renewal count of an item, if available.
+ * @param count
+ * @param available
+ * @returns {React.JSX.Element|null}
+ */
 export const getRenewalCount = (count, available = null) => {
      const language = useActiveLanguage();
-     const {textColor} = useTheme();
+     const {} = useTheme();
      if (available) {
           return (
-               <Text fontSize="$xs" color={textColor}>
-                    <Text bold fontSize="$xs" color={textColor}>
+               <Text size="xs">
+                    <Text bold size="xs">
                          {getTermFromDictionary(language, 'checkout_renewed')}:
                     </Text>
                     {' '}{count} of {available} times
@@ -442,13 +546,19 @@ export const getRenewalCount = (count, available = null) => {
      }
 };
 
+/**
+ * getCollectionName component for displaying the collection name of an item, if the source is 'overdrive' and a collection name is provided.
+ * @param source
+ * @param collectionName
+ * @returns {React.JSX.Element|null}
+ */
 export const getCollectionName = (source, collectionName = null) => {
 	const language = useActiveLanguage();
-     const {textColor} = useTheme();
+     const {} = useTheme();
 	if (source === 'overdrive' && collectionName) {
 		return (
-		     <Text fontSize="$xs" color={textColor}>
-                    <Text bold fontSize="$xs" color={textColor}>
+		     <Text size="xs">
+                    <Text bold size="xs">
                          {getTermFromDictionary(language, 'collection')}:
                     </Text>
                     {' '}{collectionName}
@@ -459,6 +569,17 @@ export const getCollectionName = (source, collectionName = null) => {
 	}
 }
 
+/**
+ * CheckoutAccessLabel component for displaying the access label for a checkout, based on its source and other properties.
+ * @param param0
+ * @param param0.checkout
+ * @param param0.language
+ * @param param0.baseUrl
+ * @param param0.libbyReaderName
+ * @param param0.color
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const CheckoutAccessLabel = ({ checkout, language, baseUrl, libbyReaderName, color }) => {
      const [label, setLabel] = React.useState('...'); // Fallback / temporary loading text
 
@@ -502,5 +623,5 @@ export const CheckoutAccessLabel = ({ checkout, language, baseUrl, libbyReaderNa
           };
      }, [checkout, language, baseUrl, libbyReaderName]);
 
-     return <ActionsheetItemText color={color} >{label}</ActionsheetItemText>;
+     return <ActionsheetItemText style={{ color }}>{label}</ActionsheetItemText>;
 };

@@ -1,30 +1,15 @@
-import { SearchIcon } from 'lucide-react-native';
-
-import {
-     Button,
-     ButtonGroup,
-     ButtonIcon,
-     ButtonText,
-     Box,
-     Center,
-     HStack,
-     Text,
-     SafeAreaView,
-     ScrollView
-} from '@gluestack-ui/themed';
+import { ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/ThemedMaterialIcons';
 import { useRoute } from '@react-navigation/native';
 import { useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import _ from 'lodash';
 import React from 'react';
-
-// custom components and helper files
 import {loadError} from '../../components/loadError';
 import { LoadingSpinner } from '../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../components/Notifications';
 import { GroupedWorkContext, SystemMessagesContext } from '../../context/initialContext';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
-import { useUserState, useAccounts, useCards, useLocations, useSublocations, useUpdateAccounts, useUpdateCards, useUpdateLocations, useUpdateSublocations, useUpdatePickupLocationPrefs } from '../../hooks/useUserData';
+import { useUserState, useCards, useSublocations, useUpdateAccounts, useUpdateCards, useUpdateLocations, useUpdateSublocations, useUpdatePickupLocationPrefs } from '../../hooks/useUserData';
 import { startSearch } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { getFirstRecord, getVariations } from '../../util/api/item';
@@ -36,24 +21,32 @@ import { getPickupLocations, getPickupSublocations } from '../../util/api/user';
 import { formatPickupLocations } from '../../util/api/userHelper';
 import AddToList from '../Search/AddToList';
 import Variations from './Variations';
-
 import { logDebugMessage, getErrorMessage } from '../../util/logging.js';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 import { useTheme } from '../../themes/theme';
+import { Box } from '@/components/ui/box';
+import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../components/themed/ThemedButton';
+import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
+import { Center } from '@/components/ui/center';
+import { HStack } from '@/components/ui/hstack';
+import { ThemedScrollView as ScrollView } from '@/src/components/themed/ThemedScrollView';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
+import { ScreenContainer } from '@/src/components/ScreenContainer';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
+/**
+ * GroupedWorkScreen component that displays detailed information about a grouped work, including title, author, formats, variations, and description. It fetches data from the API based on the provided work ID and user language, and manages state for user accounts, pickup locations, and system messages.
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const GroupedWorkScreen = () => {
      const route = useRoute();
      const queryClient = useQueryClient();
      const id = route.params.id;
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
-     const preferredPickupLocationIsValid = userState?.preferredPickupLocationIsValid ?? true;
-     const preferredPickupLocationWarning = userState?.preferredPickupLocationWarning ?? '';
-     const { data: locations } = useLocations();
      const { data: sublocations } = useSublocations();
-     const { data: accounts } = useAccounts();
      const { data: cards } = useCards();
      const updateLocations = useUpdateLocations();
      const updateSublocations = useUpdateSublocations();
@@ -64,7 +57,7 @@ export const GroupedWorkScreen = () => {
      const library = useLibrary();
      const userLanguage = useActiveLanguage();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
-     const { theme, colorMode } = useTheme();
+     const { neutrals } = useTheme();
 
      const { status, data, error, isFetching } = useQuery(['groupedWork', id, userLanguage, library.baseUrl], () => getGroupedWork(route.params.id, userLanguage, library.baseUrl));
 
@@ -113,32 +106,40 @@ export const GroupedWorkScreen = () => {
 
      const showSystemMessage = () => {
           if (_.isArray(systemMessages)) {
-               return systemMessages.map((obj, index, collection) => {
+              return systemMessages.map((obj, index) => {
                     if (obj.showOn === '0') {
                          return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
                     }
+                    return null;
                });
           }
           return null;
      };
 
      return (
-          <SafeAreaView style={{ flex: 1 }}>
+          <ScreenContainer safeArea style={{ flex: 1 }}>
                {status === 'loading' || isFetching ? (
+                    // TODO(translation): Replace hardcoded loading message with TranslationService-backed key.
                     <LoadingSpinner message="Fetching data..." />
                ) : status === 'error' ? (
                     loadError(error, '')
                ) : (
                     <ScrollView>
-                         <Box sx={{ '@base': { height: 150 }, '@lg': { height: 200 } }} width="$full" bgColor={colorMode === 'light' ? "$warmGray200" : "$coolGray900"} zIndex={-1} position="absolute" left={0} top={0} />
-                         {_.size(systemMessages) > 0 ? <Box p="$2">{showSystemMessage()}</Box> : null}
+                         <Box style={{ height: 150, width: '100%', backgroundColor: neutrals.canvas, zIndex: -1, position: 'absolute', left: 0, top: 0 }} />
+                         {_.size(systemMessages) > 0 ? <Box className="p-2">{showSystemMessage()}</Box> : null}
                          <DisplayGroupedWork data={data.results} initialFormat={data.format} updateFormat={data.format} />
                     </ScrollView>
                )}
-          </SafeAreaView>
+          </ScreenContainer>
      );
 };
 
+/**
+ * DisplayGroupedWork component that displays detailed information about a grouped work, including title, author, formats, variations, and description. It fetches additional data for each format and variation using React Query.
+ * @param payload
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 const DisplayGroupedWork = (payload) => {
      const groupedWork = payload.data;
      const route = useRoute();
@@ -146,7 +147,6 @@ const DisplayGroupedWork = (payload) => {
      const { format } = React.useContext(GroupedWorkContext);
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { colorMode } = useTheme();
 
      const formats = Object.keys(groupedWork.formats);
 
@@ -167,28 +167,36 @@ const DisplayGroupedWork = (payload) => {
      const key = 'large_' + groupedWork.id;
 
      return (
-          <Box p="$5" width="$full">
-               <Center mt="$5" width="100%">
-                    <Image alt={groupedWork.title} source={groupedWork.cover} style={{ width: 180, height: 250, borderRadius: 4 }} placeholder={blurhash} transition={1000} contentFit="cover" />
+          <Box className="py-[10px] w-full">
+               <Center className="w-full">
+                    <Image alt={groupedWork.title} source={groupedWork.cover} className="rounded" style={{ width: 180.0, height: 250.0 }} placeholder={blurhash} transition={1000} contentFit="cover" />
                     <Title title={groupedWork.title} />
                     <Author author={groupedWork.author} />
                </Center>
-               <Language language={groupedWork.language} />
-               <Formats formats={groupedWork.formats} />
-               <Variations format={format} data={groupedWork} />
-               <AddToList itemId={groupedWork.id} btnStyle="lg" />
-               <Description description={groupedWork.description} />
-               <BibliographicInformationLink groupedWorkId={groupedWork.id} />
+               <Box className="px-4">
+                    <Language language={groupedWork.language} />
+                    <Formats formats={groupedWork.formats} />
+                    <Variations format={format} data={groupedWork} />
+                    <AddToList itemId={groupedWork.id} btnStyle="lg" />
+                    <Description description={groupedWork.description} />
+                    <BibliographicInformationLink groupedWorkId={groupedWork.id} />
+               </Box>
           </Box>
      );
 };
 
+/**
+ * Title component that displays the title of a grouped work. It renders the title text in bold and centered if provided, otherwise returns null.
+ * @param param0
+ * @param param0.title
+ * @returns {React.JSX.Element|null}
+ * @constructor
+ */
 const Title = ({ title }) => {
-     const { textColor } = useTheme();
      if (title) {
           return (
                <>
-                    <Text color={textColor} sx={{ '@base': { fontSize: 16, lineHeight: 19 }, '@lg': { fontSize: 24, lineHeight: 27 } }} bold pt="$5" alignText="center">
+                    <Text bold className="pt-5" style={{ lineHeight: 19, textAlign: 'center' }} size="md">
                          {title}
                     </Text>
                </>
@@ -198,14 +206,21 @@ const Title = ({ title }) => {
      }
 };
 
+/**
+ * Author component that displays the author of a grouped work. It renders a button that allows the user to search for other works by the same author when pressed.
+ * @param param0
+ * @param param0.author
+ * @returns {React.JSX.Element|null}
+ * @constructor
+ */
 const Author = ({ author }) => {
      const library = useLibrary();
-     const { theme, colorMode } = useTheme();
+     const { neutralPairs, colorMode } = useTheme();
      if (author) {
           return (
                <Button size="sm" variant="link" onPress={() => startSearch(author, 'SearchResults', library.baseUrl)}>
-                    <ButtonIcon as={SearchIcon} color={colorMode === 'light' ? "$coolGray700" : "$warmGray100"} size="xs" mr="$1" />
-                    <ButtonText fontWeight="$normal" color={colorMode === 'light' ? "$coolGray700" : "$warmGray100"}>
+                    <MaterialIcons name="search" size={16} color={colorMode === 'light' ? neutralPairs.textMuted.light : neutralPairs.white} className="mr-1" />
+                    <ButtonText style={{ fontWeight: '400', color: colorMode === 'light' ? neutralPairs.textMuted.light : neutralPairs.white }}>
                          {author}
                     </ButtonText>
                </Button>
@@ -214,26 +229,43 @@ const Author = ({ author }) => {
      return null;
 };
 
+/**
+ * Format component that renders a button for a specific format of a grouped work. It allows the user to select a format and updates the displayed information accordingly.
+ * @param data
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 const Format = (data) => {
      const format = data.data;
      const key = data.format;
      const isSelected = data.isSelected;
      const updateFormat = data.updateFormat;
-     const btnStyle = isSelected === key ? 'solid' : 'outline';
-     const { theme, colorMode } = useTheme();
+     const isSelectedFormat = isSelected === key;
+     const btnStyle = isSelectedFormat ? 'solid' : 'outline';
 
      return (
-          <Button size="sm" bg={btnStyle === 'outline' ? 'transparent' : theme['tokens']['colors']['secondary']['400']} borderColor={colorMode === 'light' ? "$coolGray700" : "$warmGray100"} mb="$1" mr="$1" variant={btnStyle} onPress={() => updateFormat(key)}>
-               <ButtonText color={btnStyle === 'outline' ? (colorMode === 'light' ? "$coolGray700" : "$warmGray100") : theme['tokens']['colors']['secondary']['400-text']}>{format.label}</ButtonText>
+          <Button
+               size="sm"
+               variant={btnStyle}
+               colorScheme="secondary"
+               onPress={() => updateFormat(key)}
+               >
+               <ButtonText>{format.label}</ButtonText>
           </Button>
      );
 };
 
+/**
+ * Description component that displays the description of a grouped work. It renders the description text if provided, otherwise returns null.
+ * @param param0
+ * @param param0.description
+ * @returns {React.JSX.Element|null}
+ * @constructor
+ */
 const Description = ({ description }) => {
-     const { theme, textColor } = useTheme();
      if (description) {
           return (
-               <Text mt="$5" mb="$5" sx={{ '@base': { fontSize: 14, lineHeight: 21 }, '@lg': { fontSize: 20, lineHeight: 27 } }} color={textColor}>
+               <Text className="mt-5 mb-5" style={{ lineHeight: 21 }} size="sm">
                     {decodeHTML(description)}
                </Text>
           );
@@ -242,16 +274,22 @@ const Description = ({ description }) => {
      }
 };
 
+/**
+ * Language component that displays the language of a grouped work. It renders a label and the language value if provided.
+ * @param param0
+ * @param param0.language
+ * @returns {React.JSX.Element|null}
+ * @constructor
+ */
 const Language = ({ language }) => {
      const user_language = useActiveLanguage();
-     const { theme, textColor } = useTheme();
      if (language) {
           return (
-               <HStack mt="$3" mb="$1">
-                    <Text sx={{ '@base': { fontSize: 12, lineHeight: 15 }, '@lg': { fontSize: 18, lineHeight: 21 } }} bold color={textColor}>
+               <HStack className="mt-3 mb-1">
+                    <Text bold style={{ lineHeight: 15 }} size="xs">
                          {getTermFromDictionary(user_language, 'language')}:
                     </Text>
-                    <Text sx={{ '@base': { fontSize: 12, lineHeight: 15 }, '@lg': { fontSize: 18, lineHeight: 21 } }} ml="$1" color={textColor}>
+                    <Text className="ml-1" style={{ lineHeight: 15 }} size="xs">
                          {' '}
                          {language}
                     </Text>
@@ -262,18 +300,24 @@ const Language = ({ language }) => {
      }
 };
 
+/**
+ * Formats component that displays a list of available formats for a grouped work. It renders a button for each format, allowing the user to select a format and update the displayed information accordingly.
+ * @param param0
+ * @param param0.formats
+ * @returns {React.JSX.Element|null}
+ * @constructor
+ */
 const Formats = ({ formats }) => {
      const language = useActiveLanguage();
      const { format, updateFormat } = React.useContext(GroupedWorkContext);
-     const { theme, textColor } = useTheme();
      if (formats) {
           return (
                <>
-                    <Text sx={{ '@base': { fontSize: 12, lineHeight: 15 }, '@lg': { fontSize: 18, lineHeight: 21 } }} bold mt="$3" mb="$1" color={textColor}>
+                    <Text bold className="mt-3 mb-1" style={{ lineHeight: 15 }} size="xs">
                          {getTermFromDictionary(language, 'format')}:
                     </Text>
-                    <ButtonGroup flexDirection="row" flexWrap="wrap">
-                         {_.compact(_.map(_.keys(formats), function (item, index, array) {
+                    <ButtonGroup className="flex-row flex-wrap">
+                         {_.compact(_.map(_.keys(formats), function (item, index) {
                               const formatData = formats[item];
                               if (!formatData || !formatData.label || formatData.label.trim() === '' || item.trim() === '') {
                                    return null;
@@ -288,14 +332,21 @@ const Formats = ({ formats }) => {
      }
 };
 
+/**
+ * BibliographicInformationLink component that renders a button linking to more bibliographic information for a grouped work. The button is displayed only if the library settings allow it and the grouped work ID is provided.
+ * @param param0
+ * @param param0.groupedWorkId
+ * @returns {React.JSX.Element|null}
+ * @constructor
+ */
 const BibliographicInformationLink = ({ groupedWorkId }) => {
      const language = useActiveLanguage();
-     const { theme, colorMode } = useTheme();
+     const { neutrals } = useTheme();
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const library = useLibrary();
-     const backgroundColor = colorMode === 'light' ? "$warmGray200" : "$coolGray900";
-     const textColor = colorMode === 'light' ? "$warmGray800" : "$coolGray200";
+     const backgroundColor = neutrals.surface;
+     const textColor = neutrals.textMain;
 
      let showMoreInfoBtn = false;
      if(library?.showMoreInfoBtn) {
@@ -304,8 +355,8 @@ const BibliographicInformationLink = ({ groupedWorkId }) => {
 
      if (groupedWorkId && showMoreInfoBtn) {
           return (
-          <Button onPress={async () => await passUserToDiscovery(library.baseUrl, 'GroupedWork', user.id, backgroundColor, textColor, groupedWorkId)} bgColor={theme['tokens']['colors']['secondary']['500']}>
-               <ButtonText color={theme['tokens']['colors']['secondary']['500-text']}>
+          <Button onPress={async () => await passUserToDiscovery(library.baseUrl, 'GroupedWork', user.id, backgroundColor, textColor, groupedWorkId)} colorScheme="secondary">
+              <ButtonText>
                     {getTermFromDictionary(language, 'more_information')}
                </ButtonText>
           </Button>

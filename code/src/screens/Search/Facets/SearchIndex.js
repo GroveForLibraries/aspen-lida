@@ -1,19 +1,25 @@
-import { MaterialIcons } from '@expo/vector-icons';
+import { ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/ThemedMaterialIcons';
 import _ from 'lodash';
 import { useNavigation } from '@react-navigation/native';
-import { Box, HStack, Icon, Pressable, Text, VStack } from '@gluestack-ui/themed';
 import React from 'react';
-import { ScrollView } from 'react-native';
+import { ThemedScrollView as ScrollView } from '@/src/components/themed/ThemedScrollView';
+import { SearchContext } from '@/src/context/initialContext';
+import {logDebugMessage} from '@/src/util/logging';
+import { useTheme } from '@/src/themes/theme';
+import { Box } from '@/components/ui/box';
+import { HStack } from '@/components/ui/hstack';
+import { Pressable } from '@/components/ui/pressable';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
+import { ScreenContainer } from '@/src/components/ScreenContainer';
 
-import { SearchContext } from '../../../context/initialContext';
-import {logDebugMessage} from "../../../util/logging";
-import { useTheme } from '../../../themes/theme';
-
-// custom components and helper files
-
+/**
+ * SearchIndexScreen component that displays a list of search indexes for the user to select from. It manages the current index state and updates the search results when a new index is selected.
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const SearchIndexScreen = () => {
      const navigation = useNavigation();
-     const {theme, textColor, colorMode } = useTheme();
+     const { brand } = useTheme();
      const { currentIndex, indexes, updateCurrentSource, updateIndexes, updateCurrentIndex } = React.useContext(SearchContext);
 
      logDebugMessage('currentIndex: ' + currentIndex);
@@ -29,23 +35,23 @@ export const SearchIndexScreen = () => {
      };
 
      return (
-          <VStack pt="$5" flex={1}>
+          <ScreenContainer className="pt-5">
                <ScrollView>
-                    <Box px="$5">
+                    <Box>
                          {_.map(indexes, function (obj, index, array) {
                               return (
-                                   <Pressable p="$0.5" py="$2" onPress={() => updateIndex(index)}>
+                                   <Pressable key={index} className="p-[2px] py-2" onPress={() => updateIndex(index)}>
                                         {currentIndex === index ? (
-                                             <HStack space="sm" justifyContent="flex-start" alignItems="center">
-                                                  <Icon as={MaterialIcons} name="radio-button-checked" size="lg" color={theme.tokens.colors.primary['600']} />
-                                                  <Text color={textColor} ml="$2">
+                                            <HStack space="sm" className="justify-start items-center">
+                                                 <MaterialIcons name="radio-button-checked" size={20} color={brand.primary[600]} />
+                                                 <Text className="ml-2">
                                                        {obj}
                                                   </Text>
                                              </HStack>
                                         ) : (
-                                             <HStack space="sm" justifyContent="flex-start" alignItems="center">
-                                                  <Icon as={MaterialIcons} name="radio-button-unchecked" size="lg" color={theme.tokens.colors.primary['200']}  />
-                                                  <Text color={textColor} ml="$2">
+                                            <HStack space="sm" className="justify-start items-center">
+                                                 <MaterialIcons name="radio-button-unchecked" size={20} color={brand.primary[200]} />
+                                                 <Text className="ml-2">
                                                        {obj}
                                                   </Text>
                                              </HStack>
@@ -55,6 +61,6 @@ export const SearchIndexScreen = () => {
                          })}
                     </Box>
                </ScrollView>
-          </VStack>
+          </ScreenContainer>
      );
 };

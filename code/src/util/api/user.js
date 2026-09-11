@@ -594,6 +594,7 @@ export async function updateHoldPickupPreferences(pickupLocationId = '', myLocat
 
      if (response.ok) {
           if (response.data?.error) {
+               // TODO(api-translation): For response.ok, API should return a localized error title.
                popAlert('Error', response.data.error, 'error');
           } else {
                popAlert(response.data?.result?.title, response.data?.result?.message, response.data?.result?.success === true ? 'success' : 'error');
@@ -708,6 +709,7 @@ export async function freezeHold(cancelId, recordId, source, url = null, patronI
                popAlert(result.title ?? getTermFromDictionary(language, 'unable_freeze_hold'), result.message, 'error');
           }
      }else{
+          // TODO(translation-client): Non-response.ok fallback is local; move title/body to TranslationService keys.
           popAlert('Error', 'Unknown error freezing hold', 'error');
      }
 }
@@ -757,11 +759,13 @@ export async function freezeHolds(data, url = null, selectedReactivationDate = n
      let title = getTermFromDictionary(language, 'holds_frozen');
 
      if (numSuccess > 0) {
+          // TODO(translation-client): Aggregate client-side success summary should use TranslationService key/template.
           message = `${numSuccess} holds frozen successfully.`;
      }
 
      if (numFailed > 0) {
           status = 'error';
+          // TODO(translation-client): Aggregate client-side failure summary should use TranslationService key/template.
           message += ` Unable to freeze ${numFailed} holds.`;
           if (numSuccess === 0) {
                title = getTermFromDictionary(language, 'unable_freeze_hold');
@@ -1780,6 +1784,7 @@ export async function getNotificationPreferences(url, pushToken) {
           if (response.data?.result?.success === true) {
                return response.data.result;
           } else {
+               // TODO(api-translation): For response.ok, API should always return a localized error title.
                popAlert(response.data?.result?.title ?? 'Unknown Error', response.data?.result?.message, 'error');
                return false;
           }
@@ -1828,6 +1833,7 @@ export async function setNotificationPreference(url, pushToken, type, value, sho
           }
      }else{
           if (showToast) {
+               // TODO(translation-client): Non-response.ok fallback is local; move title/body to TranslationService keys.
                popAlert('Error', 'Could not save notification preference', 'error');
           }
           return false;
@@ -2430,6 +2436,7 @@ export async function submitLocalIllRequest(url = null, request) {
                popAlert(response.data.result.title, response.data.result.message, 'success');
                return response.data.result;
           } else {
+               // TODO(api-translation): For response.ok, API should always return a localized error title.
                popAlert(response.data?.title ?? 'Unknown Error', response.data?.result?.message, 'error');
                return response.data.result;
           }
@@ -2462,6 +2469,7 @@ export async function submitLocalIllRequestEmail(url = null, request) {
 
      if (response.ok) {
           if (response.data?.error) {
+               // TODO(api-translation): For response.ok, API should return a localized error title.
                popAlert('Unexpected Error', response.data.error, 'error');
                return response.data.result;
           } else {
@@ -2469,6 +2477,7 @@ export async function submitLocalIllRequestEmail(url = null, request) {
                     popAlert(response.data.result.api.title, response.data.result.api.message, 'success');
                     return response.data.result;
                } else {
+                    // TODO(api-translation): For response.ok, API should always return a localized error title.
                     popAlert(response.data?.api?.title ?? 'Unknown Error', response.data?.result?.api?.message, 'error');
                     return response.data.result;
                }

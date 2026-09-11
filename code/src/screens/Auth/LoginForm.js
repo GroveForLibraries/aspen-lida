@@ -1,24 +1,11 @@
-import { Ionicons } from '@expo/vector-icons';
+import { ThemedMaterialIcons as MaterialIcons, ThemedMaterialCommunityIcons as MaterialCommunityIcons } from '../../components/themed/ThemedMaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
-import {
-     Button,
-     ButtonText,
-     Center,
-     FormControl,
-     FormControlLabel,
-     FormControlLabelText,
-     Input,
-     InputField, InputIcon,
-     InputSlot } from '@gluestack-ui/themed';
 import React, { useRef } from 'react';
-
-// custom components and helper files
 import { AuthContext } from '../../context/AuthContext';
 import { DisplayMessage } from '../../components/Notifications';
-
 import { useUpdateLibrary, useUpdateCatalogStatus, useCatalogStatus } from '../../hooks/useLibrarySystemData';
 import { useUpdateActiveLanguage } from '../../hooks/useLanguageData';
 import { navigate } from '../../helpers/RootNavigator';
@@ -30,13 +17,22 @@ import { GLOBALS, LIBRARY } from '../../util/globals';
 import { formatDiscoveryVersion } from '../../helpers/helpers';
 import { ResetExpiredPin } from './ResetExpiredPin';
 import { saveAllLibraryBranchData } from '../../util/db';
-
 import { logDebugMessage, logInfoMessage, logWarnMessage, getErrorMessage } from '../../util/logging.js';
 import { createApiClient } from '../../util/api/apiFactory';
-import { useTheme } from '../../themes/theme';
+import { useTheme, TOKENS } from '../../themes/theme';
+import { ThemedFormControl as FormControl, ThemedInput as Input, ThemedInputField as InputField, ThemedFormControlLabelText as FormControlLabelText, ThemedFormControlLabel as FormControlLabel, ThemedInputSlot as InputSlot } from '../../components/themed/ThemedFormControls';
+import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../components/themed/ThemedButton';
+import { Center } from '@/components/ui/center';
 
+/**
+ * GetLoginForm component that displays the login form for users to enter their username and password, handles login validation, and manages state for expired PINs and login errors.
+ * @param props
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const GetLoginForm = (props) => {
-     const {theme, textColor, colorMode, forceRefreshTheme} = useTheme();
+     const { neutralPairs, colorMode, forceRefreshTheme } = useTheme();
+     const borderColor = colorMode === 'light' ? (neutralPairs?.border?.light ?? TOKENS.semanticTokens.light.border) : (neutralPairs?.border?.dark ?? TOKENS.semanticTokens.dark.border);
      const navigation = useNavigation();
      const barcode = useRoute().params?.barcode ?? null;
      const [loading, setLoading] = React.useState(false);
@@ -351,13 +347,12 @@ export const GetLoginForm = (props) => {
                {loginError ? <DisplayMessage type="error" message={loginErrorMessage} /> : null}
                <FormControl>
                     <FormControlLabel>
-                         <FormControlLabelText fontSize="$sm" color={textColor}>{usernameLabel}</FormControlLabelText>
+                         <FormControlLabelText size="sm">{usernameLabel}</FormControlLabelText>
                     </FormControlLabel>
-                    <Input>
+                    <Input style={{ borderColor }}>
                          <InputField autoCapitalize="none"
-                              size="$xl"
                               autoCorrect={false}
-                              variant="filled"
+                              size="xl"
                               id="barcode"
                               value={username}
                               default={username}
@@ -368,22 +363,21 @@ export const GetLoginForm = (props) => {
                                    passwordRef.current.focus();
                               }}
                               blurOnSubmit={false}
-                              color={textColor}
                                      autoComplete="username"
                          />
                          {allowBarcodeScanner ?
                               <InputSlot onPress={() => openScanner()}>
-                              <InputIcon as={Ionicons} name="barcode-outline" mr="$2" color={textColor} />
-                         </InputSlot> : null}
+                             <MaterialCommunityIcons name="barcode" size={20} className="mr-2" />
+                        </InputSlot> : null}
                     </Input>
                </FormControl>
-               <FormControl mt="$3">
+               <FormControl className="mt-3">
                     <FormControlLabel>
-                         <FormControlLabelText size="sm" color={textColor}>{passwordLabel}</FormControlLabelText>
+                        <FormControlLabelText size="sm">{passwordLabel}</FormControlLabelText>
                     </FormControlLabel>
-                    <Input>
-                         <InputField variant="filled"
-                              size="$xl"
+                   <Input style={{ borderColor }}>
+                        <InputField
+                             size="xl"
                               type={showPassword ? 'text' : 'password'}
                               returnKeyType="go"
                               textContentType="password"
@@ -393,26 +387,25 @@ export const GetLoginForm = (props) => {
                                    setLoading(true);
                                    await initialValidation();
                               }}
-                              color={textColor} autoComplete="password"
-                         />
-                         <InputSlot onPress={toggleShowPassword}>
-                              <InputIcon as={Ionicons} name={showPassword ? 'eye-outline' : 'eye-off-outline'} mr="$2" color={textColor} />
-                         </InputSlot>
-                    </Input>
+                              autoComplete="password"
+                        />
+                        <InputSlot onPress={toggleShowPassword}>
+                             <MaterialIcons name={showPassword ? 'visibility' : 'visibility-off'} size={20} className="mr-2" />
+                        </InputSlot>
+                   </Input>
                </FormControl>
 
                <Center>
                     <Button
-                         mt="$3"
-                         size="md"
-                         bgColor={theme.tokens.colors.primary['500']}
-                         isLoading={loading}
-                         isLoadingText={getTermFromDictionary('en', 'logging_in', true)}
-                         onPress={async () => {
-                              setLoading(true);
-                              await initialValidation();
+                        colorScheme="primary" className="mt-3"
+                        size="md"
+                        isLoading={loading}
+                        isLoadingText={getTermFromDictionary('en', 'logging_in', true)}
+                        onPress={async () => {
+                             setLoading(true);
+                             await initialValidation();
                          }}>
-                         <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary('en', 'login')}</ButtonText>
+                        <ButtonText>{getTermFromDictionary('en', 'login')}</ButtonText>
                     </Button>
                </Center>
           </>

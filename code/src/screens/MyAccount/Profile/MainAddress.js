@@ -1,25 +1,30 @@
-import { Box, Text } from "@gluestack-ui/themed";
 import React from "react";
-import {getTermFromDictionary} from '../../../translations/TranslationService';
-import { useActiveLanguage } from '../../../hooks/useLanguageData';
+import { Box } from '@/components/ui/box';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
+import {getTermFromDictionary} from '@/src/translations/TranslationService';
+import { useActiveLanguage } from '@/src/hooks/useLanguageData';
 
-// custom components and helper files
-
+/**
+ * Profile_MainAddress component that displays the main address information of a user profile, including address, city, state, and zip code. It uses the active language for translations.
+ * @param props
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 const Profile_MainAddress = (props) => {
     const language = useActiveLanguage();
   return (
-    <Box py={5}>
+    <Box className="py-5">
       <Text bold>{getTermFromDictionary(language, 'patron_address')}</Text>
       <Text>{props.address}</Text>
-      <Text bold mt={2}>
+      <Text bold className="mt-2">
           {getTermFromDictionary(language, 'patron_city')}
       </Text>
       <Text>{props.city}</Text>
-      <Text bold mt={2}>
+      <Text bold className="mt-2">
           {getTermFromDictionary(language, 'patron_state')}
       </Text>
       <Text>{props.state}</Text>
-      <Text bold mt={2}>
+      <Text bold className="mt-2">
           {getTermFromDictionary(language, 'patron_zip')}
       </Text>
       <Text>{props.zipCode}</Text>

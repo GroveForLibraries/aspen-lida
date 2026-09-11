@@ -1,26 +1,24 @@
 import { useRoute, useNavigation } from '@react-navigation/native';
-import {
-     Button,
-     ButtonGroup,
-     ButtonText,
-     FormControl,
-     FormControlLabel,
-     FormControlLabelText,
-     Input,
-     InputField,
-     Textarea,
-     TextareaInput,
-     ScrollView,
-     VStack } from '@gluestack-ui/themed';
 import React from 'react';
 import { submitLocalIllRequestEmail } from '../../util/api/user';
-
 import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { popAlert } from '../../components/feedback';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 import { useTheme } from '../../themes/theme';
+import { ThemedFormControl as FormControl, ThemedInput as Input, ThemedInputField as InputField, ThemedFormControlLabelText as FormControlLabelText, ThemedFormControlLabel as FormControlLabel } from '../../components/themed/ThemedFormControls';
+import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../components/themed/ThemedButton';
+import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
+import { ThemedScrollView as ScrollView } from '@/src/components/themed/ThemedScrollView';
+import { ThemedTextarea as Textarea, ThemedTextareaInput as TextareaInput } from '../../components/themed/ThemedTextarea';
+import { VStack } from '@/components/ui/vstack';
+import { screenContentContainerStyle } from '@/src/components/ScreenContainer';
 
+/**
+ * CreateLocalIllRequestEmail component that renders a form for creating a local interlibrary loan (ILL) request email. It retrieves work details from the route parameters and allows the user to submit the request with optional volume name and note.
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const CreateLocalIllRequestEmail = () => {
      const route = useRoute();
      const id = route.params.id;
@@ -32,12 +30,18 @@ export const CreateLocalIllRequestEmail = () => {
      return <Request workId={id} workTitle={title} author={author} volumeName={volumeName} recordId={recordId}/>;
 };
 
+/**
+ * Request component that renders the form for creating a local interlibrary loan (ILL) request email. It manages the state of the form fields and handles the submission of the request.
+ * @param payload
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 const Request = (payload) => {
      const navigation = useNavigation();
      const { workTitle, author, volumeName, recordId} = payload;
      const library = useLibrary();
      const language = useActiveLanguage();
-     const {theme, textColor, colorMode} = useTheme();
+     const {theme} = useTheme();
 
      const [userVolumeName, setUserVolumeName] = React.useState(volumeName);
      const [userNote, setUserNote] = React.useState('');
@@ -67,11 +71,11 @@ const Request = (payload) => {
      };
 
      return (
-          <ScrollView>
-               <VStack space="md" p="$4">
-                    <FormControl my={2}>
+          <ScrollView contentContainerStyle={screenContentContainerStyle}>
+               <VStack space="md" className="py-4">
+                    <FormControl className="my-2">
                          <FormControlLabel>
-                              <FormControlLabelText fontSize="$sm" color={textColor}>
+                              <FormControlLabelText size="sm">
                                    {getTermFromDictionary(language, 'title')}
                               </FormControlLabelText>
                          </FormControlLabel>
@@ -85,9 +89,9 @@ const Request = (payload) => {
                               />
                          </Input>
                     </FormControl>
-                    <FormControl my={2}>
+                    <FormControl className="my-2">
                          <FormControlLabel>
-                              <FormControlLabelText fontSize="$sm" color={textColor}>
+                              <FormControlLabelText size="sm">
                                    {getTermFromDictionary(language, 'author')}
                               </FormControlLabelText>
                          </FormControlLabel>
@@ -100,13 +104,13 @@ const Request = (payload) => {
                               />
                          </Input>
                     </FormControl>
-                    <FormControl my={2}>
+                    <FormControl className="my-2">
                          <FormControlLabel>
-                              <FormControlLabelText fontSize="$sm" color={textColor}>
+                              <FormControlLabelText size="sm">
                                    {getTermFromDictionary(language, 'volume')}
                               </FormControlLabelText>
                          </FormControlLabel>
-                         <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
+                         <Input>
                               <InputField
                                    id="volume"
                                    size="$lg"
@@ -118,18 +122,17 @@ const Request = (payload) => {
                               />
                          </Input>
                     </FormControl>
-                    <FormControl my={2}>
+                    <FormControl className="my-2">
                          <FormControlLabel>
-                              <FormControlLabelText fontSize="$sm" color={textColor}>
+                              <FormControlLabelText size="sm">
                                    {getTermFromDictionary(language, 'note')}
                               </FormControlLabelText>
                          </FormControlLabel>
                          <Textarea
                               id="note"
-                              size="$lg"
+                              size="lg"
                          >
                               <TextareaInput
-                                   color={textColor}
                                    value={userNote}
                                    defaultValue={userNote}
                                    onChangeText={(text) => {

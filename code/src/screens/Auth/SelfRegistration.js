@@ -1,21 +1,31 @@
 import React from 'react';
 import _ from 'lodash';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import { Platform } from 'react-native';
+import { KeyboardAvoidingView, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
 import { LoadingSpinner } from '../../components/loadingSpinner';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { getSelfRegistrationForm, submitSelfRegistration } from '../../util/api/registration';
-
-
-import { ScrollView, Box, Button, ButtonGroup, ButtonText, FormControl, FormControlHelper, FormControlHelperText, Icon, Input, Text, Select, SelectTrigger, SelectInput, SelectIcon, ChevronDownIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, SelectScrollView, CheckIcon, FormControlLabel, FormControlLabelText, InputField, HStack, KeyboardAvoidingView } from '@gluestack-ui/themed';
 import { logDebugMessage, getErrorMessage } from '../../util/logging';
 import { useTheme } from '../../themes/theme';
-
+import { Box } from '@/components/ui/box';
+import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../components/themed/ThemedButton';
+import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
+import { HStack } from '@/components/ui/hstack';
+import { ThemedScrollView as ScrollView } from '@/src/components/themed/ThemedScrollView';
+import { ThemedSelect as Select, ThemedSelectBackdrop as SelectBackdrop, ThemedSelectContent as SelectContent, ThemedSelectDragIndicator as SelectDragIndicator, ThemedSelectDragIndicatorWrapper as SelectDragIndicatorWrapper, ThemedSelectInput as SelectInput, ThemedSelectItem as SelectItem, ThemedSelectPortal as SelectPortal, ThemedSelectScrollView as SelectScrollView, ThemedSelectTrigger as SelectTrigger } from '../../components/themed/ThemedSelect';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
+import { ThemedFormControl as FormControl, ThemedInput as Input, ThemedInputField as InputField, ThemedFormControlLabelText as FormControlLabelText, ThemedFormControlHelper as FormControlHelper, ThemedFormControlHelperText as FormControlHelperText, ThemedFormControlLabel as FormControlLabel } from '../../components/themed/ThemedFormControls';
+/**
+ * SelfRegistration component that handles the self-registration process for a library, including form rendering, input handling, and submission.
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const SelfRegistration = () => {
 	const insets = useSafeAreaInsets();
-	const {theme, textColor, colorMode} = useTheme();
+	const { neutrals } = useTheme();
+	const surfaceBg = neutrals.surface;
+	const borderColor = neutrals.border;
 	const route = useRoute();
 	const navigation = useNavigation();
 	const libraryUrl = route?.params?.libraryUrl ?? '';
@@ -35,9 +45,9 @@ export const SelfRegistration = () => {
                          const formFields = response.data.result ?? [];
                          setFields(formFields);
                          let object = {};
-                         _.map(formFields, function(section, index, collection) {
+                         _.map(formFields, function(section) {
                               const properties = section.properties;
-                              _.forEach(properties, function (field, key) {
+                              _.forEach(properties, function (field) {
                                    let prop = field.property;
                                    const property = {
                                         [prop]: '' };
@@ -68,25 +78,24 @@ export const SelfRegistration = () => {
 		if(_.size(fields) > 0) {
 			return (
 				<>
-					{_.map(fields, function(section, index, collection) {
+					{_.map(fields, function(section) {
 						const {label, properties} = section;
 						return (
-							<Box mb="$5">
-							<Text bold fontSize="$md" color={textColor}>{label}</Text>
+							<Box className="mb-5">
+							<Text bold size="md">{label}</Text>
 							{_.map(properties, function(field, key) {
 							const {type, description, maxLength, required, property} = field;
 							const fieldLabel = field.label;
 							if (type === 'text') {
 								return (
-									<FormControl my="$2" isRequired={required}>
-										<FormControlLabel><FormControlLabelText color={textColor}>{fieldLabel}</FormControlLabelText></FormControlLabel>
-										<Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}><InputField type='text'
+									<FormControl className="my-2" isRequired={required}>
+										<FormControlLabel><FormControlLabelText>{fieldLabel}</FormControlLabelText></FormControlLabel>
+										<Input style={{ borderColor }}><InputField type='text'
 										                   key={key}
 										                   name={property}
 										                   maxLength={maxLength ? parseInt(maxLength) : undefined}
 										                   accessibilityLabel={description}
 										                   returnKeyType="next"
-										                   color={textColor}
 										                   onChangeText={(value) => {
 											                   handleInputChange(property, value);
 										                   }}/></Input>
@@ -101,14 +110,13 @@ export const SelfRegistration = () => {
 								)
 							} else if (type === 'password') {
 								return (
-									<FormControl my="$2" isRequired={required}>
-										<FormControlLabel><FormControlLabelText color={textColor}>{fieldLabel}</FormControlLabelText></FormControlLabel>
-										<Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}><InputField type='password'
+									<FormControl className="my-2" isRequired={required}>
+										<FormControlLabel><FormControlLabelText>{fieldLabel}</FormControlLabelText></FormControlLabel>
+										<Input style={{ borderColor }}><InputField type='password'
 										                   key={property}
 										                   name={property}
 										                   maxLength={maxLength ? parseInt(maxLength) : undefined}
 										                   accessibilityLabel={description}
-										                   color={textColor}
 										                   onChangeText={(value) => {
 											                   handleInputChange(property, value);
 										                   }}/>
@@ -124,14 +132,13 @@ export const SelfRegistration = () => {
 								)
 							}  else if (type === 'email') {
 								return (
-									<FormControl my="$2" isRequired={required}>
-										<FormControlLabel><FormControlLabelText color={textColor}>{fieldLabel}</FormControlLabelText></FormControlLabel>
-										<Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}><InputField type='email'
+									<FormControl className="my-2" isRequired={required}>
+										<FormControlLabel><FormControlLabelText>{fieldLabel}</FormControlLabelText></FormControlLabel>
+										<Input style={{ borderColor }}><InputField type='email'
 										                   key={property}
 										                   name={property}
 										                   maxLength={maxLength ? parseInt(maxLength) : undefined}
 										                   accessibilityLabel={description}
-										                   color={textColor}
 										                   onChangeText={(value) => {
 											                   handleInputChange(property, value);
 										                   }} /></Input>
@@ -145,35 +152,31 @@ export const SelfRegistration = () => {
 									</FormControl>
 								)
 							} else if (type === 'enum') {
-								const values = field.values ?? {};
+								const enumOptions = field.values ?? {};
 								return (
-									<FormControl my="$2" isRequired={required}>
-										<FormControlLabel><FormControlLabelText color={textColor}>{fieldLabel}</FormControlLabelText></FormControlLabel>
+									<FormControl className="my-2" isRequired={required}>
+										<FormControlLabel><FormControlLabelText>{fieldLabel}</FormControlLabelText></FormControlLabel>
 										<Select
 											name={property}
+											selectedValue={values[property]}
 											accessibilityLabel={description}
 											onValueChange={(value) => {
 												handleInputChange(property, value);
 											}}
 										>
-											<SelectTrigger variant="outline" size="md">
-												<SelectInput py={0} placeholder="Select option" color={textColor}/>
-												<SelectIcon mr="$3">
-													<Icon as={ChevronDownIcon} color={textColor}/>
-												</SelectIcon>
+											<SelectTrigger>
+															{/* TODO(translation): Replace hardcoded placeholder with TranslationService-backed key. */}
+												<SelectInput placeholder="Select option"/>
 											</SelectTrigger>
 											<SelectPortal>
 												<SelectBackdrop />
-												<SelectContent
-													bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}
-													pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
-												>
+												<SelectContent>
 													<SelectDragIndicatorWrapper>
 														<SelectDragIndicator />
 													</SelectDragIndicatorWrapper>
 													<SelectScrollView>
-														{_.map(values, function (item, index, array) {
-															return <SelectItem key={index} value={index} label={item} bgColor={property === index ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: property === index ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />;
+														{_.map(enumOptions, function (item, index) {
+															return <SelectItem key={index} value={index} label={item} selectedValue={values[property]} />;
 														})}
 													</SelectScrollView>
 												</SelectContent>
@@ -221,92 +224,92 @@ export const SelfRegistration = () => {
 	};
 
 	return (
-		<Box flex={1} pb={insets.bottom}>
+		<Box style={{ flex: 1, paddingBottom: insets.bottom }}>
 			{isLoading ? (
 				<LoadingSpinner />
 			) : (
 				<KeyboardAvoidingView
 					behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-					style={{ flex: 1 }}
+					className="flex-1"
 				>
 					<ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-						<Box p="$3">
+						<Box className="p-3">
 						{!showResults ? (
-							<Text mb="$3" color={textColor}>{getTermFromDictionary('en', 'self_registration_message')}</Text>
+							<Text className="mb-3">{getTermFromDictionary('en', 'self_registration_message')}</Text>
 						) : null}
 						{showResults && !hasError ? (
 							<>
 								{results.success === true ? (
-									<Text mb="$3" color={textColor}>{getTermFromDictionary('en', 'self_registration_success')}</Text>
+									<Text className="mb-3">{getTermFromDictionary('en', 'self_registration_success')}</Text>
 								) : (
-									<Text mb="$3" color={textColor}>{getTermFromDictionary('en', 'self_registration_error')}</Text>
+									<Text className="mb-3">{getTermFromDictionary('en', 'self_registration_error')}</Text>
 								)}
 
 								{results.message ? (
-									<Text mb="$3" color={textColor}>{results.message}</Text>
+									<Text className="mb-3">{results.message}</Text>
 								) : null}
 
 								{results.barcode ? (
-									<HStack space="xs" mb="$3">
-										<Text color={textColor}>Your library card is</Text>
-										<Text bold color={textColor}>{results.barcode}</Text>
+									<HStack space="xs" className="mb-3">
+										<Text>Your library card is</Text>
+										<Text bold>{results.barcode}</Text>
 									</HStack>
 								) : null}
 
 								{results.username ? (
-									<HStack space="xs" mb="$3">
-										<Text color={textColor}>Your username is</Text>
-										<Text bold color={textColor}>{results.username}</Text>
+									<HStack space="xs" className="mb-3">
+										<Text>Your username is</Text>
+										<Text bold>{results.username}</Text>
 									</HStack>
 								) : null}
 
 								{results.password ? (
-									<HStack space="xs" mb="$3">
-										<Text color={textColor}>Your initial password is</Text>
-										<Text bold color={textColor}>{results.password}</Text>
+									<HStack space="xs" className="mb-3">
+										<Text>Your initial password is</Text>
+										<Text bold>{results.password}</Text>
 									</HStack>
 								) : null}
 
 								{results.requirePinReset ? (
-									<Text mb="$3" color={textColor}>To login to the catalog, you must reset your PIN.</Text>
+									<Text className="mb-3">To login to the catalog, you must reset your PIN.</Text>
 								) : null}
 
-								<Button borderColor={theme['tokens']['colors']['secondary']['500']} variant="outline" onPress={() => {
+								<Button colorScheme="secondary" variant="outline" onPress={() => {
 									navigation.goBack();
 									setShowResults(false);
 									setResults('');
 								}}>
-									<ButtonText color={theme['tokens']['colors']['secondary']['500']}>{getTermFromDictionary('en', 'close_window')}</ButtonText>
+									<ButtonText>{getTermFromDictionary('en', 'close_window')}</ButtonText>
 								</Button>
 							</>
 						) : showResults && hasError ? (
                                    <>
-                                        <Text mb="$3" color={textColor}>{results}</Text>
-                                        <Button borderColor={theme['tokens']['colors']['secondary']['500']} variant="outline" onPress={() => {
+                                        <Text className="mb-3">{results}</Text>
+                                        <Button colorScheme="secondary" variant="outline" onPress={() => {
                                              navigation.goBack();
                                              setShowResults(false);
                                              setResults('');
                                              setHasError(false);
                                         }}>
-                                             <ButtonText color={theme['tokens']['colors']['secondary']['500']}>{getTermFromDictionary('en', 'close_window')}</ButtonText>
+                                             <ButtonText>{getTermFromDictionary('en', 'close_window')}</ButtonText>
                                         </Button>
                                    </>
                               ) :  (
 							<>
 								{getFields()}
-								<ButtonGroup pt="$3" pb="$5">
+								<ButtonGroup className="pt-3 pb-5">
 									<Button
-										bgColor={theme['tokens']['colors']['secondary']['500']}
+										colorScheme="secondary"
 										isLoading={isSubmitting}
 										isLoadingText="Registering..."
 										onPress={() => {
 											setIsSubmitting(true);
 											handleSubmission();
 										}}>
-										<ButtonText color={theme['tokens']['colors']['secondary']['500-text']}>{getTermFromDictionary('en', 'register')}</ButtonText>
+										<ButtonText>{getTermFromDictionary('en', 'register')}</ButtonText>
 									</Button>
-									<Button borderColor={theme['tokens']['colors']['secondary']['500']} variant="outline" onPress={() => navigation.goBack()}>
-										<ButtonText color={theme['tokens']['colors']['secondary']['500']}>{getTermFromDictionary('en', 'cancel')}</ButtonText>
+									<Button colorScheme="secondary" variant="outline" onPress={() => navigation.goBack()}>
+										<ButtonText>{getTermFromDictionary('en', 'cancel')}</ButtonText>
 									</Button>
 								</ButtonGroup>
 							</>

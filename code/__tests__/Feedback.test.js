@@ -5,13 +5,13 @@ import { View, Text } from 'react-native';
 import { buildToastMock, feedbackToastMessages } from '../__mocks__/feedbackToast';
 import { popAlert, popToast, registerGlobalToast } from '../src/components/feedback';
 import { ToastRegistrar } from '../src/components/feedback';
-import { useToast } from '@gluestack-ui/themed';
+import { useToast } from '../components/ui/toast';
 
 jest.mock('../src/util/logging.js', () => ({
      logDebugMessage: jest.fn(),
 }));
 
-jest.mock('@gluestack-ui/themed', () => {
+jest.mock('../components/ui/toast', () => {
      const { View: RNView, Text: RNText } = require('react-native');
 
      return {
@@ -22,8 +22,14 @@ jest.mock('@gluestack-ui/themed', () => {
           ),
           ToastTitle: ({ children }) => <RNText>{children}</RNText>,
           ToastDescription: ({ children }) => <RNText>{children}</RNText>,
-          VStack: ({ children }) => <RNView>{children}</RNView>,
           useToast: jest.fn(),
+     };
+});
+
+jest.mock('../components/ui/vstack', () => {
+     const { View: RNView } = require('react-native');
+     return {
+         VStack: ({ children, ...props }) => <RNView {...props}>{children}</RNView>,
      };
 });
 
@@ -106,4 +112,3 @@ describe('ToastRegistrar', () => {
           expect(toast.show).toHaveBeenCalledTimes(1);
      });
 });
-

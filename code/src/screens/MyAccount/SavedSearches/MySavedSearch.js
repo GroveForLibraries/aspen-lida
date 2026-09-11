@@ -1,32 +1,43 @@
 import { useRoute } from '@react-navigation/native';
 import { Image } from 'expo-image';
-import { Badge, BadgeText, Box, Center, FlatList, HStack, Pressable, Text, VStack } from '@gluestack-ui/themed';
 import React from 'react';
-import { loadError } from '../../../components/loadError';
-
-// custom components and helper files
-import { DisplaySystemMessage } from '../../../components/Notifications';
-import { SystemMessagesContext } from '../../../context/initialContext';
-import { uniquePrimitiveArray } from '../../../helpers/helpers';
-import { getCleanTitle } from '../../../helpers/item';
-import { navigateStack } from '../../../helpers/RootNavigator';
-import { getTermFromDictionary } from '../../../translations/TranslationService';
-import { getSavedSearch } from '../../../util/api/list';
+import { FlatList } from 'react-native';
+import { ThemedBadge as Badge, ThemedBadgeText as BadgeText } from '@/src/components/themed/ThemedBadge';
+import { Box } from '@/components/ui/box';
+import { Center } from '@/components/ui/center';
+import { HStack } from '@/components/ui/hstack';
+import { Pressable } from '@/components/ui/pressable';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
+import { VStack } from '@/components/ui/vstack';
+import { ScreenContainer } from '@/src/components/ScreenContainer';
+import { loadError } from '@/src/components/loadError';
+import { DisplaySystemMessage } from '@/src/components/Notifications';
+import { SystemMessagesContext } from '@/src/context/initialContext';
+import { uniquePrimitiveArray } from '@/src/helpers/helpers';
+import { getCleanTitle } from '@/src/helpers/item';
+import { navigateStack } from '@/src/helpers/RootNavigator';
+import { getTermFromDictionary } from '@/src/translations/TranslationService';
+import { getSavedSearch } from '@/src/util/api/list';
 import AddToList from '../../Search/AddToList';
-import { logErrorMessage } from '../../../util/logging';
-import { useActiveLanguage } from '../../../hooks/useLanguageData';
-import { useTheme } from '../../../themes/theme';
-import { useLibrary } from '../../../hooks/useLibrarySystemData';
+import { logErrorMessage } from '@/src/util/logging';
+import { useActiveLanguage } from '@/src/hooks/useLanguageData';
+import { useTheme } from '@/src/themes/theme';
+import { useLibrary } from '@/src/hooks/useLibrarySystemData';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
+/**
+ * MySavedSearch component that displays a list of saved search results for a specific saved search ID. It fetches data from the API based on the provided ID and renders a list of results. It also handles system messages and error states.
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const MySavedSearch = () => {
      const route = useRoute();
      const id = route.params.id;
      const library = useLibrary();
      const language = useActiveLanguage();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
-     const {colorMode} = useTheme();
+     const { colorMode, neutralPairs, textColor } = useTheme();
      const [status, setStatus] = React.useState('loading');
      const [data, setData] = React.useState([]);
 
@@ -65,9 +76,9 @@ export const MySavedSearch = () => {
      const Empty = () => {
           return (
                <>
-                    {(systemMessages?.length ?? 0) > 0 ? <Box safeArea={2}>{showSystemMessage()}</Box> : null}
-                    <Center mt={5} mb={5}>
-                         <Text bold fontSize="$lg" color={colorMode === 'light' ? "$coolGray800" : "$warmGray50"}>
+                    {(systemMessages?.length ?? 0) > 0 ? <Box className="p-2">{showSystemMessage()}</Box> : null}
+                    <Center className="mt-5 mb-5">
+                        <Text bold size="lg">
                               {getTermFromDictionary(language, 'no_results_found')}
                          </Text>
                     </Center>
@@ -76,18 +87,27 @@ export const MySavedSearch = () => {
      };
 
      return (
-          <Box style={{ flex: 1 }}>
-               {(systemMessages?.length ?? 0) > 0 ? <Box safeArea={2}>{showSystemMessage()}</Box> : null}
-               <Box safeArea={2}>{status === 'error' ? loadError('Error', '') : <FlatList data={data} ListEmptyComponent={Empty} renderItem={({ item }) => <SavedSearch data={item} />} keyExtractor={(item, index) => index.toString()} contentContainerStyle={{ paddingBottom: 30 }} />}</Box>
-          </Box>
+          <ScreenContainer>
+              {(systemMessages?.length ?? 0) > 0 ? <Box className="p-2">{showSystemMessage()}</Box> : null}
+              <Box className="flex-1">{status === 'error' ? loadError('Error', '') : <FlatList data={data} ListEmptyComponent={Empty} renderItem={({ item }) => <SavedSearch data={item} />} keyExtractor={(item, index) => index.toString()} contentContainerStyle={{ paddingBottom: 30 }} />}</Box>
+          </ScreenContainer>
      );
 };
 
+/**
+ * SavedSearch component that displays an individual saved search item. It shows the item's image, title, author, language, and formats. It also provides a button to add the item to a list and handles navigation to the item's details when pressed.
+ * @param data
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 const SavedSearch = (data) => {
      const item = data.data;
      const library = useLibrary();
      const language = useActiveLanguage();
-     const {colorMode} = useTheme();
+     const { colorMode, neutralPairs, textColor, neutrals } = useTheme();
+     const borderColor = neutrals.border;
+     const surfaceColor = neutrals.surfaceMuted;
+     const subtitleColor = colorMode === 'light' ? neutralPairs.icon.light : neutralPairs.iconMuted.dark;
 
      const imageUrl = library.baseUrl + item.image;
 
@@ -107,13 +127,13 @@ const SavedSearch = (data) => {
      };
 
      return (
-          <Pressable borderBottomWidth="$1" _dark={{ borderColor: 'gray.600' }} borderColor="coolGray.200" pl="$4" pr="$5" py="$2" onPress={() => openGroupedWork()}>
+          <Pressable className="pl-4 pr-5 py-2" style={{ borderBottomWidth: 1, borderColor }} onPress={() => openGroupedWork()}>
                <HStack space={3}>
-                    <VStack maxW="35%">
+                    <VStack className="max-w-[35%]">
                          {isNew ? (
-                              <Box width="$full" zIndex={1}>
-                                   <Badge colorScheme="warning" shadow={1} mb={-3} ml={-1}>
-                                        <BadgeText fontSize="$xs">
+                              <Box style={{ width: '100%', zIndex: 1 }}>
+                                   <Badge colorScheme="warning" className="mb-[-12px] ml-[-4px]">
+                                        <BadgeText colorScheme="warning" size="xs">
                                              {getTermFromDictionary(language, 'flag_new')}
                                         </BadgeText>
                                    </Badge>
@@ -121,46 +141,44 @@ const SavedSearch = (data) => {
                          ) : null}
                          <Image
                               alt={item.title}
-                              source={imageUrl}
-                              style={{
-                                   width: 100,
-                                   height: 150,
-                                   borderRadius: "$sm" }}
-                              placeholder={blurhash}
-                              transition={1000}
-                              contentFit="cover"
-                         />
+                             source={imageUrl}
+                             className="rounded-lg"
+                             style={{ width: 100.0, height: 150.0 }}
+                             placeholder={blurhash}
+                             transition={1000}
+                             contentFit="cover"
+                        />
                          <Badge
-                              mt={1}
-                              bgColor={colorMode === 'light' ? "$warmGray200" : "$coolGray900"}
-                              >
+                              className="mt-1"
+                              style={{ backgroundColor: surfaceColor }}
+                         >
                               <BadgeText
-                                   fontSize="$sm"
-                                   color={colorMode === 'light' ? "$coolGray600":  "$warmGray400"}>
+                                   size="sm"
+                                   style={{ color: subtitleColor }}>
                                    {item.language}
                               </BadgeText>
                          </Badge>
                          <AddToList item={item.id} libraryUrl={library.baseUrl} />
                     </VStack>
 
-                    <VStack w="65%" ml="$3">
+                    <VStack className="w-[65%] ml-3">
                          <Text
-                              color={colorMode === 'light' ? "$coolGray800" : "$warmGray50"}
                               bold
-                              fontSize="$xs">
+                              size="xs"
+                             >
                               {item.title}
                          </Text>
                          {item.author ? (
-                              <Text color={colorMode === 'light' ? "$coolGray800" : "$warmGray50"} fontSize="$xs">
+                              <Text size="xs">
                                    {getTermFromDictionary(language, 'by')} {item.author}
                               </Text>
                          ) : null}
                          {item.format ? (
-                              <HStack mt={1.5} space={1} flexWrap="wrap">
-                                   {formats.map((format) => {
+                              <HStack className="mt-[6px] flex-wrap" space={1}>
+                                   {formats.map((format, index) => {
                                         return (
-                                             <Badge colorScheme="secondary" mt={1} variant="outline" borderRadius="$sm" ml="$2">
-                                                  <BadgeText fontSize="$sm" textTransform="none"  color={colorMode === 'light' ? "$coolGray800" : "$warmGray50"}>
+                                             <Badge key={index} colorScheme="info" variant="outline" className="mt-1 rounded-lg ml-2">
+                                                  <BadgeText colorScheme="info" size="sm" style={{ textTransform: 'none', color: textColor }}>
                                                        {format}
                                                   </BadgeText>
                                              </Badge>
@@ -174,9 +192,14 @@ const SavedSearch = (data) => {
      );
 };
 
+/**
+ * Extracts unique formats from the provided data array. Each item in the data array is expected to be a string that may contain a '#' character. The function splits each item by the '#' character and takes the last part as the format. It then returns an array of unique formats.
+ * @param data
+ * @returns {*[]}
+ */
 function getFormats(data) {
      let formats = [];
-     data.map((item) => {
+     data.forEach((item) => {
           let thisFormat = item.split('#');
           thisFormat = thisFormat[thisFormat.length - 1];
           formats.push(thisFormat);

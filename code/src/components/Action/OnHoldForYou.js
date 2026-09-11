@@ -1,13 +1,16 @@
-import { Button, ButtonText } from '@gluestack-ui/themed';
-import React, {useContext} from 'react';
-
-
-// custom components and helper files
+import React from 'react';
+import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../themed/ThemedButton';
 import { navigate, navigateStack } from '../../helpers/RootNavigator';
 import { useTheme } from '../../themes/theme';
 
+/**
+ * OnHoldForYou component for displaying a button that navigates to the "My Holds" screen.
+ * @param props
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const OnHoldForYou = (props) => {
-     const { theme } = useTheme();
+     const {  } = useTheme();
      const handleNavigation = () => {
           if (typeof props.onBeforeNavigate === 'function') {
                props.onBeforeNavigate();
@@ -20,8 +23,8 @@ export const OnHoldForYou = (props) => {
      };
 
      return (
-          <Button minWidth="100%" maxWidth="100%" mb="$1" size="md" bgColor={theme.tokens.colors.primary['500']} variant="solid" onPress={handleNavigation}>
-               <ButtonText textAlign="center" p="$0" color={theme.tokens.colors.primary['500-text']}>
+          <Button size="md" variant="solid" onPress={handleNavigation} colorScheme="primary" className="w-full mb-1">
+               <ButtonText className="text-center">
                     {props.title}
                </ButtonText>
           </Button>

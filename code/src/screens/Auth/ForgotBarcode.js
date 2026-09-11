@@ -1,26 +1,6 @@
 import _ from 'lodash';
-import {
-     Button,
-     ButtonGroup,
-     ButtonText,
-     Center,
-     FormControl,
-     FormControlLabel,
-     FormControlLabelText,
-     Heading,
-     Input,
-     InputField,
-     Modal,
-     ModalBackdrop,
-     ModalContent,
-     ModalHeader,
-     ModalBody,
-     ModalFooter,
-     Text,
-     Icon, CloseIcon, ModalCloseButton } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
-
 import { getTermFromDictionary, getTranslation, getTranslationWithValuesText } from '../../translations/TranslationService';
 import { stripHTML } from '../../helpers/helpers';
 import { LIBRARY } from '../../util/globals';
@@ -29,10 +9,24 @@ import { logDebugMessage, getErrorMessage } from '../../util/logging';
 import { forgotBarcode } from '../../util/api/user';
 import { useTheme } from '../../themes/theme';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
+import { ThemedCloseIcon as CloseIcon, ThemedFormControl as FormControl, ThemedInput as Input, ThemedInputField as InputField, ThemedFormControlLabelText as FormControlLabelText, ThemedFormControlLabel as FormControlLabel } from '../../components/themed/ThemedFormControls';
+import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../components/themed/ThemedButton';
+import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
+import { Center } from '@/components/ui/center';
+import { ThemedHeading as Heading } from '@/src/components/themed/ThemedHeading';
+import { ThemedModal as Modal, ThemedModalBackdrop as ModalBackdrop, ThemedModalBody as ModalBody, ThemedModalCloseButton as ModalCloseButton, ThemedModalContent as ModalContent, ThemedModalFooter as ModalFooter, ThemedModalHeader as ModalHeader } from '@/src/components/themed/ThemedModal';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
 
+/**
+ * ForgotBarcode component that displays a modal for users to request their forgotten barcode by entering their phone number.
+ * @param props
+ * @returns {React.JSX.Element|null}
+ * @constructor
+ */
 export const ForgotBarcode = (props) => {
      const isKeyboardOpen = useKeyboard();
-     const { theme, textColor, colorMode }= useTheme();
+     const { neutrals, textColor } = useTheme();
+     const borderColor = neutrals.border;
      const library = useLibrary();
      const { usernameLabel, showForgotBarcodeModal, setShowForgotBarcodeModal } = props;
      const [isProcessing, setIsProcessing] = React.useState(false);
@@ -109,65 +103,67 @@ export const ForgotBarcode = (props) => {
      }
 
      const ResultsMessage = showResults && !results.success ? (
-          <Text color={textColor}>{stripHTML(results.message || getTermFromDictionary('en', 'forgot_barcode_error_message'))}</Text>
+          <Text>{stripHTML(results.message || getTermFromDictionary('en', 'forgot_barcode_error_message'))}</Text>
      ) : hasError ? (
-          <Text color={textColor}>{results}</Text>
+          <Text>{results}</Text>
      ) : showResults ? (
-          <Text color={textColor}>{stripHTML(results.message || getTermFromDictionary('en', 'forgot_barcode_success_message'))}</Text>
+          <Text>{stripHTML(results.message || getTermFromDictionary('en', 'forgot_barcode_success_message'))}</Text>
      ) : (
           <>
-               <Text color={textColor}>{modalBody}</Text>
+               <Text>{modalBody}</Text>
                <FormControl>
                     <FormControlLabel>
-                         <FormControlLabelText fontSize="$sm" color={textColor}>{fieldLabel}</FormControlLabelText>
+                         <FormControlLabelText size="sm">{fieldLabel}</FormControlLabelText>
                     </FormControlLabel>
-                    <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}><InputField id="phoneNumber" variant="filled" size="$xl" returnKeyType="done" enterKeyHint="done" onChangeText={(text) => setPhoneNumber(text)} onSubmitEditing={() => initiateForgotBarcode()} color={textColor} textContentType="telephoneNumber"/></Input>
+                    <Input style={{ borderColor }}>
+                         <InputField id="phoneNumber" size="xl" returnKeyType="done" enterKeyHint="done" onChangeText={(text) => setPhoneNumber(text)} onSubmitEditing={() => initiateForgotBarcode()} textContentType="telephoneNumber"/>
+                    </Input>
                </FormControl>
           </>
      );
 
      const FooterButtons = (showResults && !results.success) || hasError ? (
-          <Button bgColor={theme.tokens.colors.primary['500']} onPress={resetWindow}>
-               <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary('en', 'try_again')}</ButtonText>
+          <Button colorScheme="primary" onPress={resetWindow}>
+               <ButtonText>{getTermFromDictionary('en', 'try_again')}</ButtonText>
           </Button>
      ) : showResults ? (
           <Button variant="link" onPress={closeWindow}>
-               <ButtonText color={textColor}>{getTermFromDictionary('en', 'button_ok')}</ButtonText>
+               <ButtonText style={{ color: textColor }}>{getTermFromDictionary('en', 'button_ok')}</ButtonText>
           </Button>
      ) : (
           <>
-               <Button variant="link" mr="$4" onPress={closeWindow}>
-                    <ButtonText color={textColor}>{getTermFromDictionary('en', 'cancel')}</ButtonText>
+               <Button variant="link" className="mr-4" onPress={closeWindow}>
+                    <ButtonText style={{ color: textColor }}>{getTermFromDictionary('en', 'cancel')}</ButtonText>
                </Button>
                <Button
                     isLoading={isProcessing}
                     isLoadingText={getTermFromDictionary('en', 'button_processing', true)}
-                    bgColor={theme.tokens.colors.primary['500']}
+                    colorScheme="primary"
                     onPress={initiateForgotBarcode}>
-                    <ButtonText color={theme.tokens.colors.primary['500-text']}>{modalButtonLabel}</ButtonText>
+                    <ButtonText>{modalButtonLabel}</ButtonText>
                </Button>
           </>
      );
 
      return (
           <Center>
-               <Button variant="link" onPress={() => setShowForgotBarcodeModal(true)}>
-                    <ButtonText color={theme.tokens.colors.primary['500']}>{buttonLabel}</ButtonText>
+               <Button colorScheme="primary" variant="link" onPress={() => setShowForgotBarcodeModal(true)}>
+                   <ButtonText>{buttonLabel}</ButtonText>
                </Button>
-               <Modal isOpen={showForgotBarcodeModal} size="lg" avoidKeyboard onClose={() => setShowForgotBarcodeModal(false)} pb={Platform.OS === 'android' && isKeyboardOpen ? '50%' : '0'}>
+               <Modal isOpen={showForgotBarcodeModal} size="lg" onClose={() => setShowForgotBarcodeModal(false)} style={Platform.OS === 'android' && isKeyboardOpen ? { paddingBottom: '50%' } : undefined}>
                     <ModalBackdrop />
-                    <ModalContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
+                    <ModalContent>
                          <ModalHeader>
-                              <Heading size="md" color={textColor}>{modalTitle}</Heading>
-                              <ModalCloseButton p="$3" onPress={() => { setShowForgotBarcodeModal(false); }}>
-                                   <Icon as={CloseIcon} color={textColor} />
+                              <Heading>{modalTitle}</Heading>
+                              <ModalCloseButton onPress={() => { setShowForgotBarcodeModal(false); }}>
+                                  <CloseIcon />
                               </ModalCloseButton>
                          </ModalHeader>
                          <ModalBody>
                               {ResultsMessage}
                          </ModalBody>
                          <ModalFooter>
-                              <ButtonGroup space="$4">
+                              <ButtonGroup space="lg">
                                    {FooterButtons}
                               </ButtonGroup>
                          </ModalFooter>

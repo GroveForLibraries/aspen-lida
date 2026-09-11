@@ -1,24 +1,22 @@
 import 'expo-dev-client';
+import '@/global.css';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { GluestackUIProvider } from '@/components/ui/gluestack-ui-provider';
 import Constants from 'expo-constants';
-import { GluestackUIProvider } from '@gluestack-ui/themed';
 import { QueryClient, QueryClientProvider, dehydrate, hydrate } from '@tanstack/react-query';
 import { StatusBar } from 'expo-status-bar';
+import { View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import React from 'react';
-
 import { LogBox } from 'react-native';
-
 import { enableScreens } from 'react-native-screens';
 import * as Sentry from '@sentry/react-native';
 import App from './src/components/navigation';
 import { AuthProvider } from './src/context/AuthContext';
 import { CheckoutsProvider, GroupedWorkProvider, HoldsProvider, SearchProvider, SystemMessagesProvider } from './src/context/initialContext';
-
 import { SplashScreenNative } from './src/screens/Auth/SplashNative';
-import { buildThemeForLibrary, THEME_STALE_MS, useThemeForDisplay } from './src/themes/theme';
-import { ToastRegistrar } from './src/components/feedback/ToastRegistrar';
-
+import { buildThemeForLibrary, runExclusiveThemeInit, THEME_STALE_MS, useThemeForDisplay } from './src/themes/theme';
+import { ToastRegistrar } from '@/src/components/feedback';
 import { logDebugMessage, logErrorMessage } from './src/util/logging.js';
 import { initDatabase } from './src/util/db';
 import { loadLibraryUrl, loadThemeState, saveThemeState, isStoredThemeIdMatch } from './src/util/db';
@@ -99,9 +97,14 @@ if (__DEV__) {
      console.error = withoutIgnored(console.error);
 }
 
+/**
+ * AppContainer is the root component of the application. It initializes the SQLite database, manages theme loading and persistence, and sets up the context providers for authentication, search, checkouts, holds, system messages, and grouped works. It also handles the splash screen display while loading and ensures that persisted queries are saved to AsyncStorage.
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export default function AppContainer() {
      const [isLoading, setLoading] = React.useState(true);
-     const { colorMode, theme } = useThemeForDisplay();
+     const { colorMode, themeVars } = useThemeForDisplay();
 
      const [dbReady, setDbReady] = React.useState(false);
      const persistTimeoutRef = React.useRef(null);
@@ -155,37 +158,36 @@ export default function AppContainer() {
                }
                logDebugMessage('3 Running buildThemeForLibrary...');
                try {
-                    const current = await loadThemeState();
                     await restorePersistedQueries();
-                    const mode = current?.colorMode === 'dark' ? 'dark' : 'light';
-                    const textColor = mode === 'dark' ? '$coolGray200' : '$warmGray600';
-                    const hasStoredTheme = Boolean(current?.themeColors?.primary && current?.themeColors?.secondary && current?.themeColors?.tertiary);
-                    const hasMatchingThemeId = await isStoredThemeIdMatch(GLOBALS.themeId ?? 1);
-                    const themeAgeMs = current?.updatedAt ? Date.now() - current.updatedAt : Number.POSITIVE_INFINITY;
-                    const isThemeStale = themeAgeMs > THEME_STALE_MS;
+                    await runExclusiveThemeInit(async () => {
+                         const current = await loadThemeState();
+                         const mode = current?.colorMode === 'dark' ? 'dark' : 'light';
+                         const hasStoredTheme = Boolean(current?.themeColors?.primary && current?.themeColors?.secondary && current?.themeColors?.tertiary);
+                         const hasMatchingThemeId = await isStoredThemeIdMatch(GLOBALS.themeId ?? 1);
+                         const themeAgeMs = current?.updatedAt ? Date.now() - current.updatedAt : Number.POSITIVE_INFINITY;
+                         const isThemeStale = themeAgeMs > THEME_STALE_MS;
 
-                    if (!hasStoredTheme || !hasMatchingThemeId || isThemeStale) {
-                         const persistedLibraryUrl = await loadLibraryUrl();
-                         const themeUrl = persistedLibraryUrl || GLOBALS.url || Constants.expoConfig.extra.apiUrl;
-                         logDebugMessage(`4 Building theme for current themeId using url=${themeUrl ?? 'none'} stale=${isThemeStale} ageMs=${themeAgeMs}`);
-                         if (!themeUrl) {
-                              logDebugMessage('4 Skipping startup theme fetch because no library URL is available yet');
-                         } else {
-                              const builtTheme = await buildThemeForLibrary(themeUrl);
+                         if (!hasStoredTheme || !hasMatchingThemeId || isThemeStale) {
+                              const persistedLibraryUrl = await loadLibraryUrl();
+                              const themeUrl = persistedLibraryUrl || GLOBALS.url || Constants.expoConfig.extra.apiUrl;
+                              logDebugMessage(`4 Building theme for current themeId using url=${themeUrl ?? 'none'} stale=${isThemeStale} ageMs=${themeAgeMs}`);
+                              if (!themeUrl) {
+                                   logDebugMessage('4 Skipping startup theme fetch because no library URL is available yet');
+                              } else {
+                                   const builtTheme = await buildThemeForLibrary(themeUrl);
+                                  await saveThemeState({
+                                       themeId: builtTheme.themeId,
+                                       colorMode: mode,
+                                       themeColors: builtTheme.themeColors,
+                                  });
+                             }
+                         } else if (!current?.colorMode) {
                               await saveThemeState({
-                                   themeId: builtTheme.themeId,
+                                   ...current,
                                    colorMode: mode,
-                                   textColor,
-                                   themeColors: builtTheme.themeColors,
                               });
                          }
-                    } else if (!current?.textColor || !current?.colorMode) {
-                         await saveThemeState({
-                              ...current,
-                              colorMode: mode,
-                              textColor,
-                         });
-                    }
+                    });
                } catch (e) {
                     logErrorMessage('4 Could not load or build theme ' + e);
                } finally {
@@ -221,7 +223,7 @@ export default function AppContainer() {
                <SafeAreaProvider>
                     <QueryClientProvider client={queryClient}>
                           <Sentry.TouchEventBoundary>
-                                <GluestackUIProvider config={theme} colorMode={colorMode}>
+                                <GluestackUIProvider mode={colorMode}>
                                       <ToastRegistrar />
                                      <SearchProvider>
                                            <CheckoutsProvider>
@@ -229,8 +231,10 @@ export default function AppContainer() {
                                                      <SystemMessagesProvider>
                                                           <GroupedWorkProvider>
                                                                <AuthProvider>
-                                                                    <StatusBar key={colorMode} style={colorMode === 'light' ? 'dark' : 'light'} backgroundColor={colorMode === 'light' ? '#FFFFFF' : '#000000'} translucent={false}/>
-                                                                    <App />
+                                                                    <StatusBar key={colorMode} style={colorMode === 'light' ? 'dark' : 'light'} />
+                                                                    <View style={[{ flex: 1 }, themeVars]}>
+                                                                         <App />
+                                                                    </View>
                                                                </AuthProvider>
                                                           </GroupedWorkProvider>
                                                      </SystemMessagesProvider>

@@ -1,19 +1,29 @@
-import { MaterialIcons } from '@expo/vector-icons';
+import { ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/ThemedMaterialIcons';
 import _ from 'lodash';
-import { HStack, Icon, Pressable, Text, VStack } from '@gluestack-ui/themed';
 import React from 'react';
+import { HStack } from '@/components/ui/hstack';
+import { Pressable } from '@/components/ui/pressable';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
+import { VStack } from '@/components/ui/vstack';
+import { SearchGlobal } from '@/src/util/globals';
+import { logDebugMessage } from '@/src/util/logging';
+import { addAppliedFilter, removeAppliedFilter } from '@/src/util/api/searchHelper';
+import { useTheme } from '@/src/themes/theme';
 
-import { SearchGlobal } from '../../../util/globals';
-import { logDebugMessage } from '../../../util/logging';
-import { addAppliedFilter, removeAppliedFilter } from '../../../util/api/searchHelper';
-import { useTheme } from '../../../themes/theme';
-
-
+/**
+ * Facet_RadioGroup component that renders a group of radio buttons for a given facet category. It manages the selected value state, updates the applied filters, and triggers an update to the parent component when a radio button is selected or deselected.
+ * @param param0
+ * @param param0.title
+ * @param param0.data
+ * @param param0.category
+ * @param param0.updater
+ * @param param0.applied
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const Facet_RadioGroup = ({ title, data, category, updater, applied }) => {
-     const [isLoading, setIsLoading] = React.useState(true);
      const [value, setValue] = React.useState('');
-     const [pending] = React.useState(SearchGlobal.pendingFilters);
-     const {theme, textColor, colorMode } = useTheme();
+     const { brand } = useTheme();
 
      React.useEffect(() => {
           const facets = data;
@@ -23,7 +33,6 @@ export const Facet_RadioGroup = ({ title, data, category, updater, applied }) =>
                     setValue(facet[0]['value'] ?? '');
                }
           }
-          setIsLoading(false);
      }, [data]);
 
      React.useEffect(() => {
@@ -67,21 +76,18 @@ export const Facet_RadioGroup = ({ title, data, category, updater, applied }) =>
           return (
                <VStack space="sm">
                     {data.map((facet, index) => (
-                         <Pressable key={index}
-                                    onPress={() => updateValue(facet.value)}
-                                    p="$0.5"
-                                    py="$2">
+                         <Pressable key={index} onPress={() => updateValue(facet.value)} className="py-2 px-[2px]">
                               {value === facet.value ? (
                                    <HStack space="sm" justifyContent="flex-start" alignItems="center">
-                                        <Icon as={MaterialIcons} name="radio-button-checked" size="lg" color={theme.tokens.colors.primary['600']} />
-                                        <Text color={textColor} ml="$2">
+                                        <MaterialIcons name="radio-button-checked" size={20} color={brand.primary[500]} />
+                                        <Text className="ml-2">
                                              {facet.display}
                                         </Text>
                                    </HStack>
                               ) : (
                                    <HStack space="sm" justifyContent="flex-start" alignItems="center">
-                                        <Icon as={MaterialIcons} name="radio-button-unchecked" size="lg" color={theme.tokens.colors.primary['200']} />
-                                        <Text color={textColor} ml="$2">
+                                        <MaterialIcons name="radio-button-unchecked" size={20} color={brand.primary[500]} />
+                                        <Text className="ml-2">
                                              {facet.display}
                                         </Text>
                                    </HStack>
@@ -95,18 +101,18 @@ export const Facet_RadioGroup = ({ title, data, category, updater, applied }) =>
      return (
           <VStack space="sm">
                {data.map((facet, index) => (
-                    <Pressable key={index} onPress={() => updateValue(facet.value)} p="$0.5" py="$2">
+                    <Pressable key={index} onPress={() => updateValue(facet.value)} className="py-2 px-[2px]">
                          {value === facet.value ? (
                               <HStack space="sm" justifyContent="flex-start" alignItems="center">
-                                   <Icon as={MaterialIcons} name="radio-button-checked" size="lg" color={theme.tokens.colors.primary['600']} />
-                                   <Text color={textColor} ml="$2">
+                                   <MaterialIcons name="radio-button-checked" size={20} color={brand.primary[500]} />
+                                   <Text className="ml-2">
                                         {facet.display} ({facet.count})
                                    </Text>
                               </HStack>
                          ) : (
                               <HStack space="sm" justifyContent="flex-start" alignItems="center">
-                                   <Icon as={MaterialIcons} name="radio-button-unchecked" size="lg" color={theme.tokens.colors.primary['200']} />
-                                   <Text color={textColor} ml="$2">
+                                   <MaterialIcons name="radio-button-unchecked" size={20} color={brand.primary[500]} />
+                                   <Text className="ml-2">
                                         {facet.display} ({facet.count})
                                    </Text>
                               </HStack>

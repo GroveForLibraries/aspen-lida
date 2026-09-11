@@ -1,17 +1,23 @@
-import { Icon, ChevronDownIcon, FormControl, FormControlLabel, FormControlLabelText, SelectScrollView, Select, SelectTrigger, SelectInput, SelectIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, CheckIcon, Radio, RadioGroup, RadioIndicator, RadioIcon, RadioLabel, CircleIcon } from '@gluestack-ui/themed';
 import React from 'react';
-import { Platform } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
-import { getVolumes } from '../../../util/api/item';
+import { getVolumes } from '@/src/util/api/item';
 import { loadingSpinner } from '../../loadingSpinner';
 import { loadError } from '../../loadError';
 import _ from 'lodash';
-import { getTermFromDictionary } from '../../../translations/TranslationService';
+import { getTermFromDictionary } from '@/src/translations/TranslationService';
+import { ThemedFormControl as FormControl, ThemedFormControlLabelText as FormControlLabelText, ThemedFormControlLabel as FormControlLabel } from '../../themed/ThemedFormControls';
+import { ThemedMaterialIcons as MaterialIcons } from '../../themed/ThemedMaterialIcons';
+import { ThemedRadio as Radio, ThemedRadioGroup as RadioGroup, ThemedRadioIcon as RadioIcon, ThemedRadioIndicator as RadioIndicator, ThemedRadioLabel as RadioLabel } from '../../themed/ThemedRadio';
+import { ThemedSelect as Select, ThemedSelectBackdrop as SelectBackdrop, ThemedSelectContent as SelectContent, ThemedSelectDragIndicator as SelectDragIndicator, ThemedSelectDragIndicatorWrapper as SelectDragIndicatorWrapper, ThemedSelectInput as SelectInput, ThemedSelectItem as SelectItem, ThemedSelectPortal as SelectPortal, ThemedSelectScrollView as SelectScrollView, ThemedSelectTrigger as SelectTrigger } from '../../themed/ThemedSelect';
 
+/**
+ * SelectVolume component for selecting a volume for a library hold request.
+ * @param props
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const SelectVolume = (props) => {
-     const { id, volume, setVolume, showModal, promptForHoldType, holdType, setHoldType, language, url, textColor, theme, colorMode } = props;
-     const insets = useSafeAreaInsets();
+     const { id, volume, setVolume, showModal, promptForHoldType, holdType, setHoldType, language, url, textColor, brand } = props;
 
      const { status, data, error, isFetching } = useQuery({
           queryKey: ['volumes', id, url],
@@ -43,17 +49,17 @@ export const SelectVolume = (props) => {
                                              setHoldType(nextValue);
                                              setVolume('');
                                         }}>
-                                        <Radio value="item" my="$1" size="sm">
-                                             <RadioIndicator mr="$1">
-                                                  <RadioIcon as={CircleIcon} strokeWidth={1} />
+                                        <Radio value="item" size="sm" className="my-1">
+                                             <RadioIndicator className="mr-1">
+                                                  <RadioIcon as={MaterialIcons} name="circle" />
                                              </RadioIndicator>
-                                             <RadioLabel color={textColor}>{getTermFromDictionary(language, 'first_available')}</RadioLabel>
+                                             <RadioLabel>{getTermFromDictionary(language, 'first_available')}</RadioLabel>
                                         </Radio>
-                                        <Radio value="volume" my="$1" size="sm">
-                                             <RadioIndicator mr="$1">
-                                                  <RadioIcon as={CircleIcon} strokeWidth={1} />
+                                        <Radio value="volume" size="sm" className="my-1">
+                                             <RadioIndicator className="mr-1">
+                                                  <RadioIcon as={MaterialIcons} name="circle" />
                                              </RadioIndicator>
-                                             <RadioLabel color={textColor}>{getTermFromDictionary(language, 'specific_volume')}</RadioLabel>
+                                             <RadioLabel>{getTermFromDictionary(language, 'specific_volume')}</RadioLabel>
                                         </Radio>
                                    </RadioGroup>
                               </FormControl>
@@ -61,34 +67,31 @@ export const SelectVolume = (props) => {
                          {holdType === 'volume' ? (
                               <FormControl>
                                    <FormControlLabel>
-                                        <FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'select_volume')}</FormControlLabelText>
+                                        <FormControlLabelText>{getTermFromDictionary(language, 'select_volume')}</FormControlLabelText>
                                    </FormControlLabel>
-                                   <Select name="volumeForHold" selectedValue={volume} defaultValue={volume} minWidth="200" accessibilityLabel={getTermFromDictionary(language, 'select_volume')} mt="$1" mb="$2" onValueChange={(itemValue) => setVolume(itemValue)}>
-                                        <SelectTrigger variant="outline" size="md">
+                                   <Select name="volumeForHold" selectedValue={volume} defaultValue={volume} minWidth="200" accessibilityLabel={getTermFromDictionary(language, 'select_volume')} className="mt-1 mb-2" onValueChange={(itemValue) => setVolume(itemValue)}>
+                                        <SelectTrigger>
                                              {_.map(data, function (item, index, array) {
                                                   if (item.volumeId === volume) {
-                                                       return <SelectInput py={0} value={item.label} color={textColor} />;
+                                                       return <SelectInput value={item.label} />;
                                                   }
                                              })}
-                                             <SelectIcon mr="$3">
-                                                  <Icon as={ChevronDownIcon} color={textColor} />
-                                             </SelectIcon>
                                         </SelectTrigger>
                                         <SelectPortal useRNModal={true}>
                                              <SelectBackdrop />
-                                             <SelectContent bgColor={colorMode === 'light' ? '$warmGray50' : '$coolGray700'} pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}>
-                                                  <SelectDragIndicatorWrapper>
-                                                       <SelectDragIndicator />
-                                                  </SelectDragIndicatorWrapper>
-                                                  <SelectScrollView>
-                                                       {_.map(data, function (item, index, array) {
-                                                            if (item.volumeId === volume) {
-                                                                 return <SelectItem label={item.label} value={item.volumeId} key={index} bgColor={theme.tokens.colors.tertiary['300']} sx={{ _text: { color: theme.tokens.colors.tertiary['500-text'] } }} />;
+                                             <SelectContent>
+                                                 <SelectDragIndicatorWrapper>
+                                                      <SelectDragIndicator />
+                                                 </SelectDragIndicatorWrapper>
+                                                 <SelectScrollView>
+                                                      {_.map(data, function (item, index, array) {
+                                                           if (item.volumeId === volume) {
+                                                                return <SelectItem label={item.label} value={item.volumeId} key={index} style={{ backgroundColor: brand.tertiary[300] }} textStyle={{ color: brand.tertiary['500-text'] }} />;
                                                             }
-                                                            return <SelectItem label={item.label} value={item.volumeId} key={index} sx={{ _text: { color: textColor } }} />;
+                                                            return <SelectItem label={item.label} value={item.volumeId} key={index} textStyle={{ color: textColor }} />;
                                                        })}
-                                                  </SelectScrollView>
-                                             </SelectContent>
+                                                 </SelectScrollView>
+                                            </SelectContent>
                                         </SelectPortal>
                                    </Select>
                               </FormControl>

@@ -1,4 +1,4 @@
-import { MaterialIcons } from '@expo/vector-icons';
+import { ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/ThemedMaterialIcons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
@@ -6,8 +6,16 @@ import * as Location from 'expo-location';
 import * as SecureStore from 'expo-secure-store';
 import _ from 'lodash';
 import moment from 'moment';
-import { Box, ButtonGroup, Button, ButtonText, Divider, FlatList, HStack, Icon, Pressable, Text, VStack } from '@gluestack-ui/themed';
 import React from 'react';
+import { Box } from '@/components/ui/box';
+import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../components/themed/ThemedButton';
+import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
+import { ThemedDivider as Divider } from '@/src/components/themed/ThemedDivider';
+import { FlatList } from '@/components/ui/flat-list';
+import { HStack } from '@/components/ui/hstack';
+import { Pressable } from '@/components/ui/pressable';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
+import { VStack } from '@/components/ui/vstack';
 import { loadError } from '../../components/loadError';
 import { loadingSpinner } from '../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../components/Notifications';
@@ -23,10 +31,15 @@ import { useTheme } from '../../themes/theme';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
+/**
+ * AllLocations component that displays a list of all available library locations. It fetches location data from the API, handles sorting by distance or alphabetical order, and displays system messages if any are present.
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const AllLocations = () => {
      const library = useLibrary();
      const locations = useAvailableLocations();
-     const { textColor, colorMode, theme } = useTheme();
+     const { colorMode, neutralPairs, neutrals } = useTheme();
      const updateAvailableLocations = useUpdateAvailableLocations();
      const language = useActiveLanguage();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
@@ -120,17 +133,12 @@ export const AllLocations = () => {
 
      const getActionButtons = () => {
           return (
-               <Box
-                    alignItems="center"
-                    p="$2"
-                    bgColor={colorMode === 'light' ? '$coolGray100' : '$coolGray700'}
-                    borderBottomWidth="$1"
-                    borderColor={colorMode === 'light' ? '$coolGray200' : '$coolGray600'}>
+               <Box style={{ alignItems: 'center', backgroundColor: neutrals.surface, borderBottomWidth: 1, borderColor: neutrals.border }} className="p-2">
                     <ButtonGroup alignItems="center" isAttached>
-                         <Button variant={sort === 'alphabetical' ? 'solid' : 'outline'} action="secondary" onPress={() => setSort('alphabetical')}>
+                         <Button variant={sort === 'alphabetical' ? 'solid' : 'outline'} colorScheme="primary" onPress={() => setSort('alphabetical')}>
                               <ButtonText>{getTermFromDictionary(language, 'a_to_z')}</ButtonText>
                          </Button>
-                         <Button variant={sort === 'distance' ? 'solid' : 'outline'} action="secondary" onPress={() => setSort('distance')}>
+                         <Button variant={sort === 'distance' ? 'solid' : 'outline'} colorScheme="primary" onPress={() => setSort('distance')}>
                               <ButtonText>{getTermFromDictionary(language, 'distance')}</ButtonText>
                          </Button>
                     </ButtonGroup>
@@ -150,7 +158,7 @@ export const AllLocations = () => {
                     <FlatList
                          ListHeaderComponent={
                               <>
-                                   {_.size(systemMessages) > 0 ? <Box p="$2">{showSystemMessage()}</Box> : null}
+                                   {_.size(systemMessages) > 0 ? <Box className="p-2">{showSystemMessage()}</Box> : null}
                                    {getActionButtons()}
                               </>
                          }
@@ -166,9 +174,15 @@ export const AllLocations = () => {
      );
 };
 
+/**
+ * DisplayLocation component that renders the details of a specific library location, including its name, address, distance, and hours of operation. It also handles navigation to the location's detail screen when pressed.
+ * @param data
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 const DisplayLocation = (data) => {
      const language = useActiveLanguage();
-     const {textColor} = useTheme();
+     const { neutrals } = useTheme();
      const location = data.data;
 
      let units = false;
@@ -232,34 +246,34 @@ const DisplayLocation = (data) => {
      return (
           <>
                <Pressable onPress={goToLocation}>
-                    <HStack justifyContent="space-between" alignItems="center" p="$4">
+                    <HStack className="justify-between items-center py-4 px-2">
                          {location.locationImage ? (
-                              <Box width="30%" mr="$2">
-                                   <Image alt={location.displayName} source={location.locationImage} style={{ width: '100%', height: 90, borderRadius: 4 }} placeholder={blurhash} transition={1000} contentFit="cover" />
+                              <Box className="w-[30%] mr-2">
+                                   <Image alt={location.displayName} source={location.locationImage} style={{ width: '100%', height: 90.0 }} className="rounded" placeholder={blurhash} transition={1000} contentFit="cover" />
                               </Box>
                          ) : null}
-                         <VStack width={location.locationImage ? '60%' : '85%'}>
-                              <Text size="md" bold color={textColor}>{location.displayName}</Text>
-                              <Text size="xs" mb="$2" color={textColor}>
+                         <VStack style={{ width: location.locationImage ? '60%' : '85%' }}>
+                              <Text size="md" bold>{location.displayName}</Text>
+                              <Text size="xs" className="mb-2">
                                    {location.address}
                               </Text>
                               {hasHours ? (
                                    <HStack alignItems="center" space="xs">
-                                        <Icon as={MaterialIcons} name="access-time" size="sm"  color={textColor}/>
-                                        <Text size="xs" color={textColor}>{hoursLabel}</Text>
+                                        <MaterialIcons name="access-time" size={16} />
+                                        <Text size="xs">{hoursLabel}</Text>
                                    </HStack>
                               ) : null}
                               {distanceText ? (
                                    <HStack alignItems="center" space="xs">
-                                        <Icon as={MaterialIcons} name="pin-drop" size="sm" color={textColor} />
-                                        <Text size="xs" color={textColor}>{distanceText}</Text>
+                                        <MaterialIcons name="pin-drop" size={16} />
+                                        <Text size="xs">{distanceText}</Text>
                                    </HStack>
                               ) : null}
                          </VStack>
-                         <Icon as={MaterialIcons} name="chevron-right" size="xl" color={textColor} />
+                         <MaterialIcons name="chevron-right" size={24} color={neutrals.actionableIndicator} />
                     </HStack>
                </Pressable>
-               <Divider mt="$3" mb="$3" />
+               <Divider className="mt-3 mb-3" />
           </>
      );
 };

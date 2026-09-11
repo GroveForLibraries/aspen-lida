@@ -1,33 +1,25 @@
-import { MaterialIcons } from '@expo/vector-icons';
+import { ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/ThemedMaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DrawerContentScrollView } from '@react-navigation/drawer';
 import { useFocusEffect } from '@react-navigation/native';
 import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
 import * as SecureStore from 'expo-secure-store';
-import {
-     Badge,
-     BadgeText,
-     Box,
-     Button,
-     ButtonText,
-     ButtonIcon,
-     Divider,
-     HStack,
-     Icon,
-     Image,
-     Pressable,
-     Text,
-     useToken,
-     VStack
-} from '@gluestack-ui/themed';
-import { useColorModeValue, UseColorMode, useTheme } from '../../themes/theme';
+import { useTheme } from '../../themes/theme';
+import { UseColorMode } from '../../themes/ThemeSwitcher';
 import React from 'react';
 import { AuthContext } from '../../context/AuthContext';
 import { AppState, Platform, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-// custom components and helper files
+import { ThemedBadge as Badge, ThemedBadgeText as BadgeText } from '../../components/themed/ThemedBadge';
+import { Box } from '@/components/ui/box';
+import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../components/themed/ThemedButton';
+import { ThemedDivider as Divider } from '@/src/components/themed/ThemedDivider';
+import { HStack } from '@/components/ui/hstack';
+import { Image } from 'expo-image';
+import { Pressable } from '@/components/ui/pressable';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
+import { VStack } from '@/components/ui/vstack';
 import { showILSMessage } from '../../components/Notifications';
 import { CheckoutsContext, HoldsContext, SystemMessagesContext } from '../../context/initialContext';
 import {
@@ -48,11 +40,9 @@ import { getLocations, getCatalogStatus, getSystemMessages } from '../../util/ap
 import { getILSMessages, refreshProfile, reloadProfile, validateSession, passUserToDiscovery, getPickupSublocations, getPatronHolds, getPatronCheckedOutItems, getPickupLocations, getLinkedAccounts } from '../../util/api/user';
 import { sortCheckouts, sortHolds, formatLinkedAccounts, formatHolds, formatPickupLocations } from '../../util/api/userHelper';
 import { getListGroups, getLists } from '../../util/api/list';
-
 import { GLOBALS } from '../../util/globals';
 import { stripHTML } from '../../helpers/helpers';
 import { loadUserState } from '../../util/db';
-
 import { logDebugMessage, logWarnMessage, logErrorMessage, getErrorMessage } from '../../util/logging.js';
 import { useActiveLanguage, useDictionaryQuery } from '../../hooks/useLanguageData';
 import { useTranslationWithValues } from '../../hooks/useTranslationWithValues';
@@ -65,6 +55,12 @@ Notifications.setNotificationHandler({
 
 const USER_DATA_STALE_MS = 3 * 60 * 60 * 1000; // 3 hours — drawer background refresh
 
+/**
+ * Custom hook to manage a query with callbacks for success and error handling.
+ * @param queryOptions
+ * @param callbacks
+ * @returns {{data, error: null, isLoading: boolean, isSuccess: boolean, isError: boolean, dataUpdatedAt: number, errorUpdatedAt: number, refetch: (function(): Promise<null|*|undefined>)|*}}
+ */
 const useQueryWithCallbacks = (queryOptions, callbacks = {}) => {
      const {
           queryKey = [],
@@ -174,6 +170,12 @@ const useQueryWithCallbacks = (queryOptions, callbacks = {}) => {
           refetch: executeQuery };
 };
 
+/**
+ * DrawerContent component that manages user data, notifications, and system messages, and handles various API calls to fetch and update user-related information.
+ * @param props
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const DrawerContent = (props) => {
      const [userLatitude, setUserLatitude] = React.useState(0);
      const [userLongitude, setUserLongitude] = React.useState(0);
@@ -699,7 +701,7 @@ export const DrawerContent = (props) => {
      }
 
      return (
-          <View style={{ flex: 1 }}>
+          <View className="flex-1">
                <DrawerContentScrollView
                     {...props}
                     contentContainerStyle={{
@@ -707,14 +709,14 @@ export const DrawerContent = (props) => {
                          paddingTop: insets.top,
                          paddingBottom: insets.bottom }}
                >
-                    <VStack space="$md" mx="$3" flex={1}>
+                    <VStack className="flex-1 mx-3 gap-4">
                          <UserProfileOverview />
 
                          {displayILSMessages()}
 
-                         <Divider my="$3"/>
+                         <Divider className="my-3" />
 
-                         <VStack key={`drawer-menu-${language}-${dictionaryUpdatedAt}`} flex={1}>
+                         <VStack key={`drawer-menu-${language}-${dictionaryUpdatedAt}`} className="flex-1">
                               <Checkouts />
                               <Holds />
                               <UserLists />
@@ -726,18 +728,18 @@ export const DrawerContent = (props) => {
                               <Events />
                               <Campaigns />
 
-                              <Divider my="$2" />
+                              <Divider className="my-2" />
 
                               <UserProfile />
                               <LinkedAccounts />
                               <AlternateLibraryCard />
                          </VStack>
 
-                         <VStack space={3} alignItems="center" pt="$4">
+                         <VStack className="items-center pt-4 gap-3">
                               <HStack space={2}>
                                    <LogOutButton />
                               </HStack>
-                              <HStack space={2} mt={8}>
+                              <HStack space={2} className="mt-2">
                                    <UseColorMode showText={false}/>
                                    <LanguageSwitcher />
                               </HStack>
@@ -753,30 +755,31 @@ const UserProfileOverview = () => {
      const user = userState?.user ?? {};
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { textColor } = useTheme();
+     const { neutrals } = useTheme();
+     const textColor = neutrals.textMain;
 
      const icon = library.logoApp ?? library.favicon ?? Constants.expoConfig.ios.icon;
 
      return (
-          <Box px="$3">
+          <Box className="px-3">
                <HStack space="md" alignItems="center">
-                    <Image source={{ uri: icon }} fallbackSource={require('../../themes/default/aspenLogo.png')} w={42} h={42} alt={getTermFromDictionary(language, 'library_card')} borderRadius="$md" />
-                    <Box ml="$3">
+                    <Image source={icon} alt={getTermFromDictionary(language, 'library_card')} className="rounded-md" style={{ width: 42, height: 42 }} />
+                    <Box className="ml-3">
                          {user.displayName ? (
-                              <Text fontWeight="$bold" fontSize="$md" isTruncated maxW="175" color={textColor}>
+                              <Text numberOfLines={1} className="max-w-[175px] font-bold" size="md">
                                    {user.displayName}
                               </Text>
                          ) : null}
 
                          {library && library.displayName ? (
-                              <Text fontSize="$sm" fontWeight="$medium" isTruncated maxW="175" color={textColor}>
+                              <Text numberOfLines={1} className="max-w-[175px] font-medium" size="sm">
                                    {library.displayName}
                               </Text>
                          ) : null}
                          <HStack space="sm" alignItems="center">
-                              <Icon as={MaterialIcons} name="credit-card" size="xs" color={textColor} />
+                              <MaterialIcons name="credit-card" size={14} />
                               {(user.ils_barcode || user.cat_username) ? (
-                                   <Text fontSize="$sm" fontWeight="$medium" isTruncated maxW="175" color={textColor}>
+                                   <Text numberOfLines={1} className="max-w-[175px] font-medium" size="sm">
                                         {user.ils_barcode ?? user.cat_username}
                                    </Text>
                               ) : null}
@@ -792,30 +795,29 @@ const Checkouts = () => {
      const user = userState?.user ?? {};
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { textColor } = useTheme();
+     const { neutrals } = useTheme();
+     const textColor = neutrals.textMain;
 
      return (
           <Pressable
-               px="$2"
-               py="$2"
-               borderRadius="$md"
+               className="px-2 py-2 rounded-md"
                onPress={() => {
                     navigateStack('AccountScreenTab', 'MyCheckouts', {
                          libraryUrl: library.baseUrl,
                          hasPendingChanges: false });
                }}>
                <HStack space="xs" alignItems="center">
-                    <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} />
+                    <MaterialIcons name="chevron-right" size={20} color={neutrals.actionableIndicator} />
                     <VStack>
                          <HStack space="xs" alignItems="center">
-                              <Text fontWeight="$medium" color={textColor}>
+                              <Text className="font-medium">
                                    {getTermFromDictionary(language, 'checked_out_titles')}
                               </Text>
-                              <Text fontWeight="$bold" color={textColor}> ({user.numCheckedOut ?? 0})</Text>
+                              <Text className="font-bold"> ({user.numCheckedOut ?? 0})</Text>
                          </HStack>
                          {user.numOverdue > 0 ? (
-                              <Badge action="error" mt="$1" borderRadius="$sm" alignSelf="flex-start">
-                                   <BadgeText fontSize="$xs">{getTermFromDictionary(language, 'checkouts_overdue_summary').replace("%1%", user.numOverdue)}</BadgeText>
+                              <Badge colorScheme="error" className="mt-1 rounded self-start">
+                                   <BadgeText colorScheme="error" className="text-xs">{getTermFromDictionary(language, 'checkouts_overdue_summary').replace("%1%", user.numOverdue)}</BadgeText>
                               </Badge>
                          ) : null}
                     </VStack>
@@ -827,32 +829,31 @@ const Checkouts = () => {
 const Holds = () => {
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
-     const { textColor } = useTheme();
+     const { neutrals } = useTheme();
+     const textColor = neutrals.textMain;
      const library = useLibrary();
      const language = useActiveLanguage();
 
      return (
           <Pressable
-               px="$2"
-               py="$2"
-               borderRadius="$md"
+               className="px-2 py-2 rounded-md"
                onPress={() => {
                     navigateStack('AccountScreenTab', 'MyHolds', {
                          libraryUrl: library.baseUrl,
                          hasPendingChanges: false });
                }}>
                <HStack space="xs" alignItems="center">
-                    <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor}/>
+                    <MaterialIcons name="chevron-right" size={20} color={neutrals.actionableIndicator} />
                     <VStack>
                          <HStack space="xs" alignItems="center">
-                              <Text fontWeight="$medium" color={textColor}>
+                              <Text className="font-medium">
                                    {getTermFromDictionary(language, 'titles_on_hold')}
                               </Text>
-                              <Text fontWeight="$bold" color={textColor}> ({user.numHolds ?? 0})</Text>
+                              <Text className="font-bold"> ({user.numHolds ?? 0})</Text>
                          </HStack>
                          {user.numHoldsAvailable > 0 ? (
-                              <Badge action="success" mt="$1" borderRadius="$sm" alignSelf="flex-start">
-                                   <BadgeText fontSize="$xs">{getTermFromDictionary(language, 'num_holds_ready_for_pickup', false).replace('%1%', user.numHoldsAvailable)}</BadgeText>
+                              <Badge colorScheme="success" className="mt-1 rounded self-start">
+                                   <BadgeText colorScheme="success" className="text-xs">{getTermFromDictionary(language, 'num_holds_ready_for_pickup', false).replace('%1%', user.numHoldsAvailable)}</BadgeText>
                               </Badge>
                          ) : null}
                     </VStack>
@@ -866,26 +867,25 @@ const UserLists = () => {
      const user = userState?.user ?? {};
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { textColor } = useTheme();
+     const { neutrals } = useTheme();
+     const textColor = neutrals.textMain;
 
      return (
           <Pressable
-               px="$2"
-               py="$2"
-               borderRadius="$md"
+               className="px-2 py-2 rounded-md"
                onPress={() => {
                     navigateStack('AccountScreenTab', 'MyLists', {
                          libraryUrl: library.baseUrl,
                          hasPendingChanges: false });
                }}>
                <HStack space="xs" alignItems="center">
-                    <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} />
+                    <MaterialIcons name="chevron-right" size={20} color={neutrals.actionableIndicator} />
                     <VStack>
                          <HStack space="xs" alignItems="center">
-                              <Text fontWeight="$medium" color={textColor}>
+                              <Text className="font-medium">
                                    {getTermFromDictionary(language, 'my_lists')}
                               </Text>
-                              <Text fontWeight="$bold" color={textColor}> ({user.numLists ?? 0})</Text>
+                              <Text className="font-bold"> ({user.numLists ?? 0})</Text>
                          </HStack>
                     </VStack>
                </HStack>
@@ -898,32 +898,31 @@ const SavedSearches = () => {
      const user = userState?.user ?? {};
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { textColor } = useTheme();
+     const { neutrals } = useTheme();
+     const textColor = neutrals.textMain;
      const updatesCount = user.numSavedSearchesNew ?? 0;
      const { text: savedSearchSummary } = useTranslationWithValues('num_saved_searches_with_updates', updatesCount, { enabled: updatesCount > 0, addToDictionary: true });
 
      return (
           <Pressable
-               px="$2"
-               py="$2"
-               borderRadius="$md"
+               className="px-2 py-2 rounded-md"
                onPress={() => {
                     navigateStack('AccountScreenTab', 'MySavedSearches', {
                          libraryUrl: library.baseUrl,
                          hasPendingChanges: false });
                }}>
                <HStack space="xs" alignItems="center">
-                    <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} />
+                    <MaterialIcons name="chevron-right" size={20} color={neutrals.actionableIndicator} />
                     <VStack>
                          <HStack space="xs" alignItems="center">
-                              <Text fontWeight="$medium" color={textColor}>
+                              <Text className="font-medium">
                                    {getTermFromDictionary(language, 'saved_searches')}
                               </Text>
-                              <Text fontWeight="$bold" color={textColor}> ({user.numSavedSearches ?? 0})</Text>
+                              <Text className="font-bold"> ({user.numSavedSearches ?? 0})</Text>
                          </HStack>
                          {user.numSavedSearchesNew > 0 ? (
-                              <Badge action="warning" mt="$1" borderRadius="$sm" alignSelf="flex-start">
-                                   <BadgeText fontSize="$xs">{savedSearchSummary}</BadgeText>
+                              <Badge colorScheme="warning" className="mt-1 rounded self-start">
+                                   <BadgeText colorScheme="warning" className="text-xs">{savedSearchSummary}</BadgeText>
                               </Badge>
                          ) : null}
                     </VStack>
@@ -937,26 +936,25 @@ const ReadingHistory = () => {
      const user = userState?.user ?? {};
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { textColor } = useTheme();
+     const { neutrals } = useTheme();
+     const textColor = neutrals.textMain;
 
      return (
           <Pressable
-               px="$2"
-               py="$2"
-               borderRadius="$md"
+               className="px-2 py-2 rounded-md"
                onPress={() => {
                     navigateStack('AccountScreenTab', 'MyReadingHistory', {
                          libraryUrl: library.baseUrl,
                          hasPendingChanges: false });
                }}>
                <HStack space="xs" alignItems="center">
-                    <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} />
+                    <MaterialIcons name="chevron-right" size={20} color={neutrals.actionableIndicator} />
                     <VStack>
                          <HStack space="xs" alignItems="center">
-                              <Text fontWeight="$medium" color={textColor}>
+                              <Text className="font-medium">
                                    {getTermFromDictionary(language, 'reading_history')}
                               </Text>
-                              <Text fontWeight="$bold" color={textColor}> ({user.numReadingHistory ?? 0})</Text>
+                              <Text className="font-bold"> ({user.numReadingHistory ?? 0})</Text>
                          </HStack>
                     </VStack>
                </HStack>
@@ -967,20 +965,20 @@ const ReadingHistory = () => {
 const UserProfile = () => {
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { textColor } = useTheme();
+     const { neutrals } = useTheme();
+     const textColor = neutrals.textMain;
 
      return (
           <Pressable
-               px="$2"
-               py="$2"
+               className="px-2 py-2"
                onPress={() => {
                     navigateStack('AccountScreenTab', 'MyProfile', {
                          libraryUrl: library.baseUrl,
                          hasPendingChanges: false });
                }}>
                <HStack space="xs" alignItems="center">
-                    <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} />
-                    <Text fontWeight="$medium" color={textColor}>{getTermFromDictionary(language, 'contact_information')}</Text>
+                    <MaterialIcons name="chevron-right" size={20} color={neutrals.actionableIndicator} />
+                    <Text className="font-medium">{getTermFromDictionary(language, 'contact_information')}</Text>
                </HStack>
           </Pressable>
      );
@@ -989,20 +987,20 @@ const UserProfile = () => {
 const NotificationHistory = () => {
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { textColor } = useTheme();
+     const { neutrals } = useTheme();
+     const textColor = neutrals.textMain;
 
      if (library.displayIlsInbox === '1' || library.displayIlsInbox === 1 || library.displayIlsInbox === true) {
           return (
                <Pressable
-                    px="$2"
-                    py="$2"
+                    className="px-2 py-2"
                     onPress={() => {
                          navigateStack('AccountScreenTab', 'MyNotificationHistory', {
                               hasPendingChanges: false });
                     }}>
                     <HStack space="xs" alignItems="center">
-                         <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} />
-                         <Text fontWeight="$medium" color={textColor}>{getTermFromDictionary(language, 'notification_history')}</Text>
+                         <MaterialIcons name="chevron-right" size={20} color={neutrals.actionableIndicator} />
+                         <Text className="font-medium">{getTermFromDictionary(language, 'notification_history')}</Text>
                     </HStack>
                </Pressable>
           );
@@ -1016,24 +1014,24 @@ const LinkedAccounts = () => {
      const user = userState?.user ?? {};
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { textColor } = useTheme();
+     const { neutrals } = useTheme();
+     const textColor = neutrals.textMain;
 
      if (library.allowLinkedAccounts === '1') {
           return (
                <Pressable
-                    px="$2"
-                    py="$2"
+                    className="px-2 py-2"
                     onPress={() =>
                          navigateStack('AccountScreenTab', 'MyLinkedAccounts', {
                               libraryUrl: library.baseUrl,
                               hasPendingChanges: false })
                     }>
                     <HStack space="xs" alignItems="center">
-                         <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} />
-                         <Text fontWeight="$medium" color={textColor}>
+                         <MaterialIcons name="chevron-right" size={20} color={neutrals.actionableIndicator} />
+                         <Text className="font-medium">
                               {getTermFromDictionary(language, 'linked_accounts')}
                          </Text>
-                         <Text fontWeight="$bold" color={textColor}> ({user.numLinkedAccounts ?? 0})</Text>
+                         <Text className="font-bold"> ({user.numLinkedAccounts ?? 0})</Text>
                     </HStack>
                </Pressable>
           );
@@ -1045,24 +1043,23 @@ const LinkedAccounts = () => {
 const AlternateLibraryCard = () => {
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { textColor } = useTheme();
+     const { neutrals } = useTheme();
+     const textColor = neutrals.textMain;
 
      const shouldShowAlternateLibraryCard = library.showAlternateLibraryCard ?? false;
 
      if (shouldShowAlternateLibraryCard === '1' || shouldShowAlternateLibraryCard === 1) {
           return (
                <Pressable
-                    px="$2"
-                    py="$2"
-                    borderRadius="$md"
+                    className="px-2 py-2 rounded-md"
                     onPress={() => {
                          navigateStack('LibraryCardTab', 'MyAlternateLibraryCard', {
                               prevRoute: 'AccountDrawer',
                               hasPendingChanges: false });
                     }}>
                     <HStack space="xs" alignItems="center">
-                         <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} />
-                         <Text fontWeight="$medium" color={textColor}>{getTermFromDictionary(language, 'alternate_library_card')}</Text>
+                         <MaterialIcons name="chevron-right" size={20} color={neutrals.actionableIndicator} />
+                         <Text className="font-medium">{getTermFromDictionary(language, 'alternate_library_card')}</Text>
                     </HStack>
                </Pressable>
           );
@@ -1076,11 +1073,9 @@ const Fines = () => {
      const user = userState?.user ?? {};
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { textColor: themeTextColor } = useTheme();
-     const bgMode = useColorModeValue('warmGray.200', 'coolGray.900');
-     const textMode = useColorModeValue('gray.800', 'coolGray.200');
-     const backgroundColor = useToken('colors', bgMode);
-     const textColor = useToken('colors', textMode);
+     const { neutrals } = useTheme();
+     const backgroundColor = neutrals.surface;
+     const textColor = neutrals.textMain;
 
      const shouldShowFines = library.showFines ?? true;
 
@@ -1096,13 +1091,15 @@ const Fines = () => {
 
      if (shouldShowFines) {
           return (
-               <Pressable px="$2" py="$2" borderRadius="$md" onPress={async () => await passUserToDiscovery(library.baseUrl, 'Fines', user.id, backgroundColor, textColor)}>
+               <Pressable className="px-2 py-2 rounded-md" onPress={async () => await passUserToDiscovery(library.baseUrl, 'Fines', user.id, backgroundColor, textColor)}>
                     <HStack space="xs" alignItems="center">
-                         <Icon as={MaterialIcons} name="chevron-right" size="lg" color={themeTextColor} />
+                         <MaterialIcons name="chevron-right" size={20} color={neutrals.actionableIndicator} />
                          <VStack>
-                              <Text fontWeight="$medium" color={themeTextColor}>{getTermFromDictionary(language, 'fines')}</Text>
-                              <Badge action={hasFines ? 'error' : 'info'} mt="$1" borderRadius="$sm" alignSelf="flex-start">
-                                   <BadgeText fontSize="$xs">{user.fines ?? '$0.00'}</BadgeText>
+                              <Text className="font-medium">{getTermFromDictionary(language, 'fines')}</Text>
+                              <Badge colorScheme={hasFines ? 'error' : 'info'} className="mt-1 rounded self-start">
+                                   <BadgeText colorScheme={hasFines ? 'error' : 'info'} className="text-xs">
+                                        {user.fines ?? '$0.00'}
+                                   </BadgeText>
                               </Badge>
                          </VStack>
                     </HStack>
@@ -1118,28 +1115,26 @@ const Events = () => {
      const user = userState?.user ?? {};
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { textColor } = useTheme();
+     const { neutrals } = useTheme();
 
      if (library.hasEventSettings) {
           return (
                <Pressable
-                    px="$2"
-                    py="$2"
-                    borderRadius="$md"
+                    className="px-2 py-2 rounded-md"
                     onPress={() => {
                          navigateStack('AccountScreenTab', 'MyEvents', {
                               libraryUrl: library.baseUrl,
                               hasPendingChanges: false });
                     }}>
                     <HStack space="xs" alignItems="center">
-                         <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} />
+                         <MaterialIcons name="chevron-right" size={20} color={neutrals.actionableIndicator} />
                          <VStack>
-                              <Text fontWeight="$medium" color={textColor}>
+                              <Text className="font-medium">
                                    {getTermFromDictionary(language, 'events')}
                               </Text>
                               {user.numSavedEventsUpcoming > 0 ? (
-                                   <Badge action="info" mt="$1" borderRadius="$sm" alignSelf="flex-start">
-                                        <BadgeText fontSize="$xs">{getTermFromDictionary(language, 'num_saved_events_upcoming').replace('%1%', user.numSavedEventsUpcoming)}</BadgeText>
+                                   <Badge colorScheme="info" className="mt-1 rounded self-start">
+                                        <BadgeText colorScheme="info" className="text-xs">{getTermFromDictionary(language, 'num_saved_events_upcoming').replace('%1%', user.numSavedEventsUpcoming)}</BadgeText>
                                    </Badge>
                               ) : null}
                          </VStack>
@@ -1154,11 +1149,9 @@ const Events = () => {
 const YearInReview = () => {
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { textColor: themeTextColor } = useTheme();
-     const bgMode = useColorModeValue('warmGray.200', 'coolGray.900');
-     const textMode = useColorModeValue('gray.800', 'coolGray.200');
-     const backgroundColor = useToken('colors', bgMode);
-     const textColor = useToken('colors', textMode);
+     const { neutrals } = useTheme();
+     const backgroundColor = neutrals.surface;
+     const textColor = neutrals.textMain;
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const yearInReviewLabel = getTermFromDictionary(language, 'year_in_review');
@@ -1168,13 +1161,15 @@ const YearInReview = () => {
 
      if (shouldShowYearInReview) {
           return (
-               <Pressable px="$2" py="$2" borderRadius="$md" onPress={async () => await passUserToDiscovery(library.baseUrl, 'YearInReview', user.id, backgroundColor, textColor)}>
+               <Pressable className="px-2 py-2 rounded-md" onPress={async () => await passUserToDiscovery(library.baseUrl, 'YearInReview', user.id, backgroundColor, textColor)}>
                     <HStack space="xs" alignItems="center">
-                         <Icon as={MaterialIcons} name="chevron-right" size="lg" color={themeTextColor} />
+                         <MaterialIcons name="chevron-right" size={20} color={neutrals.actionableIndicator} />
                          <VStack>
-                              <Text fontWeight="$medium" color={themeTextColor}>{user.yearInReviewName ?? yearInReviewLabel}</Text>
-                              <Badge action="info" mt="$1" borderRadius="$sm" alignSelf="flex-start">
-                                   <BadgeText fontSize="$xs">{viewNowLabel}</BadgeText>
+                              <Text className="font-medium">{user.yearInReviewName ?? yearInReviewLabel}</Text>
+                              <Badge colorScheme="info" className="mt-1 rounded self-start">
+                                   <BadgeText colorScheme="info" className="text-xs">
+                                        {viewNowLabel}
+                                   </BadgeText>
                               </Badge>
                          </VStack>
                     </HStack>
@@ -1188,22 +1183,20 @@ const YearInReview = () => {
 const Campaigns = () => {
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { textColor } = useTheme();
+     const { neutrals } = useTheme();
      if (library.hasCommunityEngagementEnabled) {
           return(
                <Pressable
-                    px="$2"
-                    py="$2"
-                    borderRadius="$md"
+                    className="px-2 py-2 rounded-md"
                     onPress={() =>
                          navigateStack('AccountScreenTab', 'MyCampaigns', {
                               libraryUrl: library.baseUrl,
                               hasPendingChanges: false })
                     }>
                     <HStack space="xs" alignItems="center">
-                         <Icon as={MaterialIcons} name="chevron-right" size="lg" color={textColor} />
+                         <MaterialIcons name="chevron-right" size={20} color={neutrals.actionableIndicator} />
                          <VStack>
-                              <Text fontWeight="$medium" color={textColor}>
+                              <Text className="font-medium">
                                    {getTermFromDictionary(language, 'campaigns')}
                               </Text>
                          </VStack>
@@ -1253,12 +1246,12 @@ async function addStoredNotification(message) {
 function LogOutButton() {
      const language = useActiveLanguage();
      const { signOut } = React.useContext(AuthContext);
-     const { theme } = useTheme();
+     const { brand } = useTheme();
 
      return (
-          <Button size="md" action="secondary" onPress={signOut} bgColor={theme.tokens.colors.primary['500']}>
-               <ButtonIcon as={MaterialIcons} name="logout" size="xs" color={theme.tokens.colors.primary['500-text']} />
-               <ButtonText color={theme.tokens.colors.primary['500-text']}> {getTermFromDictionary(language, 'logout')}</ButtonText>
+          <Button size="md" onPress={signOut} colorScheme="primary">
+               <MaterialIcons name="logout" size={14} color={brand.primary['500-text']} className="mr-1" />
+               <ButtonText> {getTermFromDictionary(language, 'logout')}</ButtonText>
           </Button>
      );
 }

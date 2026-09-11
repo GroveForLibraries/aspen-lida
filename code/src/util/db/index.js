@@ -47,7 +47,6 @@ export {
      loadThemeState,
      saveThemeColors,
      saveThemeColorMode,
-     saveThemeTextColor,
      resetThemeState,
      isStoredThemeIdMatch,
      saveThemeCatalog,

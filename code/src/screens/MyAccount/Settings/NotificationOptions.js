@@ -1,21 +1,28 @@
 import React from 'react';
-
 import { useFocusEffect } from '@react-navigation/native';
 import _ from 'lodash';
-import {Box, FlatList, HStack, Switch, Text, VStack} from '@gluestack-ui/themed';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { loadingSpinner } from '../../../components/loadingSpinner';
-import { createChannelsAndCategories } from '../../../components/Notifications';
-import { getNotificationPreferences, setNotificationPreference } from '../../../util/api/user';
+import { Box } from '@/components/ui/box';
+import { FlatList } from '@/components/ui/flat-list';
+import { HStack } from '@/components/ui/hstack';
+import { ThemedSwitch as Switch } from '@/src/components/themed/ThemedSwitch';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
+import { VStack } from '@/components/ui/vstack';
+import { ScreenContainer } from '@/src/components/ScreenContainer';
+import { loadingSpinner } from '@/src/components/loadingSpinner';
+import { createChannelsAndCategories } from '@/src/components/Notifications';
+import { getNotificationPreferences, setNotificationPreference } from '@/src/util/api/user';
+import { useUserState, useNotificationSettings, useUpdateUserProfile, useUpdateNotificationSettings } from '@/src/hooks/useUserData';
+import { getTermFromDictionary } from '@/src/translations/TranslationService';
+import { refreshProfile } from '@/src/util/api/user';
+import { logDebugMessage, logWarnMessage } from '@/src/util/logging';
+import { useActiveLanguage } from '@/src/hooks/useLanguageData';
+import { useLibrary } from '@/src/hooks/useLibrarySystemData';
 
-import { useUserState, useNotificationSettings, useUpdateUserProfile, useUpdateNotificationSettings, useUpdateExpoToken } from '../../../hooks/useUserData';
-import { getTermFromDictionary } from '../../../translations/TranslationService';
-import { refreshProfile } from '../../../util/api/user';
-
-import { logDebugMessage, logWarnMessage } from '../../../util/logging.js';
-import { useActiveLanguage } from '../../../hooks/useLanguageData';
-import { useLibrary } from '../../../hooks/useLibrarySystemData';
-
+/**
+ * Settings_NotificationOptions component that displays notification options for the user. It allows users to enable or disable notifications for saved searches, custom notifications, and account-related notifications. It fetches the user's notification preferences and updates them based on user interactions.
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const Settings_NotificationOptions = () => {
      const [isLoading, setLoading] = React.useState(false);
      const [notifySavedSearch, setNotifySavedSearch] = React.useState(false);
@@ -70,9 +77,9 @@ export const Settings_NotificationOptions = () => {
      logDebugMessage("Rendering Notification Options");
      logDebugMessage(notificationSettings);
      return (
-          <SafeAreaView style={{ flex: 1 }}>
-               <Box flex={1} safeArea={5}>
-                    <HStack space={3} pb={3} alignItems="center" justifyContent="space-between">
+          <ScreenContainer safeArea style={{ flex: 1 }}>
+               <Box className="flex-1 py-5">
+                    <HStack space="sm" className="pb-3 items-center justify-between">
                          <Text bold>{getTermFromDictionary(language, 'notifications_allow')}</Text>
                          <Switch
                               isDisabled={true}
@@ -81,7 +88,7 @@ export const Settings_NotificationOptions = () => {
                     </HStack>
                     {/* Show options whenever an expoToken is present and settings object exists */}
                     {isNotificationsEnabled && _.isObject(notificationSettings) ? (
-                         <VStack space="md" style={{ flex: 1 }}>
+                         <VStack space="md" className="flex-1">
                               <EnableAllNotifications
                                    setLoading={setLoading}
                                    notifySavedSearch={notifySavedSearch}
@@ -109,12 +116,19 @@ export const Settings_NotificationOptions = () => {
                          </VStack>
                     ) : null}
                </Box>
-          </SafeAreaView>
+          </ScreenContainer>
      );
 };
 
+/**
+ * EnableAllNotifications component that provides a switch to enable or disable all notifications for the user. It updates the user's notification preferences based on the switch state and refreshes the user profile accordingly.
+ * @param data
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 const EnableAllNotifications = (data) => {
      const language = useActiveLanguage();
+     const { data: userState } = useUserState();
      const updateUserProfile = useUpdateUserProfile();
      const updateNotificationSettings = useUpdateNotificationSettings();
      const expoToken = userState?.expoToken ?? false;
@@ -154,23 +168,37 @@ const EnableAllNotifications = (data) => {
 
      logDebugMessage("Rendering enable all notifications switch");
      return (
-          <HStack space={3} alignItems="center" justifyContent="space-between" pb={1}>
+          <HStack space="sm" className="items-center justify-between pb-1">
                <Text bold>{getTermFromDictionary(language, 'notifications_enable_all')}</Text>
                <Switch
-                    onToggle={() => {
+                    onValueChange={() => {
                          toggleSwitch();
                          enableAllNotifications(!toggled).then((r) => {
                               logDebugMessage(r);
                          });
                     }}
                     defaultValue={toggled}
-                    isChecked={toggled}
+                    value={toggled}
                />
           </HStack>
      );
 };
 
+/**
+ * DisplayPreference component that renders a single notification preference option with a toggle switch. It updates the user's notification preferences based on the switch state and refreshes the user profile accordingly.
+ * @param param0
+ * @param param0.data
+ * @param param0.notifySavedSearch
+ * @param param0.setNotifySavedSearch
+ * @param param0.notifyCustom
+ * @param param0.setNotifyCustom
+ * @param param0.notifyAccount
+ * @param param0.setNotifyAccount
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 const DisplayPreference = ({ data, notifySavedSearch, setNotifySavedSearch, notifyCustom, setNotifyCustom, notifyAccount, setNotifyAccount }) => {
+     const { data: userState } = useUserState();
      const updateUserProfile = useUpdateUserProfile();
      const expoToken = userState?.expoToken ?? false;
      const library = useLibrary();
@@ -213,11 +241,11 @@ const DisplayPreference = ({ data, notifySavedSearch, setNotifySavedSearch, noti
 
      logDebugMessage(`Rendering preference toggle for ${preference.label}`);
      return (
-          <HStack space={3} alignItems="center" justifyContent="space-between" pb={1}>
+          <HStack space="sm" className="items-center justify-between pb-1">
                <Text>{preference.label}</Text>
                <Switch
-                    onToggle={() => updatePreference(preference.option, isChecked)}
-                    isChecked={isChecked}
+                    onValueChange={() => updatePreference(preference.option, isChecked)}
+                    value={isChecked}
                />
           </HStack>
      );

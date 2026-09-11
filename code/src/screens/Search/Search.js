@@ -1,16 +1,25 @@
 import { useNavigation } from '@react-navigation/native';
 import _ from 'lodash';
-import { Box, Button, ButtonText, Center, FlatList, FormControl, Input, InputField, Text } from '@gluestack-ui/themed';
 import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
-
 import { formatDiscoveryVersion } from '../../helpers/helpers';
 import { getDefaultFacets } from '../../util/api/search';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
+import { Box } from '@/components/ui/box';
+import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../components/themed/ThemedButton';
+import { Center } from '@/components/ui/center';
+import { FlatList } from '@/components/ui/flat-list';
+import { ThemedFormControl as FormControl, ThemedInput as Input, ThemedInputField as InputField } from '../../components/themed/ThemedFormControls';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
 
+/**
+ * SearchHome component that displays the search input field and quick search options. It allows users to enter a search term and navigate to the search results page. It also preloads default facets based on the library's discovery version.
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const SearchHome = () => {
      const navigation = useNavigation();
      const [searchTerm, setSearchTerm] = React.useState('');
@@ -46,14 +55,16 @@ export const SearchHome = () => {
 
      return (
           <SafeAreaView>
-               <Box safeArea={5}>
+               <Box className="p-5">
                     <FormControl>
-                         <Input variant="filled" autoCapitalize="none" onChangeText={(term) => setSearchTerm(term)} status="info" placeholder={getTermFromDictionary(language, 'search')} clearButtonMode="always" onSubmitEditing={search} value={searchTerm} size="xl" />
+                         <Input size="xl">
+                              <InputField autoCapitalize="none" onChangeText={(term) => setSearchTerm(term)} placeholder={getTermFromDictionary(language, 'search')} clearButtonMode="always" onSubmitEditing={search} value={searchTerm} />
+                         </Input>
                     </FormControl>
                     {quickSearchNum > 0 ? (
                          <Box>
                               <Center>
-                                   <Text mt={8} mb={2} fontSize="xl" bold>
+                                   <Text bold className="mt-2 mb-[2px]" size="xl">
                                         {getTermFromDictionary(language, 'quick_searches')}
                                    </Text>
                               </Center>
@@ -65,17 +76,23 @@ export const SearchHome = () => {
      );
 };
 
+/**
+ * QuickSearch component that renders a button for a quick search option. When pressed, it navigates to the search results page with the specified search term.
+ * @param data
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 const QuickSearch = (data) => {
      const quickSearch = data.data;
      return (
           <Button
-               mb={3}
+               className="mb-3"
                onPress={() =>
                     navigate('SearchResults', {
                          term: quickSearch.searchTerm,
                     })
                }>
-               {quickSearch.label}
+               <ButtonText>{quickSearch.label}</ButtonText>
           </Button>
      );
 };

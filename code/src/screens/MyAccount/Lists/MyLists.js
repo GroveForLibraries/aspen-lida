@@ -1,32 +1,46 @@
 import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 import { Image } from 'expo-image';
-import { Badge, BadgeText, Box, Center, ChevronDownIcon, FlatList, Heading, HStack, Pressable, ScrollView, Select, SelectBackdrop, SelectContent, SelectDragIndicator, SelectDragIndicatorWrapper, SelectIcon, SelectInput, SelectItem, SelectPortal, SelectScrollView, SelectTrigger, Text, VStack, ButtonGroup, Button, ButtonText } from '@gluestack-ui/themed';
 import React from 'react';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-// custom components and helper files
-import { loadingSpinner } from '../../../components/loadingSpinner';
-import { DisplaySystemMessage } from '../../../components/Notifications';
-import { SystemMessagesContext } from '../../../context/initialContext';
-import { useLists, useListGroups, useUpdateLists, useUpdateListGroups, useUserState } from '../../../hooks/useUserData';
-import { navigateStack } from '../../../helpers/RootNavigator';
-import { getTermFromDictionary } from '../../../translations/TranslationService';
-import { getListGroupDetails, getListGroups, getLists } from '../../../util/api/list';
+import { FlatList } from 'react-native';
+import { ThemedBadge as Badge, ThemedBadgeText as BadgeText } from '@/src/components/themed/ThemedBadge';
+import { Box } from '@/components/ui/box';
+import { ScreenContainer, screenContentContainerStyle } from '@/src/components/ScreenContainer';
+import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../../components/themed/ThemedButton';
+import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
+import { Center } from '@/components/ui/center';
+import { ThemedHeading as Heading } from '@/src/components/themed/ThemedHeading';
+import { HStack } from '@/components/ui/hstack';
+import { Pressable } from '@/components/ui/pressable';
+import { ThemedScrollView as ScrollView } from '@/src/components/themed/ThemedScrollView';
+import { ThemedSelect as Select, ThemedSelectBackdrop as SelectBackdrop, ThemedSelectContent as SelectContent, ThemedSelectDragIndicator as SelectDragIndicator, ThemedSelectDragIndicatorWrapper as SelectDragIndicatorWrapper, ThemedSelectInput as SelectInput, ThemedSelectItem as SelectItem, ThemedSelectPortal as SelectPortal, ThemedSelectScrollView as SelectScrollView, ThemedSelectTrigger as SelectTrigger } from '../../../components/themed/ThemedSelect';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
+import { VStack } from '@/components/ui/vstack';
+import { loadingSpinner } from '@/src/components/loadingSpinner';
+import { DisplaySystemMessage } from '@/src/components/Notifications';
+import { SystemMessagesContext } from '@/src/context/initialContext';
+import { useLists, useListGroups, useUpdateLists, useUpdateListGroups, useUserState } from '@/src/hooks/useUserData';
+import { navigateStack } from '@/src/helpers/RootNavigator';
+import { getTermFromDictionary } from '@/src/translations/TranslationService';
+import { getListGroupDetails, getListGroups, getLists } from '@/src/util/api/list';
 import CreateList from './CreateList';
-import { getErrorMessage, logDebugMessage, logErrorMessage } from '../../../util/logging';
+import { getErrorMessage, logDebugMessage, logErrorMessage } from '@/src/util/logging';
 import CreateListGroup from './CreateListGroup';
-import { Platform } from 'react-native';
 import { EditListGroup } from './EditListGroup';
 import { EditListGroupParent } from './EditListGroupParent';
 import { DeleteListGroup } from './DeleteListGroup';
-import { formatUnixDate, orderByFields } from '../../../helpers/helpers';
-import { useActiveLanguage } from '../../../hooks/useLanguageData';
-import { useTheme } from '../../../themes/theme';
-import { useLibrary } from '../../../hooks/useLibrarySystemData';
+import { formatUnixDate, orderByFields } from '@/src/helpers/helpers';
+import { useActiveLanguage } from '@/src/hooks/useLanguageData';
+import { useTheme } from '@/src/themes/theme';
+import { useLibrary } from '@/src/hooks/useLibrarySystemData';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 const LISTS_STALE_MS = 6 * 60 * 60 * 1000; // 6 hours
 
+/**
+ * MyLists component that displays a list of user-created lists and list groups. It fetches data from the API, handles pagination, and allows users to create, edit, and delete lists and list groups. It also manages system messages and loading states.
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const MyLists = () => {
      const navigation = useNavigation();
      const hasPendingChanges = useRoute().params.hasPendingChanges ?? false;
@@ -43,8 +57,9 @@ export const MyLists = () => {
      const [paginationLabel, setPaginationLabel] = React.useState('Page 1 of 1');
      const [loading, setLoading] = React.useState(false);
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
-     const { theme, textColor, colorMode } = useTheme();
-     const insets = useSafeAreaInsets();
+     const { neutrals } = useTheme();
+     const panelBg = neutrals.surface;
+     const borderColor = neutrals.border;
 
      const [currentListGroup, setCurrentListGroup] = React.useState(-1);
      const [currentListGroupData, setCurrentListGroupData] = React.useState({
@@ -256,8 +271,8 @@ export const MyLists = () => {
      };
 
      const listEmptyComponent = () => (
-          <Center mt={5} mb={5}>
-               <Text bold fontSize="$lg" color={textColor}>
+          <Center className="mt-[5px] mb-[5px]">
+               <Text bold size="lg">
                     {getTermFromDictionary(language, 'no_lists_yet')}
                </Text>
           </Center>
@@ -273,29 +288,30 @@ export const MyLists = () => {
           const imageUrl = item.cover ?? library.baseUrl + '/bookcover.php?type=list&id=' + item.id + '&size=medium';
           if (item.id !== 'recommendations') {
                return (
-                    <Pressable onPress={() => handleOpenList(item)} pl="$1" pr="$1" py="$2">
-                         <HStack space={3} mt="$2" mb="$2" justifyContent="flex-start">
+                    <Pressable onPress={() => handleOpenList(item)} className="py-2">
+                         <HStack space={3} className="mt-2 mb-2 justify-start">
                               <VStack space={1}>
-                                   <Image
-                                        alt={item.title}
-                                        source={imageUrl}
-                                        style={{ width: 100, height: 150, borderRadius: '$sm' }}
-                                        placeholder={blurhash}
-                                        transition={1000}
-                                        contentFit="cover"
-                                   />
-                                   <Badge mt={1}>
-                                        <BadgeText>{privacy}</BadgeText>
+                                   <Image alt={item.title} source={imageUrl} style={{ width: 100.0, height: 150.0, borderRadius: 8 }} placeholder={blurhash} transition={1000} contentFit="cover" />
+                                   <Badge className="mt-1" style={{ backgroundColor: neutrals.surfaceMuted }}>
+                                        <BadgeText style={{ color: neutrals.iconMuted, fontSize: 10, textAlign: 'center' }}>{privacy}</BadgeText>
                                    </Badge>
                               </VStack>
-                              <VStack space={1} justifyContent="space-between" maxW="80%" pl="$2">
+                              <VStack space={1} className="justify-between max-w-[80%] pl-2">
                                    <Box>
-                                        <Text bold fontSize="$md" color={textColor}>{item.title}</Text>
+                                        <Text bold size="md">
+                                             {item.title}
+                                        </Text>
                                         {item.description ? (
-                                             <Text fontSize="$xs" mb={2} color={textColor}>{item.description}</Text>
+                                             <Text size="xs" className="mb-2">
+                                                  {item.description}
+                                             </Text>
                                         ) : null}
-                                        <Text fontSize="$xs" italic color={textColor}>{listLastUpdatedOn}</Text>
-                                        <Text fontSize="$xs" italic color={textColor}>{item.numTitles ?? 0} {getTermFromDictionary(language, 'items')}</Text>
+                                        <Text size="xs" italic>
+                                             {listLastUpdatedOn}
+                                        </Text>
+                                        <Text size="xs" italic>
+                                             {item.numTitles ?? 0} {getTermFromDictionary(language, 'items')}
+                                        </Text>
                                    </Box>
                               </VStack>
                          </HStack>
@@ -319,26 +335,22 @@ export const MyLists = () => {
           const $type = type === 'lists' ? lists : currentListGroupData;
           return (
                <Box
-                    p="$2"
-                    borderTopWidth="$1"
-                    bgColor={colorMode === 'light' ? '$coolGray100' : '$coolGray700'}
-                    borderColor={colorMode === 'light' ? '$coolGray400' : '$warmGray600'}
-                    flexWrap="nowrap"
-                    alignItems="center">
+                    className="px-4 py-2"
+                    style={{ borderTopWidth: 1, borderColor, flexWrap: 'nowrap', alignItems: 'center' }}>
                     <ScrollView horizontal>
                          <ButtonGroup size="sm">
                               <Button
-                                   bgColor={theme.tokens.colors.primary['500']}
+                                   colorScheme="primary"
                                    onPress={async () => {
                                         if (page > 1) {
                                              await updatePage(page - 1, type);
                                         }
                                    }}
                                    isDisabled={page === 1}>
-                                   <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'previous')}</ButtonText>
+                                  <ButtonText>{getTermFromDictionary(language, 'previous')}</ButtonText>
                               </Button>
                               <Button
-                                   bgColor={theme.tokens.colors.primary['500']}
+                                  colorScheme="primary"
                                    onPress={async () => {
                                         if ($type?.page_current !== $type?.page_total) {
                                              logDebugMessage('Adding to page');
@@ -346,11 +358,11 @@ export const MyLists = () => {
                                         }
                                    }}
                                    isDisabled={!($type?.page_current !== $type?.page_total) || loading}>
-                                   <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'next')}</ButtonText>
+                                  <ButtonText>{getTermFromDictionary(language, 'next')}</ButtonText>
                               </Button>
                          </ButtonGroup>
                     </ScrollView>
-                    <Text mt="$2" fontSize="$sm" color={textColor}>{paginationLabel}</Text>
+                    <Text size="sm" className="mt-2">{paginationLabel}</Text>
                </Box>
           );
      };
@@ -360,8 +372,8 @@ export const MyLists = () => {
      }
 
      return (
-          <Box style={{ flex: 1 }}>
-               <Box pt="$2" px="$5" flexWrap="nowrap">
+          <>
+               <Box className="px-4 py-2 flex-nowrap" style={{ backgroundColor: panelBg }}>
                     {showSystemMessage()}
                     <ScrollView horizontal>
                          <ButtonGroup space="sm">
@@ -371,56 +383,41 @@ export const MyLists = () => {
                     </ScrollView>
                </Box>
                {hasListGroups && listGroups?.groups && Object.values(listGroups.groups).length > 0 ? (
-                    <Box px="$5" mt="$2">
+                    <Box className="px-2 mt-2">
                          <Select name="listGroupSelect" selectedValue={currentListGroup} defaultValue={defaultListGroup} onValueChange={(itemValue) => updateSelectedListGroup(itemValue)}>
-                              <SelectTrigger variant="outline" size="md">
+                              <SelectTrigger>
                                    {currentListGroup && currentListGroup !== '-1' && currentListGroup !== -1 ? (
                                         Object.values(listGroups.groups).map((group, selectedIndex) => {
                                              if (group.id === currentListGroup) {
-                                                  return <SelectInput key={selectedIndex} py={0} value={group.title} color={textColor} />;
+                                                  return <SelectInput key={selectedIndex} value={group.title} />;
                                              }
                                              return null;
                                         })
                                    ) : currentListGroup == '-1' ? (
-                                        <SelectInput py={0} value={getTermFromDictionary(language, 'unassigned_lists')} color={textColor} />
+                                        <SelectInput value={getTermFromDictionary(language, 'unassigned_lists')} />
                                    ) : defaultListGroup ? (
-                                        <SelectInput py={0} value={defaultListGroup} color={textColor} />
+                                        <SelectInput value={defaultListGroup} />
                                    ) : null}
-                                   <SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
                               </SelectTrigger>
                               <SelectPortal>
                                    <SelectBackdrop />
-                                   <SelectContent bgColor={colorMode === 'light' ? '$warmGray50' : '$coolGray700'} pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}>
+                                   <SelectContent>
                                         <SelectDragIndicatorWrapper>
                                              <SelectDragIndicator />
                                         </SelectDragIndicatorWrapper>
                                         <SelectScrollView>
                                              {Object.values(listGroups.groups).map((item, index) => (
-                                                  <SelectItem
-                                                       key={index}
-                                                       value={item.id}
-                                                       label={item.title}
-                                                       bgColor={currentListGroup === item.id ? theme.tokens.colors.tertiary['300'] : ''}
-                                                       sx={{ _text: { color: currentListGroup === item.id ? theme.tokens.colors.tertiary['500-text'] : textColor } }}
-                                                  />
+                                                  <SelectItem key={index} value={item.id} label={item.title} selectedValue={currentListGroup} />
                                              ))}
-                                             {listGroups.unassigned > 0 ? (
-                                                  <SelectItem
-                                                       key={-1}
-                                                       value="-1"
-                                                       label={getTermFromDictionary(language, 'unassigned_lists')}
-                                                       bgColor={currentListGroup == '-1' ? theme.tokens.colors.tertiary['300'] : ''}
-                                                       sx={{ _text: { color: currentListGroup == '-1' ? theme.tokens.colors.tertiary['500-text'] : textColor } }}
-                                                  />
-                                             ) : null}
+                                             {listGroups.unassigned > 0 ? <SelectItem key={-1} value="-1" label={getTermFromDictionary(language, 'unassigned_lists')} selectedValue={currentListGroup} /> : null}
                                         </SelectScrollView>
                                    </SelectContent>
                               </SelectPortal>
                          </Select>
                          {currentListGroupData ? (
-                              <Box mt="$2">
+                              <Box className="mt-2">
                                    <Box>
-                                        <Heading size="xl" color={textColor}>{currentListGroupData.listGroupDetails?.title}</Heading>
+                                        <Heading className="py-[10px]">{currentListGroupData.listGroupDetails?.title}</Heading>
                                         {currentListGroup != '-1' && (
                                              <ScrollView horizontal>
                                                   <HStack space="sm">
@@ -431,29 +428,13 @@ export const MyLists = () => {
                                              </ScrollView>
                                         )}
                                    </Box>
-                                   <FlatList
-                                        contentContainerStyle={{ paddingBottom: 200 }}
-                                        mt="$2"
-                                        data={currentListGroupData.listsInGroup}
-                                        renderItem={({ item }) => renderList(item)}
-                                        keyExtractor={(item, index) => item.id ? String(item.id) : index.toString()}
-                                        ListEmptyComponent={listEmptyComponent}
-                                        ListFooterComponent={Paging('listGroup')}
-                                   />
+                                   <FlatList contentContainerStyle={{ paddingBottom: 200 }} className="mt-2" data={currentListGroupData.listsInGroup} renderItem={({ item }) => renderList(item)} keyExtractor={(item, index) => (item.id ? String(item.id) : index.toString())} ListEmptyComponent={listEmptyComponent} ListFooterComponent={Paging('listGroup')} />
                               </Box>
                          ) : null}
                     </Box>
                ) : (
-                    <FlatList
-                         px="$5"
-                         mt="$2"
-                         data={sortedLists}
-                         ListEmptyComponent={listEmptyComponent}
-                         renderItem={({ item }) => renderList(item)}
-                         keyExtractor={(item, index) => item.id ? String(item.id) : index.toString()}
-                         ListFooterComponent={Paging('lists')}
-                    />
+                    <FlatList contentContainerStyle={{ paddingTop: 8, paddingBottom: 32, ...screenContentContainerStyle }} data={sortedLists} ListEmptyComponent={listEmptyComponent} renderItem={({ item }) => renderList(item)} keyExtractor={(item, index) => (item.id ? String(item.id) : index.toString())} ListFooterComponent={Paging('lists')} />
                )}
-          </Box>
+          </>
      );
 };

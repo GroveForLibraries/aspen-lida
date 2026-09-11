@@ -1,11 +1,9 @@
-import { Box, Pressable, VStack, Text } from '@gluestack-ui/themed';
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { Dimensions } from 'react-native';
-
 import { SearchContext } from '../../context/initialContext';
 import { Image } from 'expo-image';
-import { MaterialIcons } from '@expo/vector-icons';
+import { ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/ThemedMaterialIcons';
 import { logDebugMessage, logErrorMessage } from '../../util/logging';
 import * as WebBrowser from 'expo-web-browser';
 import { popAlert } from '../../components/feedback';
@@ -13,7 +11,18 @@ import { getTermFromDictionary } from '../../translations/TranslationService';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 import { useTheme } from '../../themes/theme';
+import { Box } from '@/components/ui/box';
+import { Pressable } from '@/components/ui/pressable';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
+import { VStack } from '@/components/ui/vstack';
 
+/**
+ * HomeScreenLinkGrid component that renders a grid of links on the home screen. It adjusts the number of columns based on the device width (tablet or phone) and ensures that if there is an odd number of links, the last link takes up the full width of its row.
+ * @param param0
+ * @param param0.links
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 const HomeScreenLinkGrid = ({links}) => {
      const { width } = Dimensions.get('window');
      const isTablet = width >= 768; // Consider tablet if width >= 768px
@@ -21,7 +30,7 @@ const HomeScreenLinkGrid = ({links}) => {
      const itemWidth = `${100 / columnsPerRow}%`;
 
      return (
-          <Box flexDirection="row" flexWrap="wrap">
+          <Box className="flex-row flex-wrap">
                {links.map((item, index) => {
                     // Check if this is the last item and if it would be alone in its row
                     const isLastItem = index === links.length - 1;
@@ -33,11 +42,9 @@ const HomeScreenLinkGrid = ({links}) => {
 
                     return (
                          <Box
-                              key={item.id || index}
-                              width={width}
-                              alignItems="center"
-                              marginBottom={16}
-                              paddingHorizontal="$2"
+                             key={item.id || index}
+                             style={{ width, alignItems: 'center' }}
+                             className="mb-4 px-2"
                          >
                               <Link link={item} />
                          </Box>
@@ -47,15 +54,22 @@ const HomeScreenLinkGrid = ({links}) => {
      );
 }
 
+/**
+ * Link component that renders an individual link with an icon and title. It handles both external links (opening in a web browser) and internal deep links (navigating to specific screens within the app).
+ * @param param0
+ * @param param0.link
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 const Link = ({link}) => {
-     const { theme, textColor, colorMode } = useTheme();
+     const { neutrals } = useTheme();
      const library = useLibrary();
      const language = useActiveLanguage();
      const { updateCurrentIndex } = React.useContext(SearchContext);
 
      const navigation = useNavigation();
 
-     const iconColor = colorMode === 'light' ? '#4b5563' : '#d1d5db';
+     const iconColor = neutrals.iconMuted;
 
      const handleOpenLink = () => {
           // Open external link in web browser based on link.linkUrl
@@ -154,12 +168,13 @@ const Link = ({link}) => {
      const imgSource = link?.typeOfIcon === 'uploadIcon' && link?.uploadIcon ? library.baseUrl + '/files/original/' + link.uploadIcon : null;
 
      return (
-          <Pressable onPress={(link?.linkType !== 'deepLink') ? handleOpenLink : handleOpenScreen} alignItems="center" justifyContent="center" padding="$2" width="100%" borderRadius="$lg" backgroundColor={colorMode === 'light' ? "$coolGray200" : "$coolGray700"}>
-               <VStack alignItems="center" justifyContent="center" minHeight={100}>
+          <Pressable onPress={(link?.linkType !== 'deepLink') ? handleOpenLink : handleOpenScreen} style={{ alignItems: 'center', justifyContent: 'center', width: '100%', backgroundColor: neutrals.surface }} className="p-2 rounded-xl">
+               <VStack className="items-center justify-center min-h-25">
                     {link?.typeOfIcon === 'uploadIcon' && imgSource ? (
                          <Image
                               source={{ uri: imgSource }}
-                              style={{ width: 52, height: 52, marginBottom: 8 }}
+                              style={{ width: 52.0, height: 52.0 }}
+                              className="mb-2"
                               contentFit="contain"
                          />
                     ) : (
@@ -167,11 +182,11 @@ const Link = ({link}) => {
                               name={link?.materialIcon?.replace(/_/g, '-') || 'link'}
                               size={52}
                               color={iconColor}
-                              style={{ marginBottom: 8 }}
+                              className="mb-2"
                          />
                     )}
-                    <Box paddingHorizontal="$2">
-                         <Text bold color={textColor} fontSize="$sm" textAlign="center">{link?.title}</Text>
+                    <Box className="px-2">
+                         <Text bold size="sm" className="text-center">{link?.title}</Text>
                     </Box>
                </VStack>
           </Pressable>

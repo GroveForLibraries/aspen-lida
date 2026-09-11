@@ -1,12 +1,9 @@
-import { Box, Button, ButtonGroup, ButtonText, Center, FlatList, Heading, SafeAreaView, ScrollView, Text } from '@gluestack-ui/themed';
 import { useRoute } from '@react-navigation/native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
 import React from 'react';
-
-// custom components and helper files
 import { loadError } from '../../components/loadError';
-import { LoadingSpinner, loadingSpinner } from '../../components/loadingSpinner';
+import { loadingSpinner } from '../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../components/Notifications';
 import { SystemMessagesContext } from '../../context/initialContext';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
@@ -16,15 +13,29 @@ import { DisplayResult } from './DisplayResult';
 import { logDebugMessage, logErrorMessage } from '../../util/logging';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 import { useTheme } from '../../themes/theme';
+import { Box } from '@/components/ui/box';
+import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../components/themed/ThemedButton';
+import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
+import { Center } from '@/components/ui/center';
+import { FlatList } from '@/components/ui/flat-list';
+import { ThemedHeading as Heading } from '@/src/components/themed/ThemedHeading';
+import { ThemedScrollView as ScrollView } from '@/src/components/themed/ThemedScrollView';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
+import { ScreenContainer } from '@/src/components/ScreenContainer';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
+/**
+ * SearchResultsForBrowseCategory component that displays search results for a specific browse category. It fetches data from the API based on the provided category and page number, and renders a list of results with pagination controls. It also handles system messages and error states.
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const SearchResultsForBrowseCategory = () => {
      const queryClient = useQueryClient();
      const [page, setPage] = React.useState(1);
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { theme, textColor, colorMode } = useTheme();
+     const { neutrals } = useTheme();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
 
      const category = useRoute().params.id ?? '';
@@ -64,14 +75,14 @@ export const SearchResultsForBrowseCategory = () => {
      const Paging = () => {
           if (data.totalPages > 1) {
                return (
-                    <Box p="$2" bgColor={colorMode === 'light' ? "$coolGray100" : "$coolGray700"} borderTopWidth="$1" borderColor={colorMode === 'light' ? "$coolGray200" : "$warmGray600"} flexWrap="nowrap" alignItems="center">
+                    <Box className="px-4 py-2" style={{ borderTopWidth: 1, borderColor: neutrals.border, flexWrap: 'nowrap', alignItems: 'center' }}>
                          <ScrollView horizontal>
                               <ButtonGroup>
-                                   <Button onPress={() => setPage(page - 1)} isDisabled={page === 1} size="sm" bgColor={theme.tokens.colors.primary['500']}>
-                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'previous')}</ButtonText>
+                                   <Button onPress={() => setPage(page - 1)} isDisabled={page === 1} size="sm" colorScheme="primary">
+                                        <ButtonText>{getTermFromDictionary(language, 'previous')}</ButtonText>
                                    </Button>
                                    <Button
-                                        bgColor={theme.tokens.colors.primary['500']}
+                                        colorScheme="primary"
                                         onPress={() => {
                                              if (!isPreviousData && data.hasMore) {
                                                   setPage(page + 1);
@@ -79,11 +90,11 @@ export const SearchResultsForBrowseCategory = () => {
                                         }}
                                         isDisabled={isPreviousData || !data.hasMore}
                                         size="sm">
-                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'next')}</ButtonText>
+                                       <ButtonText>{getTermFromDictionary(language, 'next')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </ScrollView>
-                         <Text mt="$2" fontSize="$2xs" color={textColor}>
+                         <Text className="mt-2" size="2xs">
                               {paginationLabel}
                          </Text>
                     </Box>
@@ -107,26 +118,28 @@ export const SearchResultsForBrowseCategory = () => {
      const NoResults = () => {
           return (
                <>
-                    {_.size(systemMessagesForScreen) > 0 ? <Box p="$2">{showSystemMessage()}</Box> : null}
-                    <Center flex={1}>
-                         <Heading pt="$5" color={textColor}>{getTermFromDictionary(language, 'no_results')}</Heading>
+                    {_.size(systemMessagesForScreen) > 0 ? <Box className="p-2">{showSystemMessage()}</Box> : null}
+                    <Center className="flex-1">
+                        <Heading className="pt-5">{getTermFromDictionary(language, 'no_results')}</Heading>
                     </Center>
                </>
           );
      };
 
      return (
-          <SafeAreaView style={{ flex: 1 }}>
-               {_.size(systemMessagesForScreen) > 0 ? <Box p="$2">{showSystemMessage()}</Box> : null}
+          <ScreenContainer safeArea style={{ flex: 1 }}>
+               {_.size(systemMessagesForScreen) > 0 ? <Box className="p-2">{showSystemMessage()}</Box> : null}
                {status === 'loading' || isFetching ? (
+                    // TODO(translation): Replace hardcoded loading message with TranslationService-backed key.
                     loadingSpinner('Fetching results...')
                ) : status === 'error' ? (
+                    // TODO(translation): Replace hardcoded error title with TranslationService-backed key.
                     loadError('Error', '')
                ) : (
-                    <Box flex={1}>
+                    <Box className="flex-1">
                          <FlatList data={data.results} ListFooterComponent={Paging} ListEmptyComponent={NoResults} renderItem={({ item }) => <DisplayResult data={item} />} keyExtractor={(item, index) => index.toString()} />
                     </Box>
                )}
-          </SafeAreaView>
+          </ScreenContainer>
      );
 };

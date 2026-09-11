@@ -1,11 +1,7 @@
-import { Badge, BadgeText, Box, Center, HStack, Pressable, Text, VStack } from '@gluestack-ui/themed';
 import { useRoute } from '@react-navigation/native';
 import { Image } from 'expo-image';
 import _ from 'lodash';
 import React from 'react';
-
-// custom components and helper files
-
 import { getCleanTitle } from '../../helpers/item';
 import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
@@ -14,15 +10,28 @@ import AddToList from './AddToList';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 import { useTheme } from '../../themes/theme';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
+import { ThemedBadge as Badge, ThemedBadgeText as BadgeText } from '../../components/themed/ThemedBadge';
+import { Box } from '@/components/ui/box';
+import { Center } from '@/components/ui/center';
+import { HStack } from '@/components/ui/hstack';
+import { Pressable } from '@/components/ui/pressable';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
+import { VStack } from '@/components/ui/vstack';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
+/**
+ * DisplayGroupedWorkResult component that displays an individual grouped work result with its image, title, author, formats, and language. It handles user interaction to navigate to the grouped work details.
+ * @param props
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const DisplayGroupedWorkResult = (props) => {
      const item = props.data;
      let params = useRoute();
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { theme, textColor, colorMode } = useTheme();
+     const { neutrals } = useTheme();
 
      let formats = item?.itemList ?? [];
      const id = item.key ?? item.id;
@@ -61,8 +70,8 @@ export const DisplayGroupedWorkResult = (props) => {
      function getFormat(n) {
           if (_.isArray(n) || _.isObject(n)) {
                return (
-                    <Badge key={n.key} borderRadius="$sm" borderColor={theme['tokens']['colors']['secondary']['400']} variant="outline" bg="transparent">
-                         <BadgeText textTransform="none" color={theme['tokens']['colors']['secondary']['400']} fontSize="$xs">
+                    <Badge key={n.key} colorScheme="secondary" variant="outline">
+                         <BadgeText colorScheme="secondary" className="text-xs">
                               {n.name}
                          </BadgeText>
                     </Badge>
@@ -70,8 +79,8 @@ export const DisplayGroupedWorkResult = (props) => {
           }
 
           return (
-               <Badge key={n} borderRadius="$sm" borderColor={theme['tokens']['colors']['secondary']['400']} variant="outline" bg="transparent">
-                    <BadgeText textTransform="none" color={theme['tokens']['colors']['secondary']['400']} fontSize="$xs">
+               <Badge key={n} colorScheme="secondary" variant="outline">
+                    <BadgeText colorScheme="secondary" className="text-xs">
                          {n}
                     </BadgeText>
                </Badge>
@@ -83,51 +92,45 @@ export const DisplayGroupedWorkResult = (props) => {
      let url = library.baseUrl + '/bookcover.php?id=' + id + '&size=medium';
 
      return (
-          <Pressable borderBottomWidth="$1" borderColor={colorMode === 'light' ? "$warmGray400" : "$warmGray600"} pl="$4" pr="$5" py="$2" onPress={handlePressItem}>
+          <Pressable className="pl-4 pr-5 py-2" style={{ borderBottomWidth: 1, borderColor: neutrals.border }} onPress={handlePressItem}>
                <HStack space="md">
-                    <VStack sx={{ '@base': { width: 100 }, '@lg': { width: 180 } }}>
-                         <Box sx={{ '@base': { height: 150 }, '@lg': { height: 250 } }}>
+                    <VStack className="w-25">
+                         <Box className="h-[150px]">
                               <Image
                                    alt={item.title}
                                    source={url}
-                                   style={{
-                                        width: '100%',
-                                        height: '100%',
-                                        borderRadius: "$sm" }}
+                                   className="rounded-lg"
+                                   style={{ width: '100%', height: '100%' }}
                                    placeholder={blurhash}
                                    transition={1000}
                                    contentFit="cover"
                               />
                          </Box>
                          {item.language ? (
-                              <Center
-                                   mt="$1"
-                                   sx={{
-                                        bgColor: colorMode === 'light' ? "$warmGray200" : "$coolGray900" }}>
+                              <Center className="mt-1">
                                    <Badge
-                                        size="$sm"
-                                        sx={{
-                                             bgColor: colorMode === 'light' ? "$warmGray200" : "$coolGray900" }}>
-                                        <BadgeText textTransform="none" color={colorMode === 'light' ? "$coolGray600" : "$warmGray400"} fontSize="$xs" textAlign="center">
-                                             {item.language}
-                                        </BadgeText>
+                                        size="sm"
+                                        style={{ backgroundColor: neutrals.surfaceMuted }}>
+                                        <BadgeText style={{ color: neutrals.iconMuted, fontSize: 12, textAlign: 'center' }}>
+                                            {item.language}
+                                       </BadgeText>
                                    </Badge>
                               </Center>
                          ) : null}
                          <AddToList itemId={id} btnStyle="sm" />
                     </VStack>
-                    <VStack w="65%" pt="$1">
+                    <VStack className="w-[65%] pt-1">
                          {title ? (
-                              <Text color={textColor} bold fontSize="$sm" pb="$1">
+                              <Text bold className="pb-1" size="sm">
                                    {title}
                               </Text>
                          ) : null}
                          {author ? (
-                              <Text color={textColor} fontSize="$xs">
+                              <Text size="xs">
                                    {getTermFromDictionary(language, 'by')} {author}
                               </Text>
                          ) : null}
-                         <HStack mt="$4" direction="row" space="xs" flexWrap="wrap">
+                         <HStack space="xs" className="mt-4 flex-row flex-wrap">
                               {_.map(formats, getFormat)}
                          </HStack>
                     </VStack>

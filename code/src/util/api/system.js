@@ -171,6 +171,7 @@ export async function getAppSettings(url, timeout, slug) {
           logWarnMessage(response);
           return [];
      } catch (err) {
+          // TODO(translation-client): Exception path is local; move toast body text to TranslationService key.
           popToast(getTermFromDictionary('en', 'error_no_server_connection'), 'Could not retrieve App Settings, please try again later.', 'error');
           logErrorMessage(`Exception in getAppSettings ${err}`);
           return [];

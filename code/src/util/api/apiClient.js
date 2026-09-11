@@ -1,5 +1,5 @@
 import { GLOBALS } from '../globals';
-import { logDebugMessage, logErrorMessage, logInfoMessage, logWarnMessage, getErrorMessage } from '../logging';
+import { logDebugMessage, logErrorMessage, logInfoMessage, logWarnMessage } from '../logging';
 import * as Device from 'expo-device';
 import * as SecureStore from 'expo-secure-store';
 import base64 from 'react-native-base64';

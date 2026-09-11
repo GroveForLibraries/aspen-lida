@@ -37,7 +37,6 @@ export async function saveThemeState(state = {}) {
                 theme_id = ?,
                 location_id = ?,
                 color_mode = ?,
-                text_color = ?,
                 theme_colors_json = ?,
                 header_json = ?
            WHERE id = ?;`,
@@ -46,7 +45,6 @@ export async function saveThemeState(state = {}) {
                numberOrNull(state.themeId),
                numberOrNull(state.locationId),
                state.colorMode ?? null,
-               state.textColor ?? null,
                safeStringify(state.themeColors ?? null),
                safeStringify(state.header ?? null),
                ROW_ID,
@@ -70,7 +68,7 @@ export async function loadThemeState() {
           themeId: row.theme_id ?? null,
           locationId: row.location_id ?? null,
           colorMode,
-          textColor: colorMode === 'dark' ? '$coolGray200' : '$warmGray600',
+          textColor: colorMode === 'dark' ? '#e5e7eb' : '#57534e',
           themeColors: safeParse(row.theme_colors_json),
           header: safeParse(row.header_json),
           updatedAt: row.updated_at ?? 0,
@@ -93,19 +91,9 @@ export async function saveThemeColors(themeColors, themeId, locationId, header) 
 
 export async function saveThemeColorMode(colorMode) {
      const current = await loadThemeState();
-     const nextTextColor = colorMode === 'light' ? '$warmGray600' : '$coolGray200';
      await saveThemeState({
           ...current,
           colorMode,
-          textColor: nextTextColor,
-     });
-}
-
-export async function saveThemeTextColor(textColor) {
-     const current = await loadThemeState();
-     await saveThemeState({
-          ...current,
-          textColor,
      });
 }
 

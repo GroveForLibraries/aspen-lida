@@ -1,15 +1,19 @@
 import React from 'react';
-import { Platform } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Select, SelectTrigger, SelectInput, SelectIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, Icon, ChevronDownIcon, SelectScrollView, FormControl, FormControlLabel, FormControlLabelText, Text } from '@gluestack-ui/themed';
 import _ from 'lodash';
-import { getTermFromDictionary } from '../../../translations/TranslationService';
+import { getTermFromDictionary } from '@/src/translations/TranslationService';
+import { logDebugMessage, logErrorMessage } from '@/src/util/logging';
+import { ThemedFormControl as FormControl, ThemedFormControlLabelText as FormControlLabelText, ThemedFormControlLabel as FormControlLabel } from '../../themed/ThemedFormControls';
+import { ThemedSelect as Select, ThemedSelectBackdrop as SelectBackdrop, ThemedSelectContent as SelectContent, ThemedSelectDragIndicator as SelectDragIndicator, ThemedSelectDragIndicatorWrapper as SelectDragIndicatorWrapper, ThemedSelectInput as SelectInput, ThemedSelectItem as SelectItem, ThemedSelectPortal as SelectPortal, ThemedSelectScrollView as SelectScrollView, ThemedSelectTrigger as SelectTrigger } from '../../themed/ThemedSelect';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
 
-import { logDebugMessage, logInfoMessage, logWarnMessage, logErrorMessage } from '../../../util/logging.js';
-
+/**
+ * SelectNewHoldSublocation component for selecting a new hold sublocation for a library hold request.
+ * @param props
+ * @returns {React.JSX.Element|null}
+ * @constructor
+ */
 export const SelectNewHoldSublocation = (props) => {
-     const {sublocations, location, activeSublocation, setActiveSublocation, language, textColor, theme, colorMode} = props;
-     const insets = useSafeAreaInsets();
+     const {sublocations, location, activeSublocation, setActiveSublocation, language} = props;
 
      if (sublocations !== undefined) {
           try {
@@ -42,38 +46,34 @@ export const SelectNewHoldSublocation = (props) => {
 
                     //sublocations need to convert from an object to an array!
                     if (validSublocationSize > 1) {
-                         const bottomPadding = Platform.OS === 'android' ? (insets ? insets.bottom : 0) + 16 : '$4';
                          return (
                               <>
                                    <FormControl>
                                         <FormControlLabel>
-                                             <FormControlLabelText size="sm" color={textColor}>
+                                             <FormControlLabelText size="sm">
                                                   {getTermFromDictionary(language, 'select_pickup_area')}
                                              </FormControlLabelText>
                                         </FormControlLabel>
-                                        <Select name="sublocations" selectedValue={activeSublocation} minWidth={200} mt="$1" mb="$2" onValueChange={(itemValue) => setActiveSublocation(itemValue)}>
-                                             <SelectTrigger variant="outline" size="md">
+                                        <Select name="sublocations" selectedValue={activeSublocation} minWidth={200} onValueChange={(itemValue) => setActiveSublocation(itemValue)}>
+                                             <SelectTrigger>
                                                   {validSublocations.map((sublocation, index) => {
                                                        if (sublocation.id === activeSublocation) {
-                                                            return <SelectInput py={0} value={sublocation.displayName} color={textColor} />;
+                                                            return <SelectInput key={index} value={sublocation.displayName} />;
                                                        }
+                                                       return null;
                                                   })}
-                                                  <SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
                                              </SelectTrigger>
                                              <SelectPortal useRNModal={true}>
                                                   <SelectBackdrop />
-                                                  <SelectContent bgColor={colorMode === 'light' ? '$warmGray50' : '$coolGray700'} pb={bottomPadding}>
-                                                       <SelectDragIndicatorWrapper>
-                                                            <SelectDragIndicator />
-                                                       </SelectDragIndicatorWrapper>
-                                                       <SelectScrollView>
+                                                  <SelectContent>
+                                                      <SelectDragIndicatorWrapper>
+                                                           <SelectDragIndicator />
+                                                      </SelectDragIndicatorWrapper>
+                                                      <SelectScrollView>
                                                             {validSublocations.map((sublocation, index) => {
-                                                                 if (sublocation.id === activeSublocation) {
-                                                                      return <SelectItem label={sublocation.displayName} value={sublocation.id} key={index} bgColor={theme.tokens.colors.tertiary['300']} sx={{ _text: { color: theme.tokens.colors.tertiary['500-text'] } }} />;
-                                                                 }
-                                                                 return <SelectItem label={sublocation.displayName} value={sublocation.id} key={index} sx={{ _text: { color: textColor } }} />;
+                                                                 return <SelectItem label={sublocation.displayName} value={sublocation.id} key={index} selectedValue={activeSublocation} />;
                                                             })}
-                                                       </SelectScrollView>
+                                                      </SelectScrollView>
                                                   </SelectContent>
                                              </SelectPortal>
                                         </Select>

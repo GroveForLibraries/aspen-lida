@@ -1,29 +1,36 @@
 import * as Device from 'expo-device';
 import * as Linking from 'expo-linking';
 import _ from 'lodash';
-import { Alert, Box, Center, HStack, Pressable, Text, VStack, ScrollView, Button, ButtonText, Divider, AlertText, CloseIcon } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
 import { checkVersion } from 'react-native-check-version';
-
-import { useAccounts, useDebugMessages, useUserState } from '../../../hooks/useUserData';
-import { formatLinkedAccounts, formatNotificationHistory, formatPickupLocations } from '../../../util/api/userHelper';
-import { getTermFromDictionary } from '../../../translations/TranslationService';
-import { getTranslatedTermsForUserPreferredLanguage, setTranslationsLibrary, translationsLibrary } from '../../../translations/TranslationService';
-import { GLOBALS } from '../../../util/globals';
+import { ThemedAlert as Alert, ThemedAlertText as AlertText } from '@/src/components/themed/ThemedAlert';
+import { Box } from '@/components/ui/box';
+import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../../components/themed/ThemedButton';
+import { Center } from '@/components/ui/center';
+import { ThemedDivider as Divider } from '@/src/components/themed/ThemedDivider';
+import { HStack } from '@/components/ui/hstack';
+import { ThemedScrollView as ScrollView } from '@/src/components/themed/ThemedScrollView';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
+import { VStack } from '@/components/ui/vstack';
+import { useAccounts, useDebugMessages, useUserState } from '@/src/hooks/useUserData';
+import { formatLinkedAccounts, formatNotificationHistory, formatPickupLocations } from '@/src/util/api/userHelper';
+import { getTermFromDictionary } from '@/src/translations/TranslationService';
+import { getTranslatedTermsForUserPreferredLanguage, setTranslationsLibrary, translationsLibrary } from '@/src/translations/TranslationService';
+import { GLOBALS } from '@/src/util/globals';
 import { useNavigation } from '@react-navigation/native';
-import { logDebugMessage, logErrorMessage } from '../../../util/logging';
-import { useActiveLanguage, useAllLanguageData, useLanguageUserStateQuery, useUpdateAvailableLanguages, useUpdateDictionary } from '../../../hooks/useLanguageData';
-import { buildThemeForLibrary, useTheme } from '../../../themes/theme';
-import { useAllLibrarySystemData, useLibraryQuery } from '../../../hooks/useLibrarySystemData';
-import { useAllLibraryBranchData, useLibraryLocationQuery } from '../../../hooks/useLibraryBranchData';
-import { useThemeStateQuery } from '../../../hooks/useThemeData';
-import { useAllBrowseCategoryData } from '../../../hooks/useBrowseCategoryData';
-import { fetchNotificationHistory, getAppPreferencesForUser, getLinkedAccounts, getPickupLocations, refreshProfile } from '../../../util/api/user';
-import { getCatalogStatus, getLibraryInfo, getLibraryLanguages, getLibraryLinks, getLocationInfo, getSelfCheckSettings, normalizeLibraryLanguagesPayload } from '../../../util/api/system';
-import { getBrowseCategoriesAndHomeLinks } from '../../../util/api/search';
-import { saveAccounts, saveAllLibraryBranchData, saveAllBrowseCategoryData, saveAppPreferences, saveCards, saveCatalogStatus, saveLibrary, saveLocations, saveMenu, saveNotificationHistory, saveUserProfile, saveThemeState } from '../../../util/db';
-import { orderByFields, stripHTML } from '../../../helpers/helpers';
+import { logDebugMessage, logErrorMessage } from '@/src/util/logging';
+import { useActiveLanguage, useAllLanguageData, useLanguageUserStateQuery, useUpdateAvailableLanguages, useUpdateDictionary } from '@/src/hooks/useLanguageData';
+import { buildThemeForLibrary, useTheme } from '@/src/themes/theme';
+import { useAllLibrarySystemData, useLibraryQuery } from '@/src/hooks/useLibrarySystemData';
+import { useAllLibraryBranchData, useLibraryLocationQuery } from '@/src/hooks/useLibraryBranchData';
+import { useThemeStateQuery } from '@/src/hooks/useThemeData';
+import { useAllBrowseCategoryData } from '@/src/hooks/useBrowseCategoryData';
+import { fetchNotificationHistory, getAppPreferencesForUser, getLinkedAccounts, getPickupLocations, refreshProfile } from '@/src/util/api/user';
+import { getCatalogStatus, getLibraryInfo, getLibraryLanguages, getLibraryLinks, getLocationInfo, getSelfCheckSettings, normalizeLibraryLanguagesPayload } from '@/src/util/api/system';
+import { getBrowseCategoriesAndHomeLinks } from '@/src/util/api/search';
+import { saveAccounts, saveAllLibraryBranchData, saveAllBrowseCategoryData, saveAppPreferences, saveCards, saveCatalogStatus, saveLibrary, saveLocations, saveMenu, saveNotificationHistory, saveUserProfile, saveThemeState } from '@/src/util/db';
+import { stripHTML } from '@/src/helpers/helpers';
 
 function formatCachedDateTime(updatedAt) {
      if (!updatedAt) {
@@ -33,6 +40,11 @@ function formatCachedDateTime(updatedAt) {
      return new Date(updatedAt).toLocaleString();
 }
 
+/**
+ * SupportScreen component that displays support information for the app, including app version, library system information, device information, and data cache management. It allows users to refresh various caches and check for app updates. It also provides access to the API error log.
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const SupportScreen = () => {
      const navigation = useNavigation();
      const accountsQuery = useAccounts();
@@ -49,7 +61,8 @@ export const SupportScreen = () => {
      const activeLanguage = useActiveLanguage();
      const updateLanguages = useUpdateAvailableLanguages();
      const updateDictionary = useUpdateDictionary();
-     const { theme, textColor, colorMode } = useTheme();
+     const { neutralPairs, textColor, colorMode } = useTheme();
+     const mutedTextColor = colorMode === 'light' ? neutralPairs.icon.light : neutralPairs.iconMuted.dark;
      const [refreshingCache, setRefreshingCache] = React.useState({});
      const isAnyCacheRefreshing = Object.values(refreshingCache).some(Boolean);
      const [status, setStatus] = React.useState({
@@ -186,7 +199,7 @@ export const SupportScreen = () => {
                          await saveThemeState({
                               themeId: themeResponse.themeId,
                               colorMode: colorMode === 'dark' ? 'dark' : 'light',
-                              textColor: colorMode === 'dark' ? '$coolGray200' : '$warmGray600',
+                             textColor: colorMode === 'dark' ? '#e5e7eb' : '#57534e',
                               themeColors: themeResponse.themeColors,
                          });
                     }
@@ -272,82 +285,82 @@ export const SupportScreen = () => {
      const enableDebugPanel = false;
 
      return (
-          <Box safeArea={5} flex={1}>
+          <Box className="flex-1">
                <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
-                    <VStack space="sm" px="$4" py="$2">
-                         <VStack justifyContent="space-between" py="$1">
-                              <Text fontSize="$xs" bold color={textColor}>
+                    <VStack space="sm" className="px-4 py-2">
+                         <VStack className="justify-between py-1">
+                              <Text size="xs" bold>
                                    {getTermFromDictionary(language, 'app_name')}
                               </Text>
-                              <Text color={colorMode === 'light' ? '$coolGray600' : '$warmGray400'}>
+                              <Text style={{ color: mutedTextColor }}>
                                    {GLOBALS.appVersion} {GLOBALS.appStage} b[{GLOBALS.appBuild}] p[{GLOBALS.appPatch}] c[{GLOBALS.releaseChannel}]
                               </Text>
                          </VStack>
-                         <VStack justifyContent="space-between" py="$1">
-                              <Text fontSize="$xs" bold color={textColor}>
+                         <VStack className="justify-between py-1">
+                              <Text size="xs" bold>
                                    {getTermFromDictionary(language, 'aspen_discovery')}
                               </Text>
-                              <Text color={colorMode === 'light' ? '$coolGray600' : '$warmGray400'}>{library.discoveryVersion}</Text>
+                              <Text style={{ color: mutedTextColor }}>{library.discoveryVersion}</Text>
                          </VStack>
-                         <VStack justifyContent="space-between" py="$1">
-                              <Text fontSize="$xs" bold color={textColor}>
+                         <VStack className="justify-between py-1">
+                              <Text size="xs" bold>
                                    {getTermFromDictionary(language, 'os_information')}
                               </Text>
-                              <Text color={colorMode === 'light' ? '$coolGray600' : '$warmGray400'}>
+                              <Text style={{ color: mutedTextColor }}>
                                    {Device.osName} {Device.osVersion}
                               </Text>
                          </VStack>
-                         <VStack justifyContent="space-between" py="$1">
-                              <Text fontSize="$xs" bold color={textColor}>
+                         <VStack className="justify-between py-1">
+                              <Text size="xs" bold>
                                    {getTermFromDictionary(language, 'device_information')}
                               </Text>
-                              <Text color={colorMode === 'light' ? '$coolGray600' : '$warmGray400'}>
+                              <Text style={{ color: mutedTextColor }}>
                                    {Device.brand} {Device.modelName}, {Device.deviceYearClass}
                               </Text>
                          </VStack>
-                         <VStack justifyContent="space-between" py="$1">
-                              <Text fontSize="$xs" bold color={textColor}>
+                         <VStack className="justify-between py-1">
+                              <Text size="xs" bold>
                                    {getTermFromDictionary(language, 'current_location')}
                               </Text>
-                              <Text color={colorMode === 'light' ? '$coolGray600' : '$warmGray400'}>{location?.displayName ?? '-'}</Text>
+                              <Text style={{ color: mutedTextColor }}>{location?.displayName ?? '-'}</Text>
                          </VStack>
-                         <VStack justifyContent="space-between" py="$1">
-                              <Text fontSize="$xs" bold color={textColor}>
+                         <VStack className="justify-between py-1">
+                              <Text size="xs" bold>
                                    {getTermFromDictionary(language, 'current_library')}
                               </Text>
-                              <Text color={colorMode === 'light' ? '$coolGray600' : '$warmGray400'}>{library.displayName}</Text>
+                              <Text style={{ color: mutedTextColor }}>{library.displayName}</Text>
                          </VStack>
-                         <VStack justifyContent="space-between" py="$1">
-                              <Text fontSize="$xs" bold color={textColor}>
+                         <VStack className="justify-between py-1">
+                              <Text size="xs" bold>
                                    {getTermFromDictionary(language, 'connected_to')}
                               </Text>
-                              <Text color={colorMode === 'light' ? '$coolGray600' : '$warmGray400'}>{library.baseUrl}</Text>
+                              <Text style={{ color: mutedTextColor }}>{library.baseUrl}</Text>
                          </VStack>
-                         <VStack justifyContent="space-between" py="$1">
-                              <Text fontSize="$xs" bold color={textColor}>
+                         <VStack className="justify-between py-1">
+                              <Text size="xs" bold>
                                    {getTermFromDictionary(language, 'num_linked_accounts')}
                               </Text>
-                              <Text color={colorMode === 'light' ? '$coolGray600' : '$warmGray400'}>{numLinkedAccounts}</Text>
+                              <Text style={{ color: mutedTextColor }}>{numLinkedAccounts}</Text>
                          </VStack>
-                         <Divider my="$2" />
-                         <VStack justifyContent="space-between" py="$1">
-                              <Text bold color={textColor}>
+                         <Divider className="my-2" />
+                         <VStack className="justify-between py-1">
+                              <Text bold>
                                    Data Caches
                               </Text>
-                              <VStack space="$2" mt="$2">
+                              <VStack space="sm" className="mt-2">
                                    {cacheItems.map((cacheItem) => (
-                                        <Box key={cacheItem.key} py="$2">
-                                             <HStack justifyContent="space-between" alignItems="center" space="$2">
-                                                  <VStack flex={1}>
-                                                       <Text fontSize="$xs" bold color={textColor}>
+                                        <Box key={cacheItem.key} className="py-2">
+                                             <HStack space="sm" className="justify-between items-center">
+                                                  <VStack className="flex-1">
+                                                       <Text size="xs" bold>
                                                             {cacheItem.label}
                                                        </Text>
-                                                       <Text fontSize="$2xs" color={colorMode === 'light' ? '$coolGray600' : '$warmGray400'}>
+                                                       <Text size="2xs" style={{ color: mutedTextColor }}>
                                                             Cached: {formatCachedDateTime(cacheItem.updatedAt)}
                                                        </Text>
                                                   </VStack>
-                                                  <Button size="sm" variant="outline" borderColor={colorMode === 'light' ? '$coolGray600' : '$warmGray400'} isDisabled={Boolean(refreshingCache[cacheItem.key]) || isAnyCacheRefreshing} onPress={() => refreshCache(cacheItem.key, cacheItem.refetch)}>
-                                                       <ButtonText color={colorMode === 'light' ? '$coolGray600' : '$warmGray400'}>{refreshingCache[cacheItem.key] ? 'Updating...' : 'Update'}</ButtonText>
+                                                  <Button size="sm" variant="outline" colorScheme="tertiary" isDisabled={Boolean(refreshingCache[cacheItem.key]) || isAnyCacheRefreshing} onPress={() => refreshCache(cacheItem.key, cacheItem.refetch)}>
+                                                       <ButtonText>{refreshingCache[cacheItem.key] ? 'Updating...' : 'Update'}</ButtonText>
                                                   </Button>
                                              </HStack>
                                         </Box>
@@ -356,14 +369,14 @@ export const SupportScreen = () => {
                          </VStack>
                          {enableDebugPanel ? (
                               <>
-                                   <Divider my="$2" />
-                                   <VStack justifyContent="space-between" py="$1">
-                                        <Text fontSize="$xs" bold color={textColor}>
+                                   <Divider className="my-2" />
+                                   <VStack className="justify-between py-1">
+                                        <Text size="xs" bold>
                                              Support Log
                                         </Text>
                                         <ScrollView>
                                              <Box>
-                                                  <Text color={textColor} mt="$5" fontSize="$xs" mb="$5">
+                                                  <Text size="xs" className="mt-5 mb-5">
                                                        {userDebugMessage.join('\n')}
                                                   </Text>
                                              </Box>
@@ -372,22 +385,22 @@ export const SupportScreen = () => {
                               </>
                          ) : null}
                     </VStack>
-                    <Divider my="$2" />
-                    <Center pt={5} px="$4">
-                         <Button bg={theme.tokens.colors.secondary['500']} onPress={() => navigation.navigate('MyDevice_APIErrorLog')}>
-                              <ButtonText color={theme.tokens.colors.secondary['500-text']}>{getTermFromDictionary(language, 'open_api_error_log')}</ButtonText>
+                    <Divider className="my-2" />
+                    <Center className="pt-5 px-4">
+                         <Button colorScheme="secondary" onPress={() => navigation.navigate('MyDevice_APIErrorLog')}>
+                             <ButtonText>{getTermFromDictionary(language, 'open_api_error_log')}</ButtonText>
                          </Button>
                     </Center>
                     {status.needsUpdate ? (
-                         <Center mt="$5" px="$4">
-                              <Alert action="warning" variant="solid" mb="$2" borderRadius="$sm">
-                                   <VStack space="sm" width="$full" p="$3">
-                                        <AlertText mr="$2" fontWeight="$bold">
+                         <Center className="mt-5 px-4">
+                              <Alert action="warning" variant="solid" className="mb-2 rounded">
+                                   <VStack space="sm" className="w-full p-3">
+                                        <AlertText action="warning" variant="solid" bold className="mr-2">
                                              {status.latest} Is Available
                                         </AlertText>
-                                        <AlertText mr="$2">Please update your app for the latest features and fixes.</AlertText>
+                                        <AlertText action="warning" variant="solid" className="mr-2">Please update your app for the latest features and fixes.</AlertText>
                                         {status.canOpenUrl ? (
-                                             <Button action="secondary" onPress={() => openAppStore()}>
+                                             <Button colorScheme="secondary" onPress={() => openAppStore()}>
                                                   <ButtonText>Update now</ButtonText>
                                              </Button>
                                         ) : null}
@@ -400,6 +413,10 @@ export const SupportScreen = () => {
      );
 };
 
+/**
+ * Checks the app store for the latest version of the app and determines if an update is needed.
+ * @returns {Promise<{needsUpdate: boolean, url: null, latest: string}|{needsUpdate: boolean, url: any, latest: string}>}
+ */
 async function checkStoreVersion() {
      try {
           const version = await checkVersion({
@@ -424,4 +441,3 @@ async function checkStoreVersion() {
           url: null,
           latest: GLOBALS.appVersion };
 }
-

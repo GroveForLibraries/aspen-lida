@@ -1,14 +1,20 @@
 import React from 'react';
-import { Platform } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { FormControl, FormControlLabel, FormControlLabelText, FormControlHelper, Select, SelectTrigger, SelectInput, SelectIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, Icon, ChevronDownIcon, Input, InputField, Checkbox, CheckboxLabel, Text, CheckIcon, CheckboxIndicator, CheckboxIcon, FormControlHelperText, SelectScrollView } from '@gluestack-ui/themed';
 import _ from 'lodash';
-import { getTermFromDictionary } from '../../../translations/TranslationService';
-import { useTranslationWithValues } from '../../../hooks/useTranslationWithValues';
+import { getTermFromDictionary } from '@/src/translations/TranslationService';
+import { useTranslationWithValues } from '@/src/hooks/useTranslationWithValues';
+import { ThemedFormControl as FormControl, ThemedInput as Input, ThemedInputField as InputField, ThemedFormControlLabelText as FormControlLabelText, ThemedFormControlHelper as FormControlHelper, ThemedFormControlHelperText as FormControlHelperText, ThemedFormControlLabel as FormControlLabel } from '../../themed/ThemedFormControls';
+import { ThemedCheckbox as Checkbox, ThemedCheckboxIcon as CheckboxIcon, ThemedCheckboxIndicator as CheckboxIndicator, ThemedCheckboxLabel as CheckboxLabel } from '../../themed/ThemedCheckbox';
+import { ThemedSelect as Select, ThemedSelectBackdrop as SelectBackdrop, ThemedSelectContent as SelectContent, ThemedSelectDragIndicator as SelectDragIndicator, ThemedSelectDragIndicatorWrapper as SelectDragIndicatorWrapper, ThemedSelectInput as SelectInput, ThemedSelectItem as SelectItem, ThemedSelectPortal as SelectPortal, ThemedSelectScrollView as SelectScrollView, ThemedSelectTrigger as SelectTrigger } from '../../themed/ThemedSelect';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
 
+/**
+ * HoldNotificationPreferences component for displaying notification preferences for holds.
+ * @param props
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const HoldNotificationPreferences = (props) => {
-     const { textColor, theme, user, language, emailNotification, setEmailNotification, phoneNotification, setPhoneNotification, smsNotification, setSMSNotification, smsCarrier, setSMSCarrier, smsNumber, setSMSNumber, phoneNumber, setPhoneNumber, colorMode } = props;
-     const insets = useSafeAreaInsets();
+     const { textColor, brand, user, language, emailNotification, setEmailNotification, phoneNotification, setPhoneNotification, smsNotification, setSMSNotification, smsCarrier, setSMSCarrier, smsNumber, setSMSNumber, phoneNumber, setPhoneNumber } = props;
 
      const holdNotificationInfo = user.holdNotificationInfo;
      const smsCarriers = holdNotificationInfo.smsCarriers;
@@ -21,125 +27,123 @@ export const HoldNotificationPreferences = (props) => {
 
      return (
           <>
-               <Text color={textColor} mb="$2" size="sm">
+               <Text size="sm" className="mb-2">
                     {getTermFromDictionary(language, 'hold_notify_for_pickup')}
                </Text>
                {user.email ? (
-                    <FormControl mb="$2">
+                    <FormControl className="mb-2">
                          <Checkbox
-                              size="sm"
                               name="emailNotification"
                               defaultIsChecked={emailNotification}
                               onChange={(value) => {
                                    setEmailNotification(value);
                               }}>
-                              <CheckboxIndicator mr="$2">
-                                   <CheckboxIcon as={CheckIcon} />
+                              <CheckboxIndicator className="mr-2">
+                                   <CheckboxIcon />
                               </CheckboxIndicator>
-                              <CheckboxLabel color={textColor}>{emailNotificationLabel}</CheckboxLabel>
+                              <CheckboxLabel>{emailNotificationLabel}</CheckboxLabel>
                          </Checkbox>
                     </FormControl>
                ) : null}
-               <FormControl mb="$2">
+               <FormControl className="mb-2">
                     <Checkbox
-                         size="sm"
                          name="phoneNotification"
                          defaultIsChecked={phoneNotification}
                          onChange={(value) => {
                               setPhoneNotification(value);
                          }}>
-                         <CheckboxIndicator mr="$2">
-                              <CheckboxIcon as={CheckIcon} />
+                         <CheckboxIndicator className="mr-2">
+                              <CheckboxIcon />
                          </CheckboxIndicator>
-                         <CheckboxLabel color={textColor}>{getTermFromDictionary(language, 'hold_phone_notification')}</CheckboxLabel>
+                         <CheckboxLabel>{getTermFromDictionary(language, 'hold_phone_notification')}</CheckboxLabel>
                     </Checkbox>
                </FormControl>
                {phoneNotification ? (
                     <>
-                         <FormControl mb="$2">
+                         <FormControl className="mb-2">
                               <FormControlLabel>
-                                   <FormControlLabelText color={textColor} size="sm">
+                                   <FormControlLabelText size="sm">
                                         {getTermFromDictionary(language, 'hold_phone_number')}
                                    </FormControlLabelText>
                               </FormControlLabel>
-                              <Input borderColor={colorMode === 'light' ? '$coolGray500' : '$warmGray300'}>
-                                   <InputField color={textColor} name="phoneNumber" defaultValue={phoneNumber} accessibilityLabel={getTermFromDictionary(language, 'hold_phone_number')} onChangeText={(value) => setPhoneNumber(value)} />
+                              <Input>
+                                   <InputField name="phoneNumber" defaultValue={phoneNumber} accessibilityLabel={getTermFromDictionary(language, 'hold_phone_number')} onChangeText={(value) => setPhoneNumber(value)} />
                               </Input>
                          </FormControl>
                     </>
                ) : null}
                {!_.isEmpty(smsCarriers) ? (
                     <>
-                         <FormControl mb="$1">
+                         <FormControl className="mb-1">
                               <Checkbox
-                                   size="sm"
                                    name="smsNotification"
                                    defaultIsChecked={smsNotification}
                                    onChange={(value) => {
                                         setSMSNotification(value);
                                    }}>
-                                   <CheckboxIndicator mr="$2">
-                                        <CheckboxIcon as={CheckIcon} />
+                                   <CheckboxIndicator className="mr-2">
+                                        <CheckboxIcon />
                                    </CheckboxIndicator>
-                                   <CheckboxLabel color={textColor}>{getTermFromDictionary(language, 'hold_sms_notification')}</CheckboxLabel>
+                                   <CheckboxLabel>{getTermFromDictionary(language, 'hold_sms_notification')}</CheckboxLabel>
                               </Checkbox>
                          </FormControl>
                          {smsNotification ? (
                               <>
-                                   <FormControl mb="$1">
+                                   <FormControl className="mb-1">
                                         <FormControlLabel>
-                                             <FormControlLabelText size="sm" color={textColor}>
+                                             <FormControlLabelText size="sm">
                                                   {getTermFromDictionary(language, 'hold_sms_carrier')}
                                              </FormControlLabelText>
                                         </FormControlLabel>
 
                                         <Select name="smsCarrier" selectedValue={smsCarrier} accessibilityLabel={getTermFromDictionary(language, 'hold_sms_select_carrier')} onValueChange={(itemValue) => setSMSCarrier(itemValue)}>
-                                             <SelectTrigger variant="outline" size="md">
+                                             <SelectTrigger>
                                                   {smsCarrier && smsCarrier !== -1 ? (
                                                        _.map(smsCarriers, function (carrier, selectedIndex, array) {
                                                             if (selectedIndex === smsCarrier) {
-                                                                 return <SelectInput py={0} placeholder="Select a Carrier" value={carrier} color={textColor} />;
+                                                                 // TODO(translation): Replace hardcoded placeholder with TranslationService-backed key.
+                                                                 return <SelectInput placeholder="Select a Carrier" value={carrier} />;
                                                             }
                                                        })
                                                   ) : (
-                                                       <SelectInput py={0} placeholder="Select a Carrier" color={textColor} />
+                                                       // TODO(translation): Replace hardcoded placeholder with TranslationService-backed key.
+                                                       <SelectInput placeholder="Select a Carrier" />
                                                   )}
-                                                  <SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
                                              </SelectTrigger>
                                              <SelectPortal useRNModal={true}>
                                                   <SelectBackdrop />
-                                                  <SelectContent bgColor={colorMode === 'light' ? '$warmGray50' : '$coolGray700'} pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}>
+                                                  <SelectContent>
                                                        <SelectDragIndicatorWrapper>
                                                             <SelectDragIndicator />
                                                        </SelectDragIndicatorWrapper>
                                                        <SelectScrollView>
                                                             {_.map(smsCarriers, function (carrier, index, array) {
                                                                  if (index === smsCarrier) {
-                                                                      return <SelectItem key={index} label={carrier} value={index} bgColor={theme.tokens.colors.tertiary['300']} sx={{ _text: { color: theme.tokens.colors.tertiary['500-text'] } }} />;
+                                                                      return <SelectItem key={index} label={carrier} value={index} style={{ backgroundColor: brand.tertiary[300] }} textStyle={{ color: brand.tertiary['500-text'] }} />;
                                                                  }
-                                                                 return <SelectItem key={index} label={carrier} value={index} bgColor={smsCarrier === index ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: smsCarrier === index ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />;
+                                                                 return <SelectItem key={index} label={carrier} value={index} style={{ backgroundColor: smsCarrier === index ? brand.tertiary[300] : 'transparent' }} textStyle={{ color: smsCarrier === index ? brand.tertiary['500-text'] : textColor }} />;
                                                             })}
                                                        </SelectScrollView>
                                                   </SelectContent>
                                              </SelectPortal>
                                         </Select>
-                                        <FormControlHelper mb="$2">
-                                             <FormControlHelperText size="xs" color={textColor}>
+                                        <FormControlHelper className="mb-2">
+                                             <FormControlHelperText size="xs" style={{ color: textColor }}>
                                                   {getTermFromDictionary(language, 'hold_sms_charges')}
                                              </FormControlHelperText>
                                         </FormControlHelper>
                                    </FormControl>
                                    <FormControl>
                                         <FormControlLabel>
-                                             <FormControlLabelText size="sm" color={textColor}>
+                                             <FormControlLabelText size="sm">
                                                   {getTermFromDictionary(language, 'hold_sms_number')}
                                              </FormControlLabelText>
                                         </FormControlLabel>
-                                        <Input borderColor={colorMode === 'light' ? '$coolGray500' : '$warmGray300'}>
-                                             <InputField color={textColor} name="smsNumber" defaultValue={smsNumber} accessibilityLabel={getTermFromDictionary(language, 'hold_sms_number')} onChangeText={(value) => setSMSNumber(value)} />
+                                        <Input>
+                                             <InputField name="smsNumber" defaultValue={smsNumber} accessibilityLabel={getTermFromDictionary(language, 'hold_sms_number')} onChangeText={(value) => setSMSNumber(value)} />
                                         </Input>
-                                        <FormControlHelper mb="$2">
-                                             <FormControlHelperText size="xs" color={textColor}>
+                                        <FormControlHelper className="mb-2">
+                                             <FormControlHelperText size="xs" style={{ color: textColor }}>
                                                   {getTermFromDictionary(language, 'hold_sms_format')}
                                              </FormControlHelperText>
                                         </FormControlHelper>

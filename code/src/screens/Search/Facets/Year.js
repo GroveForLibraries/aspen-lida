@@ -1,22 +1,35 @@
 import _ from 'lodash';
 import moment from 'moment';
-import { Box, Button, ButtonGroup, ButtonText, FormControl, HStack, Input, InputField, Text, VStack } from '@gluestack-ui/themed';
 import React from 'react';
-import { ScrollView } from 'react-native';
+import { ThemedScrollView as ScrollView } from '@/src/components/themed/ThemedScrollView';
+import { LoadingSpinner } from '@/src/components/loadingSpinner';
+import { getTermFromDictionary } from '@/src/translations/TranslationService';
+import { addAppliedFilter } from '@/src/util/api/searchHelper';
+import { useTheme } from '@/src/themes/theme';
+import { Box } from '@/components/ui/box';
+import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../../components/themed/ThemedButton';
+import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
+import { HStack } from '@/components/ui/hstack';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
+import { VStack } from '@/components/ui/vstack';
+import { ThemedFormControl as FormControl, ThemedInput as Input, ThemedInputField as InputField } from '@/src/components/themed/ThemedFormControls';
 
-// custom components and helper files
-import { LoadingSpinner } from '../../../components/loadingSpinner';
-import { getTermFromDictionary } from '../../../translations/TranslationService';
-import { addAppliedFilter } from '../../../util/api/searchHelper';
-import { useTheme } from '../../../themes/theme';
-
-
+/**
+ * Facet_Slider component that renders a slider input for filtering search results based on a numeric range facet. It manages the start and end values of the range, updates the applied filters, and triggers an update to the parent component when the values change.
+ * @param param0
+ * @param param0.data
+ * @param param0.category
+ * @param param0.updater
+ * @param param0.language
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const Facet_Year = ({ data, category, updater, language }) => {
      const [isLoading, setIsLoading] = React.useState(true);
      const [yearFrom, setYearFrom] = React.useState('');
      const [yearTo, setYearTo] = React.useState('');
      const [value, setValue] = React.useState('');
-     const {theme, textColor, colorMode } = useTheme();
+     const {  } = useTheme();
 
      React.useEffect(() => {
           setIsLoading(false);
@@ -65,16 +78,14 @@ export const Facet_Year = ({ data, category, updater, language }) => {
 
      return (
           <ScrollView>
-               <Box p="$5">
-                    <FormControl mb="$2">
-                         <HStack space="sm" justifyContent="center">
+               <Box className="p-5">
+                    <FormControl className="mb-2">
+                         <HStack space="sm" className="justify-center">
                               <Input
                                    size="lg"
-                                   flex={1}
-                                   borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}
+                                   className="flex-1"
                               >
                                    <InputField
-                                        color={textColor}
                                         placeholder={getTermFromDictionary(language, 'year_from')}
                                         accessibilityLabel={getTermFromDictionary(language, 'year_from')}
                                         value={yearFrom}
@@ -85,11 +96,9 @@ export const Facet_Year = ({ data, category, updater, language }) => {
                               </Input>
                               <Input
                                    size="lg"
-                                   flex={1}
-                                   borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}
+                                   className="flex-1"
                               >
                                    <InputField
-                                        color={textColor}
                                         placeholder={getTermFromDictionary(language, 'year_to')}
                                         accessibilityLabel={getTermFromDictionary(language, 'year_to')}
                                         onChangeText={(value) => {
@@ -101,18 +110,18 @@ export const Facet_Year = ({ data, category, updater, language }) => {
                     </FormControl>
                     {category === 'publishDate' || category === 'publishDateSort' ? (
                          <VStack space="sm">
-                              <Text color={textColor}>
+                              <Text>
                                    {getTermFromDictionary(language, 'published_in_the_last')}
                               </Text>
                               <ButtonGroup>
-                                   <Button variant="outline" onPress={() => _updateYearTo(1)} borderColor={theme.tokens.colors.primary['500']}>
-                                        <ButtonText color={theme.tokens.colors.primary['500']}>{getTermFromDictionary(language, 'year')}</ButtonText>
+                                   <Button colorScheme="primary" variant="outline" onPress={() => _updateYearTo(1)}>
+                                       <ButtonText>{getTermFromDictionary(language, 'year')}</ButtonText>
                                    </Button>
-                                   <Button variant="outline" onPress={() => _updateYearTo(5)} borderColor={theme.tokens.colors.primary['500']}>
-                                        <ButtonText color={theme.tokens.colors.primary['500']}>5 {getTermFromDictionary(language, 'years')}</ButtonText>
+                                   <Button colorScheme="primary" variant="outline" onPress={() => _updateYearTo(5)}>
+                                       <ButtonText>5 {getTermFromDictionary(language, 'years')}</ButtonText>
                                    </Button>
-                                   <Button variant="outline" onPress={() => _updateYearTo(10)} borderColor={theme.tokens.colors.primary['500']}>
-                                        <ButtonText color={theme.tokens.colors.primary['500']}>10 {getTermFromDictionary(language, 'years')}</ButtonText>
+                                   <Button colorScheme="primary" variant="outline" onPress={() => _updateYearTo(10)}>
+                                       <ButtonText>10 {getTermFromDictionary(language, 'years')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </VStack>

@@ -1,13 +1,19 @@
-import { Icon, ChevronDownIcon, FormControl, SelectScrollView, FormControlLabel, FormControlLabelText, Select, SelectTrigger, SelectInput, SelectIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, CheckIcon, Radio, RadioGroup, RadioIndicator, RadioIcon, RadioLabel, CircleIcon } from '@gluestack-ui/themed';
 import React from 'react';
-import { Platform } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import _ from 'lodash';
-import { getTermFromDictionary } from '../../../translations/TranslationService';
+import { getTermFromDictionary } from '@/src/translations/TranslationService';
+import { ThemedFormControl as FormControl, ThemedFormControlLabelText as FormControlLabelText, ThemedFormControlLabel as FormControlLabel } from '../../themed/ThemedFormControls';
+import { ThemedMaterialIcons as MaterialIcons } from '../../themed/ThemedMaterialIcons';
+import { ThemedRadio as Radio, ThemedRadioGroup as RadioGroup, ThemedRadioIcon as RadioIcon, ThemedRadioIndicator as RadioIndicator, ThemedRadioLabel as RadioLabel } from '../../themed/ThemedRadio';
+import { ThemedSelect as Select, ThemedSelectBackdrop as SelectBackdrop, ThemedSelectContent as SelectContent, ThemedSelectDragIndicator as SelectDragIndicator, ThemedSelectDragIndicatorWrapper as SelectDragIndicatorWrapper, ThemedSelectInput as SelectInput, ThemedSelectItem as SelectItem, ThemedSelectPortal as SelectPortal, ThemedSelectScrollView as SelectScrollView, ThemedSelectTrigger as SelectTrigger } from '../../themed/ThemedSelect';
 
+/**
+ * SelectItemHold component for selecting a hold type and item for a library hold request.
+ * @param props
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const SelectItemHold = (props) => {
-     const { id, data, item, setItem, setHoldType, showModal, holdTypeForFormat, language, url, textColor, theme, colorMode } = props;
-     const insets = useSafeAreaInsets();
+     const { id, data, item, setItem, setHoldType, showModal, holdTypeForFormat, language, url, textColor, brand } = props;
 
      let holdType = props.holdType;
      let copies = data.copies;
@@ -35,17 +41,17 @@ export const SelectItemHold = (props) => {
                                    setItem('');
                               }}
                               accessibilityLabel="">
-                              <Radio value="default" my="$1" size="sm">
-                                   <RadioIndicator mr="$1">
-                                        <RadioIcon as={CircleIcon} strokeWidth={1} />
+                              <Radio value="default" size="sm" className="my-1">
+                                   <RadioIndicator className="mr-1">
+                                        <RadioIcon as={MaterialIcons} name="circle" />
                                    </RadioIndicator>
-                                   <RadioLabel color={textColor}>{getTermFromDictionary(language, 'first_available')}</RadioLabel>
+                                   <RadioLabel>{getTermFromDictionary(language, 'first_available')}</RadioLabel>
                               </Radio>
-                              <Radio value="item" my="$1" size="sm">
-                                   <RadioIndicator mr="$1">
-                                        <RadioIcon as={CircleIcon} strokeWidth={1} />
+                              <Radio value="item" size="sm" className="my-1">
+                                   <RadioIndicator className="mr-1">
+                                        <RadioIcon as={MaterialIcons} name="circle" />
                                    </RadioIndicator>
-                                   <RadioLabel color={textColor}>{getTermFromDictionary(language, 'specific_item')}</RadioLabel>
+                                   <RadioLabel>{getTermFromDictionary(language, 'specific_item')}</RadioLabel>
                               </Radio>
                          </RadioGroup>
                     </FormControl>
@@ -53,24 +59,21 @@ export const SelectItemHold = (props) => {
                {holdTypeForFormat === 'item' || holdType === 'item' ? (
                     <FormControl>
                          <FormControlLabel>
-                              <FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'select_item')}</FormControlLabelText>
+                              <FormControlLabelText>{getTermFromDictionary(language, 'select_item')}</FormControlLabelText>
                          </FormControlLabel>
-                         <Select name="itemForHold" selectedValue={defaultItem} minWidth={200} accessibilityLabel={getTermFromDictionary(language, 'select_item')} mt="$1" mb="$2" onValueChange={(itemValue) => setItem(itemValue)}>
-                              <SelectTrigger variant="outline" size="md">
+                         <Select name="itemForHold" selectedValue={defaultItem} minWidth={200} accessibilityLabel={getTermFromDictionary(language, 'select_item')} className="mt-1 mb-2" onValueChange={(itemValue) => setItem(itemValue)}>
+                              <SelectTrigger>
                                    {_.map(Object.keys(copies), function (item, index, array) {
                                         let copy = copies[item];
                                         if (copy.id === defaultItem) {
                                              setItem(defaultItem);
-                                             return <SelectInput py={0} value={copy.location} color={textColor} />;
+                                             return <SelectInput value={copy.location} />;
                                         }
                                    })}
-                                   <SelectIcon mr="$3">
-                                        <Icon as={ChevronDownIcon} color={textColor} />
-                                   </SelectIcon>
                               </SelectTrigger>
                               <SelectPortal useRNModal={true}>
                                    <SelectBackdrop />
-                                   <SelectContent bgColor={colorMode === 'light' ? '$warmGray50' : '$coolGray700'} pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}>
+                                   <SelectContent>
                                         <SelectDragIndicatorWrapper>
                                              <SelectDragIndicator />
                                         </SelectDragIndicatorWrapper>
@@ -78,9 +81,9 @@ export const SelectItemHold = (props) => {
                                              {_.map(Object.keys(copies), function (item, index, array) {
                                                   let copy = copies[item];
                                                   if (copy.id === defaultItem) {
-                                                       return <SelectItem label={copy.location} value={copy.id} key={copy.id} bgColor={theme.tokens.colors.tertiary['300']} sx={{ _text: { color: theme.tokens.colors.tertiary['500-text'] } }} />;
+                                                       return <SelectItem label={copy.location} value={copy.id} key={copy.id} style={{ backgroundColor: brand.tertiary[300] }} textStyle={{ color: brand.tertiary['500-text'] }} />;
                                                   }
-                                                  return <SelectItem label={copy.location} value={copy.id} key={copy.id} sx={{ _text: { color: textColor } }} />;
+                                                  return <SelectItem label={copy.location} value={copy.id} key={copy.id} textStyle={{ color: textColor }} />;
                                              })}
                                         </SelectScrollView>
                                    </SelectContent>

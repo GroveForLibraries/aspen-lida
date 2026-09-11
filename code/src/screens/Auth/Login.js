@@ -1,20 +1,16 @@
-import { Ionicons } from '@expo/vector-icons';
+import { ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/ThemedMaterialIcons';
 import { useFocusEffect, useRoute } from '@react-navigation/native';
 import Constants from 'expo-constants';
 import * as Location from 'expo-location';
 import * as SecureStore from 'expo-secure-store';
 import * as WebBrowser from 'expo-web-browser';
 import _ from 'lodash';
-import { Pressable, Box, Button, ButtonGroup, ButtonText, ButtonIcon, Center, Image, Text, KeyboardAvoidingView, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@gluestack-ui/themed';
 import React from 'react';
-import { Platform } from 'react-native';
-
+import { KeyboardAvoidingView, Platform } from 'react-native';
 import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { getLibraryInfo } from '../../util/api/system';
 import { saveLibrary, saveLibraryUrl } from '../../util/db';
-
-// custom components and helper files
 import { GLOBALS } from '../../util/globals';
 import { fetchAllLibrariesFromGreenhouse, fetchNearbyLibrariesFromGreenhouse } from '../../util/api/greenhouse';
 import { LIBRARY } from '../../util/globals';
@@ -23,13 +19,25 @@ import { GetLoginForm } from './LoginForm';
 import { ResetPassword } from './ResetPassword';
 import { SelectYourLibrary } from './SelectYourLibrary';
 import { SplashScreen } from './Splash';
-import { useTheme } from '../../themes/theme';
-import { APIErrorLog } from '../MyAccount/Settings/Logs/APIErrorLog'; // adjust path if your file differs
-
+import { useTheme, TOKENS } from '../../themes/theme';
+import { APIErrorLog } from '../MyAccount/Settings/Logs/APIErrorLog';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { logDebugMessage, logInfoMessage, getErrorMessage } from '../../util/logging';
 import { popAlert } from '../../components/feedback';
+import { Box } from '@/components/ui/box';
+import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../components/themed/ThemedButton';
+import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
+import { Center } from '@/components/ui/center';
+import { Image } from 'expo-image';
+import { ThemedModal as Modal, ThemedModalBackdrop as ModalBackdrop, ThemedModalBody as ModalBody, ThemedModalContent as ModalContent, ThemedModalFooter as ModalFooter, ThemedModalHeader as ModalHeader } from '@/src/components/themed/ThemedModal';
+import { Pressable } from '@/components/ui/pressable';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
 
+/**
+ * LoginScreen component that handles the login process, including library selection, user authentication, and displaying relevant modals for forgotten credentials or API error logs.
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const LoginScreen = () => {
      const [isLoading, setIsLoading] = React.useState(true);
      const [isThemeInitialized, setIsThemeInitialized] = React.useState(false);
@@ -60,7 +68,11 @@ export const LoginScreen = () => {
      const [showApiErrorModal, setShowApiErrorModal] = React.useState(false);
      const logoTapCountRef = React.useRef(0);
      const logoTapTimerRef = React.useRef(null);
-     const { theme, colorMode, textColor } = useTheme();
+     const { neutralPairs, brand, colorMode, textColor } = useTheme();
+     const surfaceBg =
+          colorMode === 'light'
+               ? neutralPairs?.surface?.light ?? TOKENS.semanticTokens.light.surface
+               : neutralPairs?.surface?.dark ?? TOKENS.semanticTokens.dark.surface;
 
      let isCommunity = true;
      if (!GLOBALS.slug.startsWith('aspen-lida') || GLOBALS.slug === 'aspen-lida-bws') {
@@ -70,9 +82,10 @@ export const LoginScreen = () => {
      const logoImage = Constants.expoConfig.extra.loginLogo;
 
       const handleThemeInitialized = React.useCallback(() => {
-           setIsThemeInitialized(true);
+           setIsThemeInitialized((prev) => (prev ? prev : true));
       }, []);
 
+      // TODO(translation): Move these hardcoded alert strings to TranslationService/getTermFromDictionary keys.
       // Show migration error message if session expired due to SQLite migration failure
       React.useEffect(() => {
            if (route.params?.migrationError) {
@@ -242,35 +255,36 @@ export const LoginScreen = () => {
      };
 
      const loginScreenContent = (
-          <SafeAreaView flex={1}>
-               <Box px="$5" h="$full" alignItems="center" justifyContent="center">
+          <SafeAreaView style={{ flex: 1 }}>
+               <Box className="px-5 flex-1 items-center justify-center">
                     <Pressable onPress={onLogoTap}>
-                         <Image source={{ uri: logoImage }} rounded="$2xl" size="xl" alt="" fallbackSource={require('../../themes/default/aspenLogo.png')} />
+                         <Image source={logoImage} style={{ width: 96, height: 96, borderRadius: 24 }} alt="" />
                     </Pressable>
                     {isCommunity || shouldShowSelectLibrary ? <SelectYourLibrary updateSelectedLibrary={updateSelectedLibrary} selectedLibrary={selectedLibrary} query={query} setQuery={setQuery} showModal={showModal} setShowModal={setShowModal} isCommunity={isCommunity} setShouldRequestPermissions={setShouldRequestPermissions} shouldRequestPermissions={shouldRequestPermissions} permissionRequested={permissionRequested} libraries={libraries} allLibraries={allLibraries} /> : null}
-                    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'padding'} width="100%">
+                    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'padding'} className="w-full">
                          {selectedLibrary ? <GetLoginForm selectedLibrary={selectedLibrary} usernameLabel={usernameLabel} passwordLabel={passwordLabel} allowBarcodeScanner={allowBarcodeScanner} allowCode39={allowCode39} updateSelectedLibrary={updateSelectedLibrary} /> : null}
-                         <ButtonGroup space="$1" justifyContent="center" pt="$5" flexWrap="wrap">
+                         <ButtonGroup space="sm" className="justify-center pt-5 flex-wrap">
                               {enableForgotPasswordLink === '1' || enableForgotPasswordLink === 1 ? <ResetPassword ils={ils} enableForgotPasswordLink={enableForgotPasswordLink} usernameLabel={usernameLabel} passwordLabel={passwordLabel} forgotPasswordType={forgotPasswordType} showForgotPasswordModal={showForgotPasswordModal} setShowForgotPasswordModal={setShowForgotPasswordModal} /> : null}
                               {enableForgotBarcode === '1' || enableForgotBarcode === 1 ? <ForgotBarcode usernameLabel={usernameLabel} showForgotBarcodeModal={showForgotBarcodeModal} setShowForgotBarcodeModal={setShowForgotBarcodeModal} /> : null}
                          </ButtonGroup>
                          {enableSelfRegistration ? (
-                              <Button mt="$3" variant="link" onPress={openSelfRegistration}>
-                                   <ButtonText color={theme.tokens.colors.primary['500']}>{getTermFromDictionary('en', 'register_for_a_library_card')}</ButtonText>
+                              <Button colorScheme="primary" className="mt-3" variant="link" onPress={openSelfRegistration}>
+                                  <ButtonText>{getTermFromDictionary('en', 'register_for_a_library_card')}</ButtonText>
                               </Button>
                          ) : null}
                          {isCommunity && Platform.OS !== 'android' ? (
-                              <Button mt="$5" size="xs" variant="link">
-                                   <ButtonIcon mr="$1" as={Ionicons} name="navigate-circle-outline" bg={theme['tokens']['colors']['tertiary']['500']} />
-                                   <ButtonText color={theme['tokens']['colors']['tertiary']['500-text']}>{getTermFromDictionary('en', 'reset_geolocation')}</ButtonText>
+                              <Button colorScheme="tertiary" className="mt-5" size="xs" variant="link">
+                                   <MaterialIcons name="near-me" size={18} color={brand.tertiary[500]} className="mr-1" />
+                                   <ButtonText>{getTermFromDictionary('en', 'reset_geolocation')}</ButtonText>
                               </Button>
                          ) : null}
                          <Center>
-                              <Text mt="$5" fontSize="$xs" color={textColor}>
+                              <Text size="xs" className="mt-5">
                                    {GLOBALS.appVersion} {GLOBALS.appStage} b[{GLOBALS.appBuild}] p[{GLOBALS.appPatch}] c[{GLOBALS.releaseChannel ?? 'Development'}]
                               </Text>
                               {showApiErrorButton ? (
-                                   <Button mt="$4" size="xs" variant="outline" onPress={() => setShowApiErrorModal(true)}>
+                                   // TODO(translation): Replace hardcoded label with TranslationService-backed key.
+                                   <Button className="mt-4" size="xs" variant="outline" onPress={() => setShowApiErrorModal(true)}>
                                         <ButtonText>Open API Error Log</ButtonText>
                                    </Button>
                               ) : null}
@@ -278,12 +292,13 @@ export const LoginScreen = () => {
                     </KeyboardAvoidingView>
                     <Modal isOpen={showApiErrorModal} onClose={() => setShowApiErrorModal(false)}>
                          <ModalBackdrop />
-                         <ModalContent maxHeight="75%" width="95%" alignSelf="center" borderRadius="$lg">
+                         <ModalContent className="rounded-xl" style={{ maxHeight: '75%', width: '95%', alignSelf: 'center', backgroundColor: surfaceBg }}>
                               <ModalHeader></ModalHeader>
-                              <ModalBody px="$4">
-                                   <APIErrorLog theme={theme} colorMode={colorMode} textColor={textColor} />
+                              <ModalBody className="px-4">
+                                   <APIErrorLog neutralPairs={neutralPairs} colorMode={colorMode} textColor={textColor} />
                               </ModalBody>
-                              <ModalFooter pb={Math.max(insets.bottom, 8)} pt="$2" px="$4">
+                              <ModalFooter className="pt-2 px-4" style={{ paddingBottom: Math.max(insets.bottom, 8) }}>
+                                   // TODO(translation): Replace hardcoded label with TranslationService-backed key.
                                    <Button variant="outline" onPress={() => setShowApiErrorModal(false)}>
                                         <ButtonText>Close</ButtonText>
                                    </Button>

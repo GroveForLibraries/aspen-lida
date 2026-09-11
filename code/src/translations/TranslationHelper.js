@@ -1,7 +1,5 @@
 import moment from 'moment';
 
-import {logDebugMessage} from "../util/logging";
-
 /**
  * Has the last updated time as well as an array per language of all translations
  * @type {{lastUpdated: *|moment.Moment}}
@@ -10,6 +8,14 @@ export let translationsLibrary = {
      lastUpdated: moment(),
 };
 
+/**
+ * Gets a term from the translations library or defaults.json if not found
+ * @param language
+ * @param key
+ * @param ellipsis
+ * @param dictionaryOverride
+ * @returns {*|string}
+ */
 export const getTermFromDictionary = (language = 'en', key, ellipsis = false, dictionaryOverride = undefined) => {
     if (language && key) {
          let tmpDictionary = dictionaryOverride || translationsLibrary;
