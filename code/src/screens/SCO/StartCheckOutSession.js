@@ -33,7 +33,6 @@ import {
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { navigateStack } from '../../helpers/RootNavigator';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import _ from 'lodash';
 import {logDebugMessage} from "../../util/logging";
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 import { useTheme } from '../../themes/theme';
@@ -53,10 +52,7 @@ export const StartCheckOutSession = () => {
      const cancelRef = React.useRef(null);
 
      const [activeAccount, setActiveAccount] = React.useState(user.ils_barcode ?? user.cat_username);
-     let availableAccounts = [];
-     if (_.size(accounts) > 0) {
-          availableAccounts = Object.values(accounts);
-     }
+     const availableAccounts = Object.values(accounts ?? {});
 
      React.useLayoutEffect(() => {
           navigation.setOptions({

@@ -1,6 +1,6 @@
 import * as Device from 'expo-device';
 import * as Linking from 'expo-linking';
-import _ from 'lodash';
+
 import { Alert, Box, Center, HStack, Pressable, Text, VStack, ScrollView, Button, ButtonText, Divider, AlertText, CloseIcon } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
@@ -23,7 +23,7 @@ import { fetchNotificationHistory, getAppPreferencesForUser, getLinkedAccounts, 
 import { getCatalogStatus, getLibraryInfo, getLibraryLanguages, getLibraryLinks, getLocationInfo, getSelfCheckSettings, normalizeLibraryLanguagesPayload } from '../../../util/api/system';
 import { getBrowseCategoriesAndHomeLinks } from '../../../util/api/search';
 import { saveAccounts, saveAllLibraryBranchData, saveAllBrowseCategoryData, saveAppPreferences, saveCards, saveCatalogStatus, saveLibrary, saveLocations, saveMenu, saveNotificationHistory, saveUserProfile, saveThemeState } from '../../../util/db';
-import { orderByFields, stripHTML } from '../../../helpers/helpers';
+import { orderByFields, stripHTML, set, size } from '../../../helpers/helpers';
 
 function formatCachedDateTime(updatedAt) {
      if (!updatedAt) {
@@ -64,7 +64,7 @@ export const SupportScreen = () => {
      const library = libraryQuery.data ?? {};
      const location = locationQuery.data ?? {};
      const language = languageUserStateQuery.data?.language ?? languageUserStateQuery.data?.user?.interfaceLanguage ?? 'en';
-     const numLinkedAccounts = _.size(accounts) ?? 0;
+     const numLinkedAccounts = size(accounts) ?? 0;
      const libraryUrl = library?.baseUrl ?? allLibrarySystemDataQuery.data?.url ?? '';
      const libraryId = allLibrarySystemDataQuery.data?.libraryId ?? library?.libraryId ?? null;
 
@@ -73,7 +73,7 @@ export const SupportScreen = () => {
                let tmp = await checkStoreVersion();
                if (tmp.url) {
                     if (await Linking.canOpenURL(tmp.url)) {
-                         tmp = _.set(tmp, 'canOpenUrl', true);
+                         tmp = set(tmp, 'canOpenUrl', true);
                     }
                }
                setStatus(tmp);

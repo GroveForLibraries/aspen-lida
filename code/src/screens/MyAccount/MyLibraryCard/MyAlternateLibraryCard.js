@@ -1,4 +1,4 @@
-import _ from 'lodash';
+
 import { EyeOff, Eye } from 'lucide-react-native';
 import { Pressable, ChevronLeftIcon, Box, ScrollView, ButtonGroup, Button, ButtonText, FormControl, FormControlLabel, FormControlLabelText, Input, InputField, InputSlot, InputIcon } from '@gluestack-ui/themed';
 import React from 'react';
@@ -84,7 +84,7 @@ export const MyAlternateLibraryCard = () => {
      }
 
      const showSystemMessage = () => {
-          if (_.isArray(systemMessages)) {
+          if (Array.isArray(systemMessages)) {
                return systemMessages.map((obj, index, collection) => {
                     if (obj.showOn === '0' || obj.showOn === '1' || obj.showOn === '5') {
                          return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;

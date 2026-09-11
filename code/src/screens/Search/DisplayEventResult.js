@@ -1,8 +1,7 @@
 import { Badge, BadgeText, Box, HStack, Pressable, Text, VStack } from '@gluestack-ui/themed';
 import { Image } from 'expo-image';
 import * as WebBrowser from 'expo-web-browser';
-import _ from 'lodash';
-import moment from 'moment';
+
 import React from 'react';
 import { popToast } from '../../components/feedback';
 
@@ -11,7 +10,7 @@ import { popToast } from '../../components/feedback';
 import { getCleanTitle } from '../../helpers/item';
 import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
-import { decodeHTML } from '../../helpers/helpers';
+import { decodeHTML, getEventDateDisplayData } from '../../helpers/helpers';
 import AddToList from './AddToList';
 import { logDebugMessage, logErrorMessage } from '../../util/logging';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
@@ -34,27 +33,13 @@ export const DisplayEventResult = (props) => {
      let url = item.image ?? library.baseUrl + '/bookcover.php?id=' + item.key + '&size=medium&type=' + keyParts[0] + '_event';
 
      let registrationRequired = false;
-     if (!_.isUndefined(item.registration_required)) {
+     if (item.registration_required !== undefined) {
           registrationRequired = item.registration_required;
      }
 
      const startTime = item.start_date.date;
      const endTime = item.end_date.date;
-
-     let time1 = startTime.split(' ');
-     let day = time1[0];
-     let time2 = endTime.split(' ');
-
-     let time1arr = time1[1].split(':');
-     let time2arr = time2[1].split(':');
-
-     let displayDay = moment(day);
-     let displayStartTime = moment().set({ hour: time1arr[0], minute: time1arr[1] });
-     let displayEndTime = moment().set({ hour: time2arr[0], minute: time2arr[1] });
-
-     displayDay = moment(displayDay).format('dddd, MMMM D, YYYY');
-     displayStartTime = moment(displayStartTime).format('h:mm A');
-     displayEndTime = moment(displayEndTime).format('h:mm A');
+     const { displayDay, displayStartTime, displayEndTime } = getEventDateDisplayData(startTime, endTime);
 
      let locationData = item?.location ?? [];
      let roomData = item?.room ?? null;

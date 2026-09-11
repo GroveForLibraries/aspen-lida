@@ -15,7 +15,7 @@ import {
 import { useRoute } from '@react-navigation/native';
 import { useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
-import _ from 'lodash';
+
 import React from 'react';
 
 // custom components and helper files
@@ -31,7 +31,7 @@ import { getFirstRecord, getVariations } from '../../util/api/item';
 import { getLinkedAccounts, passUserToDiscovery } from '../../util/api/user';
 import { formatLinkedAccounts } from '../../util/api/userHelper';
 import { getGroupedWork } from '../../util/api/work';
-import { decodeHTML } from '../../helpers/helpers';
+import { decodeHTML, isEmpty } from '../../helpers/helpers';
 import { getPickupLocations, getPickupSublocations } from '../../util/api/user';
 import { formatPickupLocations } from '../../util/api/userHelper';
 import AddToList from '../Search/AddToList';
@@ -65,12 +65,13 @@ export const GroupedWorkScreen = () => {
      const userLanguage = useActiveLanguage();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
      const { theme, colorMode } = useTheme();
+     const safeSystemMessages = Array.isArray(systemMessages) ? systemMessages : [];
 
      const { status, data, error, isFetching } = useQuery(['groupedWork', id, userLanguage, library.baseUrl], () => getGroupedWork(route.params.id, userLanguage, library.baseUrl));
 
      React.useEffect(() => {
           let isSubscribed = true;
-          if (!_.isUndefined(data) && !_.isEmpty(data)) {
+          if (data !== undefined && !isEmpty(data)) {
                const update = async () => {
                     if (isSubscribed) {
                          updateGroupedWork(data);
@@ -112,10 +113,10 @@ export const GroupedWorkScreen = () => {
      }, [data]);
 
      const showSystemMessage = () => {
-          if (_.isArray(systemMessages)) {
-               return systemMessages.map((obj, index, collection) => {
+          if (safeSystemMessages.length > 0) {
+               return safeSystemMessages.map((obj, index, collection) => {
                     if (obj.showOn === '0') {
-                         return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
+                         return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={safeSystemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
                     }
                });
           }
@@ -131,7 +132,7 @@ export const GroupedWorkScreen = () => {
                ) : (
                     <ScrollView>
                          <Box sx={{ '@base': { height: 150 }, '@lg': { height: 200 } }} width="$full" bgColor={colorMode === 'light' ? "$warmGray200" : "$coolGray900"} zIndex={-1} position="absolute" left={0} top={0} />
-                         {_.size(systemMessages) > 0 ? <Box p="$2">{showSystemMessage()}</Box> : null}
+                         {safeSystemMessages.length > 0 ? <Box p="$2">{showSystemMessage()}</Box> : null}
                          <DisplayGroupedWork data={data.results} initialFormat={data.format} updateFormat={data.format} />
                     </ScrollView>
                )}
@@ -273,13 +274,14 @@ const Formats = ({ formats }) => {
                          {getTermFromDictionary(language, 'format')}:
                     </Text>
                     <ButtonGroup flexDirection="row" flexWrap="wrap">
-                         {_.compact(_.map(_.keys(formats), function (item, index, array) {
-                              const formatData = formats[item];
+                         {Object.entries(formats)
+                              .map(([item, formatData], index) => {
                               if (!formatData || !formatData.label || formatData.label.trim() === '' || item.trim() === '') {
                                    return null;
                               }
                               return <Format key={index} format={item} data={formatData} isSelected={format} updateFormat={updateFormat} />;
-                         }))}
+                         })
+                              .filter(Boolean)}
                     </ButtonGroup>
                </>
           );

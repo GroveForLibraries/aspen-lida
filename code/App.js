@@ -17,7 +17,7 @@ import { CheckoutsProvider, GroupedWorkProvider, HoldsProvider, SearchProvider, 
 
 import { SplashScreenNative } from './src/screens/Auth/SplashNative';
 import { buildThemeForLibrary, THEME_STALE_MS, useThemeForDisplay } from './src/themes/theme';
-import { ToastRegistrar } from './src/components/feedback/ToastRegistrar';
+import { ToastRegistrar } from './src/components/feedback';
 
 import { logDebugMessage, logErrorMessage } from './src/util/logging.js';
 import { initDatabase } from './src/util/db';

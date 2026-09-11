@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import { Box, Divider, ScrollView } from '@gluestack-ui/themed';
 import React from 'react';
 import { useQueryClient } from '@tanstack/react-query';
@@ -22,12 +21,12 @@ export const MyProfile = () => {
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
 
      let firstname = '';
-     if (!_.isUndefined(user.firstname)) {
+     if (user.firstname !== undefined) {
           firstname = user.firstname;
      }
 
      let lastname = '';
-     if (!_.isUndefined(user.lastname)) {
+     if (user.lastname !== undefined) {
           lastname = user.lastname;
      }
 
@@ -38,7 +37,7 @@ export const MyProfile = () => {
      }, [navigation]);
 
      const showSystemMessage = () => {
-          if (_.isArray(systemMessages)) {
+          if (Array.isArray(systemMessages)) {
                return systemMessages.map((obj, index, collection) => {
                     if (obj.showOn === '0' || obj.showOn === '1' || obj.showOn === '5') {
                          return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;

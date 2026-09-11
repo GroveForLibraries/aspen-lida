@@ -2,7 +2,6 @@ import { Icon, ChevronDownIcon, FormControl, SelectScrollView, FormControlLabel,
 import React from 'react';
 import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import _ from 'lodash';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 
 export const SelectItemHold = (props) => {
@@ -57,7 +56,7 @@ export const SelectItemHold = (props) => {
                          </FormControlLabel>
                          <Select name="itemForHold" selectedValue={defaultItem} minWidth={200} accessibilityLabel={getTermFromDictionary(language, 'select_item')} mt="$1" mb="$2" onValueChange={(itemValue) => setItem(itemValue)}>
                               <SelectTrigger variant="outline" size="md">
-                                   {_.map(Object.keys(copies), function (item, index, array) {
+                                   {Object.keys(copies).map((item) => {
                                         let copy = copies[item];
                                         if (copy.id === defaultItem) {
                                              setItem(defaultItem);
@@ -75,7 +74,7 @@ export const SelectItemHold = (props) => {
                                              <SelectDragIndicator />
                                         </SelectDragIndicatorWrapper>
                                         <SelectScrollView>
-                                             {_.map(Object.keys(copies), function (item, index, array) {
+                                             {Object.keys(copies).map((item) => {
                                                   let copy = copies[item];
                                                   if (copy.id === defaultItem) {
                                                        return <SelectItem label={copy.location} value={copy.id} key={copy.id} bgColor={theme.tokens.colors.tertiary['300']} sx={{ _text: { color: theme.tokens.colors.tertiary['500-text'] } }} />;

@@ -2,10 +2,10 @@ import React from 'react';
 import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Select, SelectTrigger, SelectInput, SelectIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, Icon, ChevronDownIcon, SelectScrollView, FormControl, FormControlLabel, FormControlLabelText, Text } from '@gluestack-ui/themed';
-import _ from 'lodash';
+import { isObject } from '../../../helpers/helpers';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 
-import { logDebugMessage, logInfoMessage, logWarnMessage, logErrorMessage } from '../../../util/logging.js';
+import { logDebugMessage, logErrorMessage } from '../../../util/logging.js';
 
 export const SelectNewHoldSublocation = (props) => {
      const {sublocations, location, activeSublocation, setActiveSublocation, language, textColor, theme, colorMode} = props;
@@ -13,7 +13,7 @@ export const SelectNewHoldSublocation = (props) => {
 
      if (sublocations !== undefined) {
           try {
-               if (_.isObject(sublocations)) {
+               if (isObject(sublocations)) {
                     const objectSize = Object.keys(sublocations).length;
                     const validSublocations = [];
 

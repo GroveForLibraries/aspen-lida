@@ -1,5 +1,5 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import _ from 'lodash';
+import { find } from '../../../helpers/helpers';
 import { HStack, Icon, Pressable, Text, VStack } from '@gluestack-ui/themed';
 import React from 'react';
 import { ScrollView } from 'react-native';
@@ -39,8 +39,8 @@ export const Facet_Rating = ({ data, category, updater }) => {
      React.useEffect(() => {
           setIsLoading(false);
           let initialValue = '';
-          if (_.find(data, ['isApplied', true])) {
-               const appliedFilterObj = _.find(data, ['isApplied', true]);
+          if (find(data, ['isApplied', true])) {
+               const appliedFilterObj = find(data, ['isApplied', true]);
                initialValue = appliedFilterObj['value'];
           }
           setValue(initialValue);
@@ -48,8 +48,8 @@ export const Facet_Rating = ({ data, category, updater }) => {
 
      const getRatingCount = (star) => {
           let results = 0;
-          if (_.find(data, ['value', star])) {
-               results = _.find(data, ['value', star]);
+          if (find(data, ['value', star])) {
+               results = find(data, ['value', star]);
                results = results['count'];
           }
           return results;

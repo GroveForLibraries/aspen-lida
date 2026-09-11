@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import { isObject } from '../../helpers/helpers';
 import { CheckedOutToYou } from './CheckedOutToYou';
 import { CheckOut } from './CheckOut/CheckOut';
 import { PlaceHold } from './Holds/PlaceHold';
@@ -72,7 +72,7 @@ export const ActionButton = (data) => {
           userHasAlternateLibraryCard,
           shouldPromptAlternateLibraryCard,
           onBeforeNavigate } = data;
-     if (_.isObject(action)) {
+     if (isObject(action)) {
           if (action.type === 'overdrive_sample') {
                return <LoadOverDriveSample title={action.title} prevRoute={prevRoute} id={fullRecordId} type={action.type} sampleNumber={action.sampleNumber} formatId={action.formatId} />;
           } else if (action.type === 'project_palace_sample') {
@@ -257,7 +257,7 @@ export const ActionButton = (data) => {
                          recordId={action.recordId}
                     />
                );
-          } else if (!_.isUndefined(action.redirectUrl)) {
+          } else if (action.redirectUrl !== undefined) {
                return <OpenSideLoad title={action.title} url={action.redirectUrl} prevRoute={prevRoute} />;
           } else if (action.type === "hoopla_access_online") {
                return <OpenSideLoad title={action.title} url={action.url} prevRoute={prevRoute} />;

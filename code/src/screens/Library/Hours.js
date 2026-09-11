@@ -1,5 +1,4 @@
-import _ from 'lodash';
-import moment from 'moment';
+import { formatTime as formatDisplayTime, isArray, parseTimeOnDate } from '../../helpers/helpers';
 import { Box, FlatList, Heading, HStack, Text, VStack } from '@gluestack-ui/themed';
 import React from 'react';
 
@@ -17,7 +16,7 @@ const Hours = (data) => {
      /* location.hours */
 
      if (location.showInLocationsAndHoursList === '1' || location.showInLocationsAndHoursList === 1) {
-          if (_.isArrayLikeObject(location.hours)) {
+          if (isArray(location.hours)) {
                return (
                     <Box>
                          <Heading color={textColor} mb="$2" mx="$2">{getTermFromDictionary(language, 'library_hours')}</Heading>
@@ -34,10 +33,9 @@ const Day = (data) => {
      const language = useActiveLanguage();
      const { hours, textColor } = data;
 
-     function formatTime(time) {
-          let arr = time.split(':');
-          let timeString = moment().set({ hour: arr[0], minute: arr[1] });
-          return moment(timeString).format('h:mm A');
+     function formatHourLabel(time) {
+          const parsedTime = parseTimeOnDate(time);
+          return parsedTime ? formatDisplayTime(parsedTime) : '';
      }
 
      return (
@@ -48,7 +46,7 @@ const Day = (data) => {
                     </Text>
                     {!hours.isClosed ? (
                          <Text color={textColor}>
-                              {formatTime(hours.open)} - {formatTime(hours.close)}
+                              {formatHourLabel(hours.open)} - {formatHourLabel(hours.close)}
                          </Text>
                     ) : (
                          <Text color={textColor}>{getTermFromDictionary(language, 'location_closed')}</Text>

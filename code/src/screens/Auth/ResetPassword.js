@@ -1,4 +1,4 @@
-import _ from 'lodash';
+
 import {
      Button,
      ButtonText,
@@ -24,7 +24,7 @@ import { loadingSpinner } from '../../components/loadingSpinner';
 
 import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { getTermFromDictionary, getTranslationWithValuesText } from '../../translations/TranslationService';
-import { normalizeDisplayText } from '../../helpers/helpers';
+import { normalizeDisplayText, isEmpty, lowerCase } from '../../helpers/helpers';
 import { LIBRARY } from '../../util/globals';
 import { logDebugMessage, getErrorMessage } from '../../util/logging';
 import { resetPassword } from '../../util/api/user';
@@ -54,18 +54,18 @@ export const ResetPassword = (props) => {
                setModalButtonLabel(await getTranslationWithValuesText('reset_my_password', passwordLabel, language, libraryUrl, true));
 
                if (ils === 'koha') {
-                    setResetBody(await getTranslationWithValuesText('koha_password_reset_body', [_.lowerCase(passwordLabel), _.lowerCase(usernameLabel)], language, libraryUrl, true));
+                    setResetBody(await getTranslationWithValuesText('koha_password_reset_body', [lowerCase(passwordLabel), lowerCase(usernameLabel)], language, libraryUrl, true));
                } else if (ils === 'sirsi' || ils === 'horizon') {
-                    setResetBody(await getTranslationWithValuesText('sirsi_password_reset_body', _.lowerCase(passwordLabel), language, libraryUrl, true));
+                    setResetBody(await getTranslationWithValuesText('sirsi_password_reset_body', lowerCase(passwordLabel), language, libraryUrl, true));
                } else if (ils === 'evergreen') {
-                    setResetBody(await getTranslationWithValuesText('evergreen_password_reset_body', _.lowerCase(passwordLabel), language, libraryUrl, true));
+                    setResetBody(await getTranslationWithValuesText('evergreen_password_reset_body', lowerCase(passwordLabel), language, libraryUrl, true));
                } else if (ils === 'millennium') {
-                    setResetBody(await getTranslationWithValuesText('millennium_password_reset_body', [_.lowerCase(usernameLabel), _.lowerCase(passwordLabel)], language, libraryUrl, true));
+                    setResetBody(await getTranslationWithValuesText('millennium_password_reset_body', [lowerCase(usernameLabel), lowerCase(passwordLabel)], language, libraryUrl, true));
                     setModalButtonLabel(await getTranslationWithValuesText('request_pin_reset', passwordLabel, language, libraryUrl, true));
                } else if (ils === 'symphony') {
-                    setResetBody(await getTranslationWithValuesText('symphony_password_reset_body', _.lowerCase(usernameLabel), language, libraryUrl, true));
+                    setResetBody(await getTranslationWithValuesText('symphony_password_reset_body', lowerCase(usernameLabel), language, libraryUrl, true));
                } else {
-                    setResetBody(await getTranslationWithValuesText('aspen_password_reset_body', [_.lowerCase(passwordLabel), _.lowerCase(usernameLabel)], language, libraryUrl, true));
+                    setResetBody(await getTranslationWithValuesText('aspen_password_reset_body', [lowerCase(passwordLabel), lowerCase(usernameLabel)], language, libraryUrl, true));
                }
                setIsLoading(false);
           }
@@ -169,7 +169,7 @@ const AspenResetPassword = (props) => {
      };
 
      if (results && showResults && !hasError) {
-          if (_.isEmpty(results.success) && results.error) {
+          if (isEmpty(results.success) && results.error) {
                return (
                     <>
                          <ModalBody>
@@ -187,7 +187,7 @@ const AspenResetPassword = (props) => {
                          </ModalFooter>
                     </>
                );
-          } else if (!_.isEmpty(results.message)) {
+          } else if (!isEmpty(results.message)) {
                return (
                     <>
                          <ModalBody>
@@ -311,7 +311,7 @@ const KohaResetPassword = (props) => {
      };
 
      if (results && showResults && !hasError) {
-          if (_.isEmpty(results.success) && results.error) {
+          if (isEmpty(results.success) && results.error) {
                return (
                     <>
                          <ModalBody>
@@ -329,7 +329,7 @@ const KohaResetPassword = (props) => {
                          </ModalFooter>
                     </>
                );
-          } else if (!_.isEmpty(results.message)) {
+          } else if (!isEmpty(results.message)) {
                return (
                     <>
                          <ModalBody>
@@ -463,7 +463,7 @@ const SirsiResetPassword = (props) => {
      };
 
      if (results && showResults && !hasError) {
-          if (_.isEmpty(results.success) && results.error) {
+          if (isEmpty(results.success) && results.error) {
                return (
                     <>
                          <ModalBody>
@@ -481,7 +481,7 @@ const SirsiResetPassword = (props) => {
                          </ModalFooter>
                     </>
                );
-          } else if (!_.isEmpty(results.message)) {
+          } else if (!isEmpty(results.message)) {
                return (
                     <>
                          <ModalBody>
@@ -602,7 +602,7 @@ const EvergreenResetPassword = (props) => {
      };
 
      if (results && showResults && !hasError) {
-          if (_.isEmpty(results.success) && results.error) {
+          if (isEmpty(results.success) && results.error) {
                return (
                     <>
                          <ModalBody>
@@ -620,7 +620,7 @@ const EvergreenResetPassword = (props) => {
                          </ModalFooter>
                     </>
                );
-          } else if (!_.isEmpty(results.message)) {
+          } else if (!isEmpty(results.message)) {
                return (
                     <>
                          <ModalBody>
@@ -754,7 +754,7 @@ const SymphonyResetPassword = (props) => {
      };
 
      if (results && showResults && !hasError) {
-          if (_.isEmpty(results.success) && results.error) {
+          if (isEmpty(results.success) && results.error) {
                return (
                     <>
                          <ModalBody>
@@ -772,7 +772,7 @@ const SymphonyResetPassword = (props) => {
                          </ModalFooter>
                     </>
                );
-          } else if (!_.isEmpty(results.message)) {
+          } else if (!isEmpty(results.message)) {
                return (
                     <>
                          <ModalBody>
@@ -899,7 +899,7 @@ const MillenniumResetPassword = (props) => {
                               <Button variant="link" onPress={closeWindow}>
                                    <ButtonText color={textColor}>{getTermFromDictionary('en', 'button_ok')}</ButtonText>
                               </Button>
-                              {!_.isEmpty(results.error) ? (
+                              {!isEmpty(results.error) ? (
                                    <Button bgColor={theme.tokens.colors.primary['500']} onPress={resetWindow}>
                                         <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary('en', 'try_again')}</ButtonText>
                                    </Button>

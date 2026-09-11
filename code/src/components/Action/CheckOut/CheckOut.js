@@ -25,7 +25,6 @@ import {
      InputIcon
 } from '@gluestack-ui/themed';
 import React from 'react';
-import _ from 'lodash';
 import { useQueryClient } from '@tanstack/react-query';
 import { EyeOff, Eye } from 'lucide-react-native';
 import { useWindowDimensions } from 'react-native';
@@ -55,6 +54,7 @@ export const CheckOut = (props) => {
      const language = useActiveLanguage();
      const [loading, setLoading] = React.useState(false);
      const { theme, colorMode, textColor } = useTheme();
+     const availableAccounts = Object.values(accounts ?? {});
 
      const volumeInfo = {
           numItemsWithVolumes: 0,
@@ -69,7 +69,7 @@ export const CheckOut = (props) => {
           }
      }, [library.baseUrl, updateUserProfile]);
 
-     if (_.size(accounts) > 0) {
+     if (availableAccounts.length > 0) {
           return (
                <HoldPrompt
                     language={language}

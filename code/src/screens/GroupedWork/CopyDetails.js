@@ -3,7 +3,6 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import {Button, ButtonText, Center, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, HStack, Text, Icon, FlatList, Heading} from '@gluestack-ui/themed';
 import {MaterialIcons} from '@expo/vector-icons';
 import {getItemDetails} from '../../util/api/item';
-import _ from 'lodash';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 import {useQueryClient} from '@tanstack/react-query';
@@ -43,19 +42,17 @@ const ShowItemDetails = (props) => {
      let copies = copyDetails;
 
      if (discoveryVersion <= '22.12.01') {
-          let copies = [];
-          if (copyDetails) {
-               _.map(copyDetails, function(copy, index, array) {
-                    copy = {
+          copies = Array.isArray(copyDetails)
+               ? copyDetails.map((copy, index) => {
+                    return {
                          id: index,
                          totalCopies: copy.totalCopies,
                          availableCopies: copy.availableCopies,
                          shelfLocation: copy.shelfLocation,
                          callNumber: copy.callNumber,
                     };
-                    copies = _.concat(copies, copy);
-               });
-          }
+               })
+               : [];
      }
 
      if (discoveryVersion <= '22.09.01') {

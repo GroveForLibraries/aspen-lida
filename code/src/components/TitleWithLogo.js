@@ -3,7 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 
 import { useLibrary } from '../hooks/useLibrarySystemData';
 import { View, Image, Text, HStack, VStack, Box, Pressable, Icon, ChevronLeftIcon } from '@gluestack-ui/themed';
-import { Platform, useWindowDimensions } from 'react-native';
+import { useWindowDimensions } from 'react-native';
 import { decodeHTML, isValidUrl } from '../helpers/helpers';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../themes/theme';

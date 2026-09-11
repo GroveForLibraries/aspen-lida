@@ -37,6 +37,7 @@ import { popToast } from '../../../components/feedback';
 import { loadingSpinner } from '../../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../../components/Notifications';
 import { SystemMessagesContext } from '../../../context/initialContext';
+import { parseEventDateTime } from '../../../helpers/helpers';
 import { getCleanTitle } from '../../../helpers/item';
 import { navigateStack } from '../../../helpers/RootNavigator';
 import { getTermFromDictionary as getTermFromDictionaryHelper } from '../../../translations/TranslationHelper';
@@ -225,15 +226,8 @@ export const MyList = ({ route }) => {
 
                const startTime = item.start_date.date;
                const endTime = item.end_date.date;
-               const normalizeDateTime = (value) => {
-                    if (!value || typeof value !== 'string') return null;
-                    const normalized = value.includes('T') ? value : value.replace(' ', 'T');
-                    const parsed = new Date(normalized);
-                    return Number.isNaN(parsed.getTime()) ? null : parsed;
-               };
-
-               const startDate = normalizeDateTime(startTime);
-               const endDate = normalizeDateTime(endTime);
+               const startDate = parseEventDateTime(startTime);
+               const endDate = parseEventDateTime(endTime);
                const displayDay = startDate ? dayFormatter.format(startDate) : '';
                const displayStartTime = startDate ? timeFormatter.format(startDate) : '';
                const displayEndTime = endDate ? timeFormatter.format(endDate) : '';

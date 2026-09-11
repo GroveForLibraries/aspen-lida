@@ -3,7 +3,6 @@ import React from 'react';
 import {navigate} from '../../../helpers/RootNavigator';
 
 
-import { logDebugMessage, logInfoMessage, logWarnMessage, logErrorMessage } from '../../../util/logging.js';
 import { useTheme } from '../../../themes/theme';
 
 export const StartLocalIllRequestEmail = (props) => {

@@ -1,6 +1,6 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
-import _ from 'lodash';
+import { isEmpty, map } from '../../helpers/helpers';
 import React, { useState } from 'react';
 import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -10,7 +10,7 @@ import { getTermFromDictionary } from '../../translations/TranslationService';
 import { addTitlesToList, createListFromTitle } from '../../util/api/list';
 import { saveLastListUsed } from '../../util/db';
 import { LoadingSpinner } from '../../components/loadingSpinner';
-import { getListDetails, getListGroupDetails, getListGroups, getLists, getListTitles } from '../../util/api/list';
+import { getListGroups } from '../../util/api/list';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useTheme } from '../../themes/theme';
@@ -150,7 +150,7 @@ const AddToList = (props) => {
                          {isLoading ?
                               <LoadingSpinner/>
                          :
-                             ( screen === 'add-new' && !_.isEmpty(lists)) ? (
+                             ( screen === 'add-new' && !isEmpty(lists)) ? (
                                    <>
                                         <ModalHeader>
                                              <Heading color={textColor}>
@@ -186,7 +186,7 @@ const AddToList = (props) => {
                                                                                 <SelectDragIndicator />
                                                                            </SelectDragIndicatorWrapper>
                                                                            <SelectScrollView>
-                                                                                {_.map(lists, function (item, index) {
+                                                                                {map(lists, function (item, index) {
                                                                                      return <SelectItem key={index} value={item.id} label={item.title} bgColor={listId === item.id ? theme.tokens.colors.tertiary['300'] : ''} color={listId === item.id ? theme.tokens.colors.tertiary['500-text'] : textColor } />;
                                                                                 })}
                                                                            </SelectScrollView>
@@ -219,7 +219,7 @@ const AddToList = (props) => {
                                                        }}>
                                                        <ButtonText color={colorMode === 'light' ? "$coolGray700" : "$warmGray100"}>{getTermFromDictionary(language, 'cancel')}</ButtonText>
                                                   </Button>
-                                                  {!_.isEmpty(lists) ? (
+                                                  {!isEmpty(lists) ? (
                                                        <Button
                                                             bgColor={theme.tokens.colors.primary['500']}
                                                             isLoading={loading}
@@ -348,7 +348,7 @@ const AddToList = (props) => {
                                                                                           </SelectDragIndicatorWrapper>
                                                                                           <SelectScrollView>
                                                                                                <SelectItem label={getTermFromDictionary(language, 'nest_within_group_no')} value="no" key={1} bgColor={nestedGroup === 'no' ? theme.tokens.colors.tertiary['300'] : ''} color={ nestedGroup === 'no' ? theme.tokens.colors.tertiary['500-text'] : textColor } />
-                                                                                               {_.map(Object.values(groups), function (item, index) {
+                                                                                               {map(Object.values(groups), function (item, index) {
                                                                                                     return <SelectItem key={index} value={item.id} label={item.title} bgColor={nestedGroup === item.id ? theme.tokens.colors.tertiary['300'] : ''} color={nestedGroup === item.id ? theme.tokens.colors.tertiary['500-text'] : textColor } />;
                                                                                                })}
                                                                                           </SelectScrollView>
@@ -373,7 +373,7 @@ const AddToList = (props) => {
                                                                       }}>
                                                                       <SelectTrigger>
                                                                            {existingGroupId && existingGroupId !== -1 ? (
-                                                                                _.map(Object.values(groups), function (group) {
+                                                                                map(Object.values(groups), function (group) {
                                                                                      if (group.id === existingGroupId) {
                                                                                           return <SelectInput py={0} placeholder={group.title} value={group.id} color={textColor} />;
                                                                                      }
@@ -390,7 +390,7 @@ const AddToList = (props) => {
                                                                                      <SelectDragIndicator />
                                                                                 </SelectDragIndicatorWrapper>
                                                                                 <SelectScrollView>
-                                                                                     {_.map(Object.values(listGroups.groups), function (item, index) {
+                                                                                     {map(Object.values(listGroups.groups), function (item, index) {
                                                                                           return <SelectItem key={index} value={item.id} label={item.title} bgColor={existingGroupId === item.id ? theme.tokens.colors.tertiary['300'] : ''} color={existingGroupId === item.id ? theme.tokens.colors.tertiary['500-text'] : textColor } />;
                                                                                      })}
                                                                                 </SelectScrollView>

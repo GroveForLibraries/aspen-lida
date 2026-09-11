@@ -1,5 +1,5 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import _ from 'lodash';
+import { filter, isEmpty, isObject } from '../../../helpers/helpers';
 import { HStack, Icon, Pressable, Text, VStack } from '@gluestack-ui/themed';
 import React from 'react';
 
@@ -17,9 +17,9 @@ export const Facet_RadioGroup = ({ title, data, category, updater, applied }) =>
 
      React.useEffect(() => {
           const facets = data;
-          if (_.isObject(facets)) {
-               const facet = _.filter(facets, 'isApplied');
-               if (!_.isEmpty(facet)) {
+          if (isObject(facets)) {
+               const facet = filter(facets, 'isApplied');
+               if (!isEmpty(facet)) {
                     setValue(facet[0]['value'] ?? '');
                }
           }

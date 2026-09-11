@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import { isObject } from '../../../helpers/helpers';
 import { Box, FormControl, FormControlLabel, FormControlLabelText, Select, SelectTrigger, SelectInput, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, Icon, ChevronDownIcon, SelectScrollView } from '@gluestack-ui/themed';
 
 import React from 'react';
@@ -12,7 +12,7 @@ export const SelectExistingHoldSubLocation = (props) => {
 
      const [locationId, locationCode] = location.split("_");
      if (sublocations !== undefined) {
-          if (_.isObject(sublocations)) {
+          if (isObject(sublocations)) {
                const objectSize = Object.keys(sublocations).length;
                const validSublocations = [];
 

@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
-import _ from 'lodash';
+import { filter, isEmpty, isNumber, isObject } from '../../../helpers/helpers';
 import { Button, ButtonText, ButtonSpinner } from '@gluestack-ui/themed';
 import React from 'react';
 
@@ -62,9 +62,9 @@ export const PlaceHold = (props = {}) => {
      const { theme } = useTheme() ?? {};
      const primary500 = theme?.tokens?.colors?.primary?.['500'] ?? '$primary500';
      const primary500Text = theme?.tokens?.colors?.primary?.['500-text'] ?? '$primary500-text';
-      const safeLocations = _.isArray(locations) ? locations : [];
-      const safeAccounts = _.isArray(accounts) ? accounts : [];
-      const numItemsWithVolumes = _.toNumber(volumeInfo?.numItemsWithVolumes ?? 0);
+      const safeLocations = Array.isArray(locations) ? locations : [];
+      const safeAccounts = Array.isArray(accounts) ? accounts : [];
+      const numItemsWithVolumes = Number(volumeInfo?.numItemsWithVolumes ?? 0) || 0;
 
      const refreshAndSaveUserProfile = React.useCallback(async () => {
           const profileResponse = await refreshProfile(library.baseUrl);
@@ -74,22 +74,22 @@ export const PlaceHold = (props = {}) => {
      }, [library.baseUrl, updateUserProfile]);
 
      let userPickupLocationId = user.pickupLocationId ?? user.homeLocationId;
-     if (_.isNumber(user.pickupLocationId)) {
-          userPickupLocationId = _.toString(user.pickupLocationId);
+     if (isNumber(user.pickupLocationId)) {
+          userPickupLocationId = String(user.pickupLocationId);
      }
 
      let pickupLocation = '';
-     if (_.size(safeLocations) > 1) {
-          const userPickupLocation = _.filter(safeLocations, { locationId: userPickupLocationId });
-          if (!_.isUndefined(userPickupLocation && !_.isEmpty(userPickupLocation))) {
+     if (safeLocations.length > 1) {
+          const userPickupLocation = filter(safeLocations, { locationId: userPickupLocationId });
+          if (userPickupLocation.length > 0) {
                pickupLocation = userPickupLocation[0];
-               if (_.isObject(pickupLocation)) {
+               if (isObject(pickupLocation)) {
                     pickupLocation = pickupLocation.code;
                }
           }
      } else {
           pickupLocation = safeLocations[0];
-          if (_.isObject(pickupLocation)) {
+          if (isObject(pickupLocation)) {
                pickupLocation = pickupLocation.code;
           }
      }
@@ -104,19 +104,19 @@ export const PlaceHold = (props = {}) => {
      if (!preferredPickupLocationIsValid) {
           logDebugMessage("Showing Hold Prompt because the user's preferred pickup location is invalid");
           loadHoldPrompt = true;
-     }else if (numItemsWithVolumes >= 1 && _.isEmpty(volumeId)) {
+     }else if (numItemsWithVolumes >= 1 && isEmpty(volumeId)) {
           logDebugMessage("Showing Hold Prompt to select volume");
           loadHoldPrompt = true;
-     }else if (_.size(safeAccounts) > 0) {
+     }else if (safeAccounts.length > 0) {
           logDebugMessage("Showing Hold Prompt due to linked accounts");
           loadHoldPrompt = true;
-     }else if (_.size(safeLocations) > 1 && user.rememberHoldPickupLocation == 0) {
+     }else if (safeLocations.length > 1 && user.rememberHoldPickupLocation == 0) {
           logDebugMessage("Showing Hold Prompt due to having locations user.rememberHoldPickupLocation = " + user.rememberHoldPickupLocation);
           loadHoldPrompt = true;
      }else if (promptForHoldNotifications) {
           logDebugMessage("Showing Hold Prompt due to prompt for hold notifications");
           loadHoldPrompt = true;
-     }else if ((holdTypeForFormat === 'item' || holdTypeForFormat === 'either') && _.isEmpty(volumeId)){
+     }else if ((holdTypeForFormat === 'item' || holdTypeForFormat === 'either') && isEmpty(volumeId)){
           logDebugMessage("Showing Hold Prompt due to hold type");
           loadHoldPrompt = true;
      }else if (shouldPromptAlternateLibraryCard && !userHasAlternateLibraryCard) {
@@ -145,14 +145,14 @@ export const PlaceHold = (props = {}) => {
 
      if (user.rememberHoldPickupLocation) {
           let userPickupLocationId = user.pickupLocationId ?? user.homeLocationId;
-          if (_.isNumber(user.pickupLocationId)) {
-               userPickupLocationId = _.toString(user.pickupLocationId);
+          if (isNumber(user.pickupLocationId)) {
+               userPickupLocationId = String(user.pickupLocationId);
           }
-          const userPickupLocation = _.filter(safeLocations, { locationId: userPickupLocationId });
+          const userPickupLocation = filter(safeLocations, { locationId: userPickupLocationId });
           let pickupLocation = '';
-          if (!_.isUndefined(userPickupLocation && !_.isEmpty(userPickupLocation))) {
+          if (userPickupLocation.length > 0) {
                pickupLocation = userPickupLocation[0];
-               if (_.isObject(pickupLocation)) {
+               if (isObject(pickupLocation)) {
                     pickupLocation = pickupLocation.locationId;
                }
           } else {
@@ -201,7 +201,7 @@ export const PlaceHold = (props = {}) => {
      } else {
           logDebugMessage("Hold can be placed without prompting");
           let holdType = 'default';
-          if (!_.isEmpty(volumeId)) {
+          if (!isEmpty(volumeId)) {
                holdType = 'volume';
           }
           // The hold can be placed without additional prompting to the user.

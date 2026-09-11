@@ -1,6 +1,6 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import _ from 'lodash';
+import { isArray, size } from '../../helpers/helpers';
 import { Box, FlatList, Center, Heading } from '@gluestack-ui/themed';
 import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -42,7 +42,7 @@ export const SearchResultsForList = () => {
      const systemMessagesForScreen = [];
 
      React.useEffect(() => {
-          if (_.isArray(systemMessages)) {
+          if (isArray(systemMessages)) {
                systemMessages.map((obj, index, collection) => {
                     if (obj.showOn === '0') {
                          systemMessagesForScreen.push(obj);
@@ -62,7 +62,7 @@ export const SearchResultsForList = () => {
           } });
 
      const showSystemMessage = () => {
-          if (_.isArray(systemMessages)) {
+          if (isArray(systemMessages)) {
                return systemMessages.map((obj, index, collection) => {
                     if (obj.showOn === '0') {
                          return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
@@ -75,7 +75,7 @@ export const SearchResultsForList = () => {
      const NoResults = () => {
           return (
                <>
-                    {_.size(systemMessagesForScreen) > 0 ? <Box p="$2">{showSystemMessage()}</Box> : null}
+                    {size(systemMessagesForScreen) > 0 ? <Box p="$2">{showSystemMessage()}</Box> : null}
                     <Center flex={1}>
                          <Heading pt="$5" color={textColor}>{getTermFromDictionary(language, 'no_results')}</Heading>
                     </Center>
@@ -85,7 +85,7 @@ export const SearchResultsForList = () => {
 
      return (
           <SafeAreaView style={{ flex: 1 }}>
-               {_.size(systemMessagesForScreen) > 0 ? <Box p="$2">{showSystemMessage()}</Box> : null}
+               {size(systemMessagesForScreen) > 0 ? <Box p="$2">{showSystemMessage()}</Box> : null}
                {status === 'loading' || isFetching ? (
                     <LoadingSpinner />
                ) : status === 'error' ? (

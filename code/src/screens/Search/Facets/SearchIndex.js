@@ -1,5 +1,5 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import _ from 'lodash';
+import { map } from '../../../helpers/helpers';
 import { useNavigation } from '@react-navigation/native';
 import { Box, HStack, Icon, Pressable, Text, VStack } from '@gluestack-ui/themed';
 import React from 'react';
@@ -32,7 +32,7 @@ export const SearchIndexScreen = () => {
           <VStack pt="$5" flex={1}>
                <ScrollView>
                     <Box px="$5">
-                         {_.map(indexes, function (obj, index, array) {
+                         {map(indexes, function (obj, index, array) {
                               return (
                                    <Pressable p="$0.5" py="$2" onPress={() => updateIndex(index)}>
                                         {currentIndex === index ? (

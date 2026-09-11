@@ -1,7 +1,7 @@
 import { Badge, BadgeText, Box, Center, HStack, Pressable, Text, VStack } from '@gluestack-ui/themed';
 import { useRoute } from '@react-navigation/native';
 import { Image } from 'expo-image';
-import _ from 'lodash';
+import { isArray, isEmpty, isObject, map } from '../../helpers/helpers';
 import React from 'react';
 
 // custom components and helper files
@@ -41,7 +41,7 @@ export const DisplayGroupedWorkResult = (props) => {
           author = item.author_display;
      }
 
-     if (_.isEmpty(formats)) {
+     if (isEmpty(formats)) {
           if (item.format) {
                formats = item.format;
           }
@@ -59,7 +59,7 @@ export const DisplayGroupedWorkResult = (props) => {
      };
 
      function getFormat(n) {
-          if (_.isArray(n) || _.isObject(n)) {
+          if (isArray(n) || isObject(n)) {
                return (
                     <Badge key={n.key} borderRadius="$sm" borderColor={theme['tokens']['colors']['secondary']['400']} variant="outline" bg="transparent">
                          <BadgeText textTransform="none" color={theme['tokens']['colors']['secondary']['400']} fontSize="$xs">
@@ -128,7 +128,7 @@ export const DisplayGroupedWorkResult = (props) => {
                               </Text>
                          ) : null}
                          <HStack mt="$4" direction="row" space="xs" flexWrap="wrap">
-                              {_.map(formats, getFormat)}
+                              {map(formats, getFormat)}
                          </HStack>
                     </VStack>
                </HStack>

@@ -1,5 +1,5 @@
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
-import _ from 'lodash';
+import { filter, isEmpty, sortBy } from '../../helpers/helpers';
 import {
      Box,
      Button,
@@ -49,7 +49,7 @@ export const SelectYourLibrary = (payload) => {
      function FilteredLibraries() {
           let haystack = libraries;
 
-          if (!_.isEmpty(query) && query !== ' ') {
+          if (!isEmpty(query) && query !== ' ') {
                haystack = allLibraries;
 
                if (!isCommunity) {
@@ -58,17 +58,17 @@ export const SelectYourLibrary = (payload) => {
           }
 
           if (!isCommunity) {
-               haystack = _.filter(haystack, function (branch) {
+               haystack = filter(haystack, function (branch) {
                     return branch.name.toLowerCase().indexOf(query.toLowerCase()) > -1;
                });
-               if (!_.isEmpty(query) && query !== ' ') {
-                    return _.sortBy(haystack, ['name', 'librarySystem']);
+               if (!isEmpty(query) && query !== ' ') {
+                    return sortBy(haystack, ['name', 'librarySystem']);
                }else{
                     return haystack;
                }
           }
 
-          return _.filter(haystack, function (branch) {
+          return filter(haystack, function (branch) {
                return branch.name.toLowerCase().indexOf(query.toLowerCase()) > -1 || branch.librarySystem.toLowerCase().indexOf(query.toLowerCase()) > -1;
           });
      }

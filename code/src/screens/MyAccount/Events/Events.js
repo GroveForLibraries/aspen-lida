@@ -3,8 +3,6 @@ import { useNavigation } from '@react-navigation/native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import * as WebBrowser from 'expo-web-browser';
-import _ from 'lodash';
-import moment from 'moment';
 import { Badge, BadgeText, Box, Button, ButtonText, ButtonGroup, ButtonIcon, Center, FlatList, HStack, Pressable, ScrollView, Text, useToken, VStack } from '@gluestack-ui/themed';
 import { useColorModeValue, useTheme } from '../../../themes/theme';
 import React from 'react';
@@ -20,6 +18,7 @@ import { navigate } from '../../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { fetchSavedEvents, removeSavedEvent } from '../../../util/api/event';
 import { refreshProfile } from '../../../util/api/user';
+import { getEventDateDisplayData } from '../../../helpers/helpers';
 import {logDebugMessage, logErrorMessage, getErrorMessage, logWarnMessage} from '../../../util/logging';
 import { useActiveLanguage } from '../../../hooks/useLanguageData';
 import { useLibrary } from '../../../hooks/useLibrarySystemData';
@@ -52,7 +51,7 @@ export const MyEvents = () => {
      }, [navigation]);
 
      React.useEffect(() => {
-          if (_.isArray(systemMessages)) {
+          if (Array.isArray(systemMessages)) {
                systemMessages.map((obj) => {
                     if (obj.showOn === '0' || obj.showOn === '1') {
                          systemMessagesForScreen.push(obj);
@@ -194,7 +193,7 @@ export const MyEvents = () => {
      };
 
      const showSystemMessage = () => {
-          if (_.isArray(systemMessages)) {
+          if (Array.isArray(systemMessages)) {
                return systemMessages.map((obj, index) => {
                     if (obj.showOn === '0' || obj.showOn === '1') {
                          return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
@@ -208,7 +207,7 @@ export const MyEvents = () => {
 
      return (
           <Box style={{ flex: 1 }}>
-               {_.size(systemMessagesForScreen) > 0 ? <Box safeArea={2}>{showSystemMessage()}</Box> : null}
+               {systemMessagesForScreen.length > 0 ? <Box safeArea={2}>{showSystemMessage()}</Box> : null}
                {getActionButtons()}
                {events.length === 0 || status === 'loading' || isFetching ? (
                     loadingSpinner()
@@ -246,12 +245,12 @@ const Item = (data) => {
      }, [library.baseUrl, updateUserProfile]);
 
      let coverUrl = event.cover;
-     if (_.isNull(event.cover)) {
+     if (event.cover === null) {
           coverUrl = library.baseUrl + '/bookcover.php?size=medium&id=' + event.sourceId;
      }
 
      let registrationRequired = false;
-     if (!_.isUndefined(event.registrationRequired)) {
+     if (event.registrationRequired !== undefined) {
           registrationRequired = event.registrationRequired;
      }
 
@@ -265,29 +264,20 @@ const Item = (data) => {
      let displayDay = false;
      let displayStartTime = false;
      let displayEndTime = false;
-     let day = '';
-     let time1arr = '';
-     let time2arr = '';
      let startTime = null;
      let endTime = null;
 
      if (start) {
           startTime = start.date;
-          let time1 = startTime.split(' ');
-          day = time1[0];
-          time1arr = time1[1].split(':');
-          displayDay = moment(day);
-          displayStartTime = moment().set({ hour: time1arr[0], minute: time1arr[1] });
-          displayDay = moment(displayDay).format('dddd, MMMM D, YYYY');
-          displayStartTime = moment(displayStartTime).format('h:mm A');
+          const displayData = getEventDateDisplayData(startTime, end?.date);
+          displayDay = displayData.displayDay;
+          displayStartTime = displayData.displayStartTime;
+          displayEndTime = displayData.displayEndTime;
      }
 
-     if (end) {
+     if (end && !displayEndTime) {
           endTime = end.date;
-          let time2 = endTime.split(' ');
-          time2arr = time2[1].split(':');
-          displayEndTime = moment().set({ hour: time2arr[0], minute: time2arr[1] });
-          displayEndTime = moment(displayEndTime).format('h:mm A');
+          displayEndTime = getEventDateDisplayData(start?.date, endTime).displayEndTime;
      }
 
      const key = 'medium_' + event.sourceId;

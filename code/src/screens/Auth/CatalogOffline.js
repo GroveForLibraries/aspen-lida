@@ -1,7 +1,6 @@
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogBody, AlertDialogFooter, AlertDialogBackdrop, Button, ButtonGroup, ButtonText, Center, Heading, Text } from '@gluestack-ui/themed';
 import React from 'react';
 import { AuthContext } from '../../context/AuthContext';
-import _ from 'lodash';
 
 import { useCatalogStatus } from '../../hooks/useLibrarySystemData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
@@ -20,7 +19,7 @@ export const CatalogOffline = () => {
 
      logInfoMessage('CatalogOffline: ' + catalogStatus);
 
-     if (catalogStatus > 0 && !_.isUndefined(theme)) {
+     if (catalogStatus > 0 && theme !== undefined) {
           return (
                <Center>
                     <AlertDialog leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={onClose}>
