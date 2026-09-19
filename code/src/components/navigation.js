@@ -38,11 +38,15 @@ enableScreens();
 
 const Stack = createNativeStackNavigator();
 
-let routingInstrumentation = null;
+// `Sentry.ReactNavigationInstrumentation` was removed from @sentry/react-native
+// in favor of this integration-based API - the old class silently no-op'd here
+// (caught by try/catch, leaving `integrations` empty), meaning no navigation
+// breadcrumbs or performance transactions were ever actually being captured.
+let navigationIntegration = null;
 try {
-     routingInstrumentation = new Sentry.ReactNavigationInstrumentation();
+     navigationIntegration = Sentry.reactNavigationIntegration();
 }catch (e) {
-     routingInstrumentation = null;
+     navigationIntegration = null;
      logWarnMessage("Could not create sentry routing instrumentation " + e);
 }
 
@@ -71,8 +75,8 @@ distribution = distribution.toString();
 try {
      logDebugMessage("Initializing sentry");
      let integrations = [];
-     if (routingInstrumentation != null) {
-          integrations.push(routingInstrumentation);
+     if (navigationIntegration != null) {
+          integrations.push(navigationIntegration);
      }
      Sentry.init({
           dsn: Constants.expoConfig.extra.sentryDSN,
@@ -89,6 +93,9 @@ try {
 
      Sentry.setTag('patch', GLOBALS.appPatch);
      Sentry.setTag('stage', GLOBALS.appStage);
+     Sentry.setTag('slug', GLOBALS.slug);
+     Sentry.setTag('libraryId', GLOBALS.libraryId);
+     Sentry.setTag('releaseChannel', GLOBALS.releaseChannel);
 }catch(e) {
      logErrorMessage("Could not initialize sentry " + e);
 }
@@ -138,6 +145,15 @@ export function App() {
                isSQLiteMigrationNeeded: false,
                migrationError: false }
       );
+
+     React.useEffect(() => {
+          // Keep Sentry's user context in sync with auth state (sign in, sign
+          // out, and cold-start session restoration) so every error reported
+          // while a session is active can be tied back to that session, and
+          // to which library server it was talking to.
+          Sentry.setUser(state.userToken ? { id: state.userToken } : null);
+          Sentry.setTag('libraryUrl', LIBRARY.url ?? undefined);
+     }, [state.userToken]);
 
      React.useEffect(() => {
           const timer = setInterval(async () => {
@@ -328,6 +344,10 @@ function AppContent({state}) {
                RemoveData(queryClient);
           }
      }, [state.isSignOut]);
+
+     React.useEffect(() => {
+          navigationIntegration?.registerNavigationContainer(navigationRef);
+     }, []);
 
      const language = useActiveLanguage();
      const { colorMode } = useTheme();

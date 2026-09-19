@@ -3,6 +3,15 @@ const data = require('../app-configs/apps.json');
 const build = require('../app-configs/build.json');
 const version = require('../version.json');
 
+function getSentryUploadUrl(sentryDsn) {
+     try {
+          return new URL(sentryDsn).origin + '/';
+     } catch (e) {
+          console.log('⚠️  Could not derive Sentry upload url from DSN: ' + sentryDsn);
+          return undefined;
+     }
+}
+
 function getArgs() {
      const args = {};
      process.argv.slice(2, process.argv.length).forEach((arg) => {
@@ -181,6 +190,7 @@ const app_config = {
                     authToken: app['sentryAuth'],
                     organization: owner['expoProjectOwner'],
                     project: app['sentryProject'],
+                    url: getSentryUploadUrl(app['sentryDsn']),
                },
           ],
           [

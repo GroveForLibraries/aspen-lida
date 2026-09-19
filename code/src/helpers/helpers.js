@@ -17,7 +17,7 @@ import chroma from 'chroma-js';
 export function formatDiscoveryVersion(payload) {
      if (payload === undefined) {
           // skip trying to parse the version if it is undefined
-          logWarnMessage('Could not load discovery version, the version was undefined. Something is wrong.');
+          logDebugMessage('Could not load discovery version, the version was undefined. Something is wrong.');
           return LIBRARY.version ?? 'Unknown';
      }
      try {
