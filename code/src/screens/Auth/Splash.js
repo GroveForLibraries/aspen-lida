@@ -1,5 +1,4 @@
 import Constants from 'expo-constants';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import { Center, Image, Spinner, VStack } from '@gluestack-ui/themed';
 import React from 'react';
@@ -77,36 +76,23 @@ export async function evaluateStartupCache() {
      // Resolve the current user/location/library identity before loading any cache.
      // locationId/libraryId are already persisted as numbers; the logged-in
      // user is only known by username at this point.
-     const [loginUserKey, storedLocationId, storedLibraryId, _translationsHydrated] = await Promise.all([
-          SecureStore.getItemAsync('userKey'),
-          SecureStore.getItemAsync('locationId'),
-          AsyncStorage.getItem('@libraryId'),
+     const [_translationsHydrated] = await Promise.all([
           ensureTranslationsLibraryHydrated(),
      ]);
 
-     const locationId = parseStoredNumber(storedLocationId);
-     if (locationId != null) {
-          setCurrentLocationId(locationId);
+     // Resolve currentUserId/currentLocationId from persisted storage before loading
+     // any cache below - loadAllUserData()/loadAllLibraryBranchData() return null
+     // if these aren't set yet, since SQLite rows are keyed by them.
+     const loginUserKey = await SecureStore.getItemAsync('userKey');
+     const resolvedUserId = await findCachedUserIdForUsername(loginUserKey ?? '');
+     if (resolvedUserId != null) {
+          setCurrentUserId(resolvedUserId);
+          await backfillLegacyUserId(resolvedUserId);
      }
 
-     const libraryId = parseStoredNumber(storedLibraryId);
-     if (libraryId != null) {
-          setCurrentLibraryId(libraryId);
-     }
-
-     const cachedUserId = await findCachedUserIdForUsername(loginUserKey);
-     if (cachedUserId != null) {
-          setCurrentUserId(cachedUserId);
-
-          // One-time backfill for installs upgrading from the pre-26.09.01 singleton-row
-          // schema: user_state already had user_id, but the other user_* tables and the
-          // browse category tables didn't, so their legacy row is still unclaimed until this
-          // runs. Must happen before the cache loads below, or this boot would see them as
-          // cache misses. No-op on every subsequent boot once the legacy rows are claimed.
-          await backfillLegacyUserId(cachedUserId);
-          if (locationId != null) {
-               await backfillLegacyBrowseCategoryScope(cachedUserId, locationId);
-          }
+     const persistedLocationId = parseStoredNumber(await SecureStore.getItemAsync('locationId'));
+     if (persistedLocationId != null) {
+          setCurrentLocationId(persistedLocationId);
      }
 
      const [cachedUserState, cachedLibraryBranchState, cachedLibrarySystemState, cachedLanguageState] = await Promise.all([
@@ -161,13 +147,28 @@ export async function evaluateStartupCache() {
      const libraryBranchCacheStale = hasUsableLibraryBranchCache && isCacheStale(branchUpdatedAt, LIBRARY_BRANCH_DATA_STALE_MS);
      const librarySystemMetadataStale = hasUsableLibrarySystemCache && isCacheStale(libraryUpdatedAt, LIBRARY_SYSTEM_METADATA_STALE_MS);
      const librarySystemMenuStale = hasUsableLibrarySystemCache && isCacheStale(libraryUpdatedAt, LIBRARY_SYSTEM_MENU_STALE_MS);
-     const languageCacheStale = hasUsableLanguageCache && isCacheStale(languageUpdatedAt, LANGUAGE_DATA_STALE_MS);
+     const languageCacheStale = !hasUsableLanguageCache || isCacheStale(languageUpdatedAt, LANGUAGE_DATA_STALE_MS);
+
+     if (hasUsableUserCache) {
+          setCurrentUserId(cachedUser.id);
+          await backfillLegacyUserId(cachedUser.id);
+     }
+
+     if (hasUsableLibrarySystemCache) {
+          setCurrentLibraryId(cachedLibrarySystemState.library.libraryId);
+     }
+
+     if (hasUsableLibraryBranchCache) {
+          setCurrentLocationId(cachedLibraryBranchState.location.locationId);
+          if (cachedLibraryBranchState.location.locationId != null && cachedUser?.id != null) {
+               await backfillLegacyBrowseCategoryScope(cachedUser.id, cachedLibraryBranchState.location.locationId);
+          }
+     }
 
      const canBypassLoading =
           hasUsableUserCache &&
           hasUsableLibraryBranchCache &&
-          hasUsableLibrarySystemCache &&
-          hasUsableLanguageCache;
+          hasUsableLibrarySystemCache;
      logDebugMessage("Can bypass loading? " + canBypassLoading);
 
       try {

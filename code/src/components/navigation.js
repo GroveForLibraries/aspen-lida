@@ -290,10 +290,23 @@ export function App() {
                     //queryClient.invalidateQueries({});
                     const userToken = GLOBALS.appSessionId;
                     await AsyncStorage.setItem('@userToken', userToken);
+
+                    let startupCache = null;
+                    let refreshData = true;
+                    try {
+                         startupCache = await evaluateStartupCache();
+                         refreshData = !(startupCache?.canBypassLoading ?? false);
+                    } catch (error) {
+                         logErrorMessage('Failed startup cache evaluation on sign-in, using Loading screen fallback');
+                         logErrorMessage(error);
+                         refreshData = true;
+                    }
+
                     dispatch({
                          type: 'SIGN_IN',
                          token: userToken,
-                         refreshData: true });
+                         refreshData,
+                         startupCache });
                },
                signOut: async () => {
                     logDebugMessage('Session ended.');

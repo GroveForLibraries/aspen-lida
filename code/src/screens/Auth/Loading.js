@@ -7,31 +7,20 @@ import * as Sentry from '@sentry/react-native';
 import { SystemMessagesContext } from '../../context/initialContext';
 import { buildThemeForLibrary, useTheme } from '../../themes/theme';
 import {
-     getLanguageDisplayName,
      getTermFromDictionary,
-     getTranslatedTermsForUserPreferredLanguage,
-     setTranslationsLibrary,
-     translationsLibrary } from '../../translations/TranslationService';
+     setTranslationsLibrary } from '../../translations/TranslationService';
 import {
      getCatalogStatus,
      getLibraryInfo,
-     getLibraryLanguages,
      getLibraryLinks,
      getLocationInfo,
-      normalizeLibraryLanguagesPayload,
      getSelfCheckSettings,
      getSystemMessages
 } from '../../util/api/system';
 import {getHomeScreenFeed} from '../../util/api/search';
 import {
-     fetchNotificationHistory,
-     getAppPreferencesForUser,
-     getPickupLocations,
-     getPickupSublocations,
-     getLinkedAccounts,
      refreshProfile
 } from '../../util/api/user';
-import {formatLinkedAccounts, formatNotificationHistory, formatPickupLocations} from '../../util/api/userHelper';
 
 import { LIBRARY } from '../../util/globals';
 import {CatalogOffline} from './CatalogOffline';
@@ -41,12 +30,6 @@ import {
      loadAllUserData,
      loadAllLibraryBranchData,
      saveUserProfile,
-     saveAccounts,
-     saveLocations,
-     saveCards,
-     saveAppPreferences,
-     saveNotificationHistory,
-     saveInbox,
      saveAllLibraryBranchData,
      loadAllLibrarySystemData,
      loadAllLanguageData,
@@ -61,12 +44,10 @@ import {
      loadLocation,
      setCurrentUserId,
      setCurrentLocationId,
-     setCurrentLibraryId,
+     getCurrentLibraryId,
      findCachedUserIdForUsername,
      backfillLegacyUserId} from '../../util/db';
-import {
-     useUpdateLibraryVersion,
-     useUpdateCatalogStatus } from '../../hooks/useLibrarySystemData';
+import { useUpdateLibraryVersion, useUpdateCatalogStatus, useAppSettings } from '../../hooks/useLibrarySystemData';
 import {
      useUpdateBrowseCategories,
      useUpdateMaxCategories } from '../../hooks/useBrowseCategoryData';
@@ -81,6 +62,7 @@ import {
 import {getErrorMessage, logDebugMessage, logErrorMessage, logWarnMessage} from '../../util/logging.js';
 import { isPlainObject, orderByFields, stripHTML, RemoveData, parseStoredNumber } from '../../helpers/helpers';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useDataSync } from '../../hooks/useDataSync';
 
 const USER_DATA_STALE_MS = 24 * 60 * 60 * 1000;         // 24 hours
 const LANGUAGE_DATA_STALE_MS = 24 * 60 * 60 * 1000;     // 24 hours
@@ -182,7 +164,7 @@ export const LoadingScreen = () => {
         const [libraryLinksQuerySuccess, setLibraryLinksQuerySuccess] = React.useState(false);
         const [browseCategoryQuerySuccess, setBrowseCategoryQuerySuccess] = React.useState(false);
        const library = libraryData ?? {};
-       const appSettings = libraryData?.appSettings ?? LIBRARY?.appSettings ?? {};
+       const appSettings = useAppSettings();
        const loadingMessageType = appSettings?.loadingMessageType;
        const loadingMessage = appSettings?.loadingMessage;
        const user = loadedUser;
@@ -194,82 +176,43 @@ export const LoadingScreen = () => {
 
      const numSteps = 14;
 
-     const isCachedUserForCurrentLogin = React.useCallback(async (cachedUser) => {
-          if (!cachedUser) return false;
-          const loginUserKey = (await SecureStore.getItemAsync('userKey')) ?? '';
-          const normalizedKey = String(loginUserKey).toLowerCase();
-          const normalizedCat = String(cachedUser?.cat_username ?? '').toLowerCase();
-          const normalizedBarcode = String(cachedUser?.ils_barcode ?? '').toLowerCase();
-          return !normalizedKey || normalizedKey === normalizedCat || normalizedKey === normalizedBarcode;
-     }, []);
-
-     const applyStaleUserFallback = React.useCallback(async () => {
-          logDebugMessage("Applying Stale User Fallback");
-          const cached = await loadAllUserData();
-          const cachedUser = cached?.user ?? null;
-          const isCurrentUser = await isCachedUserForCurrentLogin(cachedUser);
-          if (!isCurrentUser) return false;
-
-          const fallbackLanguage = cachedUser.interfaceLanguage ?? 'en';
-          setLoadedUser(cachedUser);
-          await updateLanguage(fallbackLanguage);
-          await updateLanguageDisplayName(getLanguageDisplayName(fallbackLanguage, languages));
-          try {
-               await getTranslatedTermsForUserPreferredLanguage(fallbackLanguage, LIBRARY.url);
-               setTranslationsLibrary(translationsLibrary);
-               await updateDictionary(translationsLibrary);
-          } catch (translationError) {
-               logWarnMessage('Unable to refresh translations for stale cached user language. Continuing startup with cached dictionary.');
-               logErrorMessage(translationError);
-          }
-          setHasUsableUserCache(true);
-          setShouldBlockUserFetch(false);
-          setIsInitialUserDataReady(true);
-          return true;
-     }, [isCachedUserForCurrentLogin, languages, updateLanguage, updateLanguageDisplayName, updateDictionary]);
-
-     const applyStaleLibraryBranchFallback = React.useCallback(async () => {
-          const cached = await loadAllLibraryBranchData();
-          const hasStaleBranchData = !!cached?.location && !!cached.location.locationId;
-          if (!hasStaleBranchData) return false;
-
-          setLocation(cached?.location || {});
-          setHasUsableLibraryBranchCache(true);
-          setShouldBlockLibraryBranchFetch(false);
-          setIsInitialLibraryBranchDataReady(true);
-          return true;
-     }, []);
-
-     const applyStaleLibrarySystemFallback = React.useCallback(async () => {
-          const cached = await loadAllLibrarySystemData();
-          if (!cached?.library) return false;
-
-          setLibraryData(cached.library);
-          if (cached.library.discoveryVersion) {
-               await updateLibraryVersion(cached.library.discoveryVersion);
-          }
-          setHasUsableLibrarySystemCache(true);
-          setShouldBlockLibrarySystemFetch(false);
-          setIsInitialLibrarySystemDataReady(true);
-          setLibraryLinksQuerySuccess(true);
-          return true;
-     }, [updateLibraryVersion]);
-
-     const applyStaleLanguageFallback = React.useCallback(async () => {
-          const cached = await loadAllLanguageData();
-          const cachedLanguages = Array.isArray(cached?.languages) ? cached.languages : [];
-          const hasStaleLanguageData = cachedLanguages.length > 0;
-          if (!hasStaleLanguageData) return false;
-
-          const cachedDictionary = isPlainObject(cached?.dictionary) ? cached.dictionary : {};
-          await updateLanguages(cachedLanguages);
-          setTranslationsLibrary(cachedDictionary);
-          await updateDictionary(cachedDictionary);
-          setHasUsableLanguageCache(true);
-          setShouldBlockLanguageFetch(false);
-          setIsInitialLanguageDataReady(true);
-          return true;
-     }, [updateLanguages, updateDictionary]);
+     const {
+          fetchAndPersistUserData,
+          fetchAndPersistLibraryBranchData,
+          fetchAndPersistLibrarySystemData,
+          fetchAndPersistLanguageData,
+          applyStaleLibrarySystemFallback,
+     } = useDataSync({
+          library,
+          language,
+          languages,
+          updateLanguage,
+          updateLanguageDisplayName,
+          updateLanguages,
+          updateDictionary,
+          updateLibraryVersion,
+          numSteps,
+          setLoadedUser,
+          setLocation,
+          setLibraryData,
+          setLibraryLinksQuerySuccess,
+          setHasError,
+          setErrorTitle,
+          setErrorMessage,
+          setProgress,
+          setHasUsableUserCache,
+          setShouldBlockUserFetch,
+          setIsInitialUserDataReady,
+          setHasUsableLibraryBranchCache,
+          setShouldBlockLibraryBranchFetch,
+          setIsInitialLibraryBranchDataReady,
+          setHasUsableLibrarySystemCache,
+          setShouldBlockLibrarySystemFetch,
+          setIsInitialLibrarySystemDataReady,
+          setHasUsableLanguageCache,
+          setShouldBlockLanguageFetch,
+          setIsInitialLanguageDataReady,
+     });
 
      /**
       * Handle silent SQLite migration for users upgrading from Context storage.
@@ -332,7 +275,6 @@ export const LoadingScreen = () => {
                     if (migrationCancelled) return;
 
                     // Attempt to fetch and save library system data
-                    setCurrentLibraryId(LIBRARY.id);
                     const catalogResp = await getCatalogStatus(LIBRARY.url);
                     let catalogStatus = 0;
                     let catalogStatusMessage = '';
@@ -343,7 +285,7 @@ export const LoadingScreen = () => {
                          }
                     }
 
-                    const libraryResp = await getLibraryInfo(LIBRARY.url, LIBRARY.id);
+                    const libraryResp = await getLibraryInfo(LIBRARY.url, getCurrentLibraryId());
                     if (!libraryResp?.ok) {
                          throw new Error('Failed to load library info');
                     }
@@ -402,391 +344,17 @@ export const LoadingScreen = () => {
           };
      }, [isScreenFocused, isSQLiteMigrationNeeded, hasResolvedLibraryContext, queryClient, navigation]);
 
-     const fetchAndPersistUserData = React.useCallback(async ({ runInBackground = false } = {}) => {
-          const invocationId = ++userDataFetchInvocationRef.current;
-          logDebugMessage({
-               event: 'fetchAndPersistUserData:start',
-               invocationId,
-               runInBackground });
-          try {
-               const profileResp = await refreshProfile(LIBRARY.url);
-               const validProfile = profileResp?.ok && profileResp?.data?.result?.success !== false && profileResp?.data?.result?.success !== 'false';
-               if (!validProfile) {
-                    if (runInBackground) return false;
-                    const usedStaleData = await applyStaleUserFallback();
-                    if (usedStaleData) {
-                         setProgress(prevProgress => prevProgress + (100 / numSteps));
-                         return true;
-                    }
-                    const error = getErrorMessage(profileResp?.code ?? 0, profileResp?.problem);
-                    setHasError(true);
-                    setErrorTitle('Unable to load patron profile');
-                    setErrorMessage(error.message);
-                    return false;
-               }
-
-               const profile = profileResp.data.result.profile ?? {};
-               await saveUserProfile(profile);
-               setLoadedUser(profile);
-               logDebugMessage("Updating language in fetchAndPersistUserData");
-                const profileLanguage = profile.interfaceLanguage ?? 'en';
-                await updateLanguage(profileLanguage);
-                await updateLanguageDisplayName(getLanguageDisplayName(profileLanguage ?? 'en', languages));
-                try {
-                     await getTranslatedTermsForUserPreferredLanguage(profileLanguage, LIBRARY.url);
-                     setTranslationsLibrary(translationsLibrary);
-                     await updateDictionary(translationsLibrary);
-                } catch (translationError) {
-                     logWarnMessage('Unable to refresh translations for interface language after profile load. Continuing startup.');
-                     logErrorMessage(translationError);
-                }
-
-                try {
-                     const languageResponse = await getLibraryLanguages(LIBRARY.url);
-                     if (languageResponse?.ok) {
-                          const fetchedLanguages = normalizeLibraryLanguagesPayload(
-                               languageResponse?.data?.result?.languages
-                          );
-                          await updateLanguages(fetchedLanguages);
-                          if (fetchedLanguages.length > 0) {
-                               setIsInitialLanguageDataReady(true);
-                          }
-                     }
-                } catch (languageListError) {
-                     logWarnMessage('Unable to refresh available language list after profile load. Continuing startup.');
-                     logErrorMessage(languageListError);
-                }
-
-               const pickupResp = typeof getPickupLocations === 'function'
-                    ? await getPickupLocations(LIBRARY.url)
-                    : null;
-               if (pickupResp?.ok) {
-                    const pickupLocations = formatPickupLocations(pickupResp.data?.result ?? {});
-                    await saveLocations(pickupLocations?.locations ?? []);
-               }
-
-               if (typeof getPickupSublocations === 'function') {
-                    await getPickupSublocations(LIBRARY.url);
-               }
-
-                const linkedResp = await getLinkedAccounts(LIBRARY.url, 'en');
-                if (linkedResp?.ok) {
-                     const linkedAccounts = formatLinkedAccounts(profile, [], library?.barcodeStyle ?? 'UNKNOWN', linkedResp.data?.result?.linkedAccounts);
-                     await saveAccounts(linkedAccounts.accounts ?? []);
-                     await saveCards(linkedAccounts.cards ?? []);
-                }
-
-                const appPrefsResp = await getAppPreferencesForUser(LIBRARY.url, 'en');
-                if (appPrefsResp?.ok) {
-                     await saveAppPreferences(appPrefsResp.data?.result ?? {});
-                }
-
-                const notifResp = await fetchNotificationHistory(1, 20, true, LIBRARY.url, 'en');
-                if (notifResp?.ok) {
-                     const notificationHistory = formatNotificationHistory(notifResp.data?.result ?? {});
-                     await saveNotificationHistory(notificationHistory);
-                     await saveInbox(notificationHistory?.inbox ?? []);
-                }
-
-                if (!runInBackground) {
-                     setProgress(prevProgress => prevProgress + (100 / numSteps));
-                     setIsInitialUserDataReady(true);
-                }
-
-                logDebugMessage({
-                     event: 'fetchAndPersistUserData:success',
-                     invocationId,
-                     runInBackground });
-
-                return true;
-          } catch (error) {
-               if (runInBackground) {
-                    logWarnMessage('Background user-data refresh failed. Continuing with cached data.');
-                    logErrorMessage(error);
-                    return false;
-               }
-               const usedStaleData = await applyStaleUserFallback();
-               if (usedStaleData) {
-                    setProgress(prevProgress => prevProgress + (100 / numSteps));
-                    return true;
-               }
-               logDebugMessage({
-                    event: 'fetchAndPersistUserData:error',
-                    invocationId,
-                    runInBackground });
-               setHasError(true);
-               setErrorTitle(null);
-               setErrorMessage('Error loading user data. Please try again or contact the library.');
-               logErrorMessage(error);
-               return false;
-          }
-     }, [applyStaleUserFallback, library?.barcodeStyle, languages, numSteps, updateLanguage, updateLanguageDisplayName]);
-
       React.useEffect(() => {
            fetchAndPersistUserDataRef.current = fetchAndPersistUserData;
       }, [fetchAndPersistUserData]);
-
-      const fetchAndPersistLibraryBranchData = React.useCallback(async ({ runInBackground = false } = {}) => {
-          const invocationId = ++libraryBranchFetchInvocationRef.current;
-          logDebugMessage({
-               event: 'fetchAndPersistLibraryBranchData:start',
-               invocationId,
-               runInBackground });
-          try {
-               // Fetch location info
-               const configuredLocationId = await SecureStore.getItemAsync('locationId');
-               const locationResp = await getLocationInfo(LIBRARY.url, configuredLocationId);
-               if (!locationResp?.ok) {
-                    if (runInBackground) {
-                         logWarnMessage('Background location refresh failed. Continuing with cached data.');
-                         return false;
-                    }
-                    const usedStaleData = await applyStaleLibraryBranchFallback();
-                    if (usedStaleData) {
-                         return true;
-                    }
-                    const error = getErrorMessage(locationResp?.code ?? 0, locationResp?.problem);
-                    setHasError(true);
-                    setErrorTitle("Unable to load library branches");
-                    setErrorMessage(error.message);
-                    return false;
-               }
-
-               const location = locationResp.data.result?.location ?? [];
-
-               // Fetch self-check settings
-               const selfCheckLocationId = configuredLocationId ?? location?.locationId ?? null;
-               logDebugMessage({
-                    event: 'self_check_settings_request',
-                    configuredLocationId,
-                    locationDataLocationId: location?.locationId ?? null,
-                    selfCheckLocationId,
-               });
-               const selfCheckResp = await getSelfCheckSettings(LIBRARY.url, selfCheckLocationId);
-               let selfCheckEnabled;
-               let selfCheckSettings;
-
-               if (selfCheckResp?.ok) {
-                    const result = selfCheckResp.data?.result ?? {};
-                    const settings = isPlainObject(result?.settings) ? result.settings : {};
-                    const rawEnabled = result?.settings?.isEnabled;
-                    const normalizedEnabled = resolveSelfCheckEnabled(result);
-                    const success = result?.success === true || result?.success === 'true';
-                    logDebugMessage({
-                         event: 'self_check_settings_response',
-                         locationId: selfCheckLocationId,
-                         success,
-                         rawEnabled,
-                         normalizedEnabled,
-                    });
-
-                    if (typeof normalizedEnabled === 'boolean') {
-                         selfCheckEnabled = normalizedEnabled;
-                    }
-
-                    if (Object.keys(settings).length > 0) {
-                         selfCheckSettings = settings;
-                    } else if (success) {
-                         logWarnMessage({
-                              event: 'self_check_enabled_unrecognized',
-                              locationId: selfCheckLocationId,
-                              settings: result?.settings ?? null,
-                         });
-                    }
-               }
-
-                // Save all library branch data in one transaction
-                await saveAllLibraryBranchData({
-                     location: location,
-                     ...(typeof selfCheckEnabled !== 'undefined' ? { enableSelfCheck: selfCheckEnabled } : {}),
-                     ...(typeof selfCheckSettings !== 'undefined' ? { selfCheckSettings } : {})
-                });
-
-                if (!runInBackground) {
-                     setIsInitialLibraryBranchDataReady(true);
-                     setLocation(location);
-                }
-
-               logDebugMessage({
-                    event: 'fetchAndPersistLibraryBranchData:success',
-                    invocationId,
-                    runInBackground });
-
-               return true;
-          } catch (error) {
-               if (runInBackground) {
-                    logWarnMessage('Background library-branch-data refresh failed. Continuing with cached data.');
-                    logErrorMessage(error);
-                    return false;
-               }
-               const usedStaleData = await applyStaleLibraryBranchFallback();
-               if (usedStaleData) {
-                    return true;
-               }
-               logDebugMessage({
-                    event: 'fetchAndPersistLibraryBranchData:error',
-                    invocationId,
-                    runInBackground });
-               setHasError(true);
-               setErrorTitle(null);
-               setErrorMessage('Error loading library branch data. Please try again or contact the library.');
-               logErrorMessage(error);
-               return false;
-          }
-     }, [applyStaleLibraryBranchFallback]);
 
       React.useEffect(() => {
            fetchAndPersistLibraryBranchDataRef.current = fetchAndPersistLibraryBranchData;
       }, [fetchAndPersistLibraryBranchData]);
 
-      const fetchAndPersistLibrarySystemData = React.useCallback(async ({ runInBackground = false } = {}) => {
-           const invocationId = ++librarySystemFetchInvocationRef.current;
-           logDebugMessage({
-                event: 'fetchAndPersistLibrarySystemData:start',
-                invocationId,
-                runInBackground });
-           try {
-                setCurrentLibraryId(LIBRARY.id);
-
-                // Fetch catalog status
-                const catalogResp = await getCatalogStatus(LIBRARY.url);
-                let catalogStatus = 0;
-                let catalogStatusMessage = '';
-                if (catalogResp?.ok) {
-                     catalogStatus = catalogResp.data.result?.catalogStatus ?? 0;
-                     if (catalogResp.data.result?.api?.message) {
-                          catalogStatusMessage = stripHTML(catalogResp.data.result.api.message);
-                     }
-                }
-
-                // Fetch library info
-                const libraryResp = await getLibraryInfo(LIBRARY.url, LIBRARY.id);
-                if (!libraryResp?.ok) {
-                     if (runInBackground) {
-                          logWarnMessage('Background library info refresh failed. Continuing with cached data.');
-                          return false;
-                     }
-                     const usedStaleData = await applyStaleLibrarySystemFallback();
-                     if (usedStaleData) {
-                          return true;
-                     }
-                     const error = getErrorMessage(libraryResp?.code ?? 0, libraryResp?.problem);
-                     setHasError(true);
-                     setErrorTitle("Unable to load library info");
-                     setErrorMessage(error.message);
-                     return false;
-                }
-
-                const libraryInfo = libraryResp.data.result?.library ?? {};
-                setLibraryData(libraryInfo);
-
-                // Fetch library links (menu)
-                const linksResp = await getLibraryLinks(LIBRARY.url);
-                const menu = linksResp?.ok ? (linksResp.data.result?.items ?? []) : [];
-
-                // Save library system data
-                await saveCatalogStatus(catalogStatus, catalogStatusMessage);
-                await saveLibrary(libraryInfo);
-                await saveMenu(menu);
-
-                // Update library version if present
-                if (libraryInfo.discoveryVersion) {
-                     await updateLibraryVersion(libraryInfo.discoveryVersion);
-                }
-
-                if (!runInBackground) {
-                     setIsInitialLibrarySystemDataReady(true);
-                     setLibraryLinksQuerySuccess(true);
-                }
-
-                logDebugMessage({
-                     event: 'fetchAndPersistLibrarySystemData:success',
-                     invocationId,
-                     runInBackground });
-
-                return true;
-           } catch (error) {
-                if (runInBackground) {
-                     logWarnMessage('Background library-system-data refresh failed. Continuing with cached data.');
-                     logErrorMessage(error);
-                     return false;
-                }
-                const usedStaleData = await applyStaleLibrarySystemFallback();
-                if (usedStaleData) {
-                     return true;
-                }
-                logDebugMessage({
-                     event: 'fetchAndPersistLibrarySystemData:error',
-                     invocationId,
-                     runInBackground });
-                setHasError(true);
-                setErrorTitle(null);
-                setErrorMessage('Error loading library system data. Please try again or contact the library.');
-                logErrorMessage(error);
-                return false;
-           }
-      }, [applyStaleLibrarySystemFallback, updateLibraryVersion]);
-
        React.useEffect(() => {
             fetchAndPersistLibrarySystemDataRef.current = fetchAndPersistLibrarySystemData;
        }, [fetchAndPersistLibrarySystemData]);
-
-       const fetchAndPersistLanguageData = React.useCallback(async ({ runInBackground = false } = {}) => {
-            try {
-                 const activeLanguage = language ?? 'en';
-
-                 const languageResponse = await getLibraryLanguages(LIBRARY.url);
-                 if (!languageResponse?.ok) {
-                      if (runInBackground) {
-                           logWarnMessage('Background language-list refresh failed. Continuing with cached language list.');
-                           return false;
-                      }
-                      const usedStaleData = await applyStaleLanguageFallback();
-                      if (usedStaleData) {
-                           setProgress(prevProgress => prevProgress + (100 / numSteps));
-                           return true;
-                      }
-                      const error = getErrorMessage(languageResponse?.code ?? 0, languageResponse?.problem);
-                      setHasError(true);
-                      setErrorTitle('Unable to load library languages');
-                      setErrorMessage(error.message);
-                      return false;
-                 }
-
-                 //No need to sort these since they are already sorted by the API
-                 const fetchedLanguages = normalizeLibraryLanguagesPayload(
-                      languageResponse?.data?.result?.languages
-                 );
-                 await updateLanguages(fetchedLanguages);
-
-                 await getTranslatedTermsForUserPreferredLanguage(activeLanguage, LIBRARY.url);
-                 setTranslationsLibrary(translationsLibrary);
-                 await updateDictionary(translationsLibrary);
-
-                 if (!runInBackground) {
-                      setIsInitialLanguageDataReady(true);
-                      setProgress(prevProgress => prevProgress + (100 / numSteps));
-                 }
-
-                 return true;
-            } catch (error) {
-                 if (runInBackground) {
-                      logWarnMessage('Background language-data refresh failed. Continuing with cached translations.');
-                      logErrorMessage(error);
-                      return false;
-                 }
-                 const usedStaleData = await applyStaleLanguageFallback();
-                 if (usedStaleData) {
-                      setProgress(prevProgress => prevProgress + (100 / numSteps));
-                      return true;
-                 }
-                 setHasError(true);
-                 setErrorTitle(null);
-                 setErrorMessage('Error loading language data. Please try again or contact the library.');
-                 logErrorMessage(error);
-                 return false;
-            }
-       }, [applyStaleLanguageFallback, language, updateLanguages, updateDictionary, numSteps]);
 
        React.useEffect(() => {
             if (!isScreenFocused || !hasResolvedLibraryContext || hasError) return;
@@ -954,7 +522,6 @@ export const LoadingScreen = () => {
            const hydrateLibrarySystemCache = async () => {
                 try {
                      logDebugMessage('hydrateLibrarySystemCache: starting SQLite hydration');
-                     setCurrentLibraryId(LIBRARY.id);
 
                      const cached = await loadAllLibrarySystemData();
                      const hasAnyCachedLibrarySystemData = !!cached && !!cached.library;
@@ -1255,9 +822,7 @@ export const LoadingScreen = () => {
 
            (async () => {
                 try {
-                     setCurrentLibraryId(LIBRARY.id);
-
-                     const data = await getLibraryInfo(LIBRARY.url, LIBRARY.id);
+                     const data = await getLibraryInfo(LIBRARY.url, getCurrentLibraryId());
                      if (cancelled) return;
 
                      if (data?.ok) {

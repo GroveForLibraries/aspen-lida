@@ -1,5 +1,4 @@
 import { LIBRARY, isBrandedApp } from '../globals';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { logDebugMessage, logErrorMessage, logInfoMessage, logWarnMessage } from '../logging';
 import { GLOBALS } from '../globals';
 import { popToast } from '../../components/feedback';
@@ -7,6 +6,7 @@ import { createApiClient } from './apiFactory';
 import { generateSwatches, buildSwatchFromThemeTokens } from '../../helpers/helpers';
 import { getTermFromDictionary } from '../../translations/TranslationHelper';
 import { notifyThemeCatalogChanged } from '../../hooks/useThemeData';
+import { getCurrentLibraryId, getCurrentLocationId } from '../db/sessionContext';
 
 /**
  * Return basic information about the library
@@ -18,9 +18,9 @@ export async function getLibraryInfo(url = null, id = null) {
      let libraryId;
 
      try {
-          libraryId = await AsyncStorage.getItem('@libraryId');
+          libraryId = getCurrentLibraryId();
      } catch (e) {
-          logErrorMessage('Error loading library info');
+          logErrorMessage('Error loading library id from session context');
           logErrorMessage(e);
      }
 
@@ -210,7 +210,7 @@ export async function getLocalIllForm(url = null, id) {
 export async function getLocationInfo(url = null, locationId = null) {
      if (!locationId) {
           try {
-               locationId = await AsyncStorage.getItem('@locationId');
+               locationId = getCurrentLocationId();
           } catch (e) {
                logDebugMessage(e);
           }
@@ -235,7 +235,7 @@ export async function getSelfCheckSettings(url = null, locationIdOverride = null
 
      if (locationId === null || typeof locationId === 'undefined' || locationId === '') {
           try {
-               locationId = await AsyncStorage.getItem('@locationId');
+               locationId = getCurrentLocationId();
           } catch (e) {
                logDebugMessage(e);
           }
@@ -762,7 +762,7 @@ export async function getThemeInfo(url = null, locationId = null) {
           timeout: 10000,
      });
      const response = await client.get('/SystemAPI?method=getThemeInfo', {
-          id: isBranded ? (fallbackThemeInfoId ?? locationId) : GLOBALS.themeId,
+          id: isBranded ? (fallbackThemeInfoId ?? locationId ?? fallbackThemeId) : GLOBALS.themeId,
      });
 
      if (response.ok) {
