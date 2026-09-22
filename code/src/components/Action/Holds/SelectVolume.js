@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getVolumes } from '../../../util/api/item';
 import { loadingSpinner } from '../../loadingSpinner';
 import { loadError } from '../../loadError';
-import _ from 'lodash';
+import { isEmpty } from '../../../helpers/helpers';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 
 export const SelectVolume = (props) => {
@@ -18,8 +18,9 @@ export const SelectVolume = (props) => {
           queryFn: () => getVolumes(id, url),
           enabled: !!showModal,
      });
+     const volumeOptions = Object.values(data ?? {});
 
-     if (!isFetching && data && _.isEmpty(volume)) {
+     if (!isFetching && data && isEmpty(volume)) {
           let volumesKeys = Object.keys(data);
           let key = volumesKeys[0];
           setVolume(data[key].volumeId);
@@ -65,7 +66,7 @@ export const SelectVolume = (props) => {
                                    </FormControlLabel>
                                    <Select name="volumeForHold" selectedValue={volume} defaultValue={volume} minWidth="200" accessibilityLabel={getTermFromDictionary(language, 'select_volume')} mt="$1" mb="$2" onValueChange={(itemValue) => setVolume(itemValue)}>
                                         <SelectTrigger variant="outline" size="md">
-                                             {_.map(data, function (item, index, array) {
+                                             {volumeOptions.map((item) => {
                                                   if (item.volumeId === volume) {
                                                        return <SelectInput py={0} value={item.label} color={textColor} />;
                                                   }
@@ -81,7 +82,7 @@ export const SelectVolume = (props) => {
                                                        <SelectDragIndicator />
                                                   </SelectDragIndicatorWrapper>
                                                   <SelectScrollView>
-                                                       {_.map(data, function (item, index, array) {
+                                                       {volumeOptions.map((item, index) => {
                                                             if (item.volumeId === volume) {
                                                                  return <SelectItem label={item.label} value={item.volumeId} key={index} bgColor={theme.tokens.colors.tertiary['300']} sx={{ _text: { color: theme.tokens.colors.tertiary['500-text'] } }} />;
                                                             }

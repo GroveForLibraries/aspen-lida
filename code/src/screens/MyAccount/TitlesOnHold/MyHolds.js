@@ -1,6 +1,6 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useIsFetching, useQuery, useQueryClient } from '@tanstack/react-query';
-import _ from 'lodash';
+import { find, isArray, isEmpty, isObject, set, size } from '../../../helpers/helpers';
 import { Box, Button, ButtonText, Center, CheckboxGroup, ChevronDownIcon, FormControl, Heading, HStack, Icon, ScrollView, Select, SelectBackdrop, SelectDragIndicator, SelectDragIndicatorWrapper, SelectIcon, SelectInput, SelectTrigger, SelectItem, SelectContent, SelectPortal, SelectScrollView, Text, AlertIcon, InfoIcon, AlertText, Alert, VStack } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform, SectionList } from 'react-native';
@@ -113,7 +113,7 @@ export const MyHolds = () => {
      const toggleHoldSource = async (value) => {
           setHoldSource(value);
           //setLoading(true);
-          if (!_.isNull(value)) {
+          if (value !== null) {
                if (value === 'ils') {
                     navigation.setOptions({ title: getTermFromDictionary(language, 'titles_on_hold_for_ils') });
                } else if (value === 'overdrive') {
@@ -142,55 +142,55 @@ export const MyHolds = () => {
                     term = getTermFromDictionary(language, 'sort_by_title');
 
                     if (!term.includes('%1%')) {
-                         tmp = _.set(tmp, 'title', term);
+                         tmp = set(tmp, 'title', term);
                          setSortBy(tmp);
                     }
 
                     term = getTermFromDictionary(language, 'sort_by_author');
                     if (!term.includes('%1%')) {
-                         tmp = _.set(tmp, 'author', term);
+                         tmp = set(tmp, 'author', term);
                          setSortBy(tmp);
                     }
 
                     term = getTermFromDictionary(language, 'sort_by_format');
                     if (!term.includes('%1%')) {
-                         tmp = _.set(tmp, 'format', term);
+                         tmp = set(tmp, 'format', term);
                          setSortBy(tmp);
                     }
 
                     term = getTermFromDictionary(language, 'sort_by_status');
                     if (!term.includes('%1%')) {
-                         tmp = _.set(tmp, 'status', term);
+                         tmp = set(tmp, 'status', term);
                          setSortBy(tmp);
                     }
 
                     term = getTermFromDictionary(language, 'sort_by_date_placed');
                     if (!term.includes('%1%')) {
-                         tmp = _.set(tmp, 'date_placed', term);
+                         tmp = set(tmp, 'date_placed', term);
                          setSortBy(tmp);
                     }
 
                     term = getTermFromDictionary(language, 'sort_by_position');
                     if (!term.includes('%1%')) {
-                         tmp = _.set(tmp, 'position', term);
+                         tmp = set(tmp, 'position', term);
                          setSortBy(tmp);
                     }
 
                     term = getTermFromDictionary(language, 'sort_by_pickup_location');
                     if (!term.includes('%1%')) {
-                         tmp = _.set(tmp, 'pickup_location', term);
+                         tmp = set(tmp, 'pickup_location', term);
                          setSortBy(tmp);
                     }
 
                     term = getTermFromDictionary(language, 'sort_by_library_account');
                     if (!term.includes('%1%')) {
-                         tmp = _.set(tmp, 'library_account', term);
+                         tmp = set(tmp, 'library_account', term);
                          setSortBy(tmp);
                     }
 
                     term = getTermFromDictionary(language, 'sort_by_expiration');
                     if (!term.includes('%1%')) {
-                         tmp = _.set(tmp, 'expiration', term);
+                         tmp = set(tmp, 'expiration', term);
                          setSortBy(tmp);
                     }
 
@@ -613,16 +613,16 @@ export const MyHolds = () => {
      };
 
      const displaySectionFooter = (title) => {
-          const sectionData = _.find(filteredSections, { title: title });
+          const sectionData = find(filteredSections, { title: title });
           const sectionItems = sectionData?.data ?? [];
           if (title === 'Pending') {
-               if (_.isEmpty(sectionItems)) {
+               if (isEmpty(sectionItems)) {
                     return noHolds(title);
                } else {
                     return <Box mb="300px"></Box>;
                }
           } else if (title === 'Ready') {
-               if (_.isEmpty(sectionItems)) {
+               if (isEmpty(sectionItems)) {
                     return noHolds(title);
                }
           }
@@ -630,7 +630,7 @@ export const MyHolds = () => {
      };
 
      const showSystemMessage = () => {
-          if (_.isArray(systemMessages)) {
+          if (isArray(systemMessages)) {
                return systemMessages.map((obj, index, collection) => {
                     if (obj.showOn === '0' || obj.showOn === '1' || obj.showOn === '3') {
                          return <DisplaySystemMessage key={`system-msg-${obj.id || index}`} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
@@ -640,7 +640,7 @@ export const MyHolds = () => {
           return null;
      };
 
-     const showLoading = isLoading || (_.isEmpty(holds) && isFetchingHolds);
+     const showLoading = isLoading || (isEmpty(holds) && isFetchingHolds);
 
      return (
           <Box flex={1}>
@@ -659,7 +659,7 @@ export const MyHolds = () => {
                                         },
                                         padding: 0,
                                         margin: 0,
-                                        paddingBottom: _.size(systemMessages) >= 2 ? 300 : 30,
+                                        paddingBottom: size(systemMessages) >= 2 ? 300 : 30,
                                    }}
                                    name="Holds"
                                    value={values}
@@ -667,7 +667,7 @@ export const MyHolds = () => {
                                    onChange={(newValues) => {
                                         saveGroupValue(newValues);
                                    }}>
-                                   {_.isObject(holds) ? (
+                                   {isObject(holds) ? (
                                         <SectionList
                                              style={{ width: '100%' }}
                                              sections={filteredSections}

@@ -1,5 +1,5 @@
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
-import _ from 'lodash';
+import { findIndex, get, isNumber, nth } from '../../../helpers/helpers';
 import {
      ActionsheetItem,
      ActionsheetItemText,

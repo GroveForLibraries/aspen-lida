@@ -4,8 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import * as Location from 'expo-location';
 import * as SecureStore from 'expo-secure-store';
-import _ from 'lodash';
-import moment from 'moment';
+import { formatTime, getTodaysHoursStatus, isArray, size, sortBy } from '../../helpers/helpers';
 import { Box, ButtonGroup, Button, ButtonText, Divider, FlatList, HStack, Icon, Pressable, Text, VStack } from '@gluestack-ui/themed';
 import React from 'react';
 import { loadError } from '../../components/loadError';
@@ -103,12 +102,12 @@ export const AllLocations = () => {
      const sortedLocations = React.useMemo(() => {
           if (!locations) return [];
           return sort === 'distance'
-               ? _.sortBy(locations, ['distance', 'displayName'])
-               : _.sortBy(locations, ['displayName']);
+               ? sortBy(locations, ['distance', 'displayName'])
+               : sortBy(locations, ['displayName']);
      }, [locations, sort]);
 
      const showSystemMessage = () => {
-          if (_.isArray(systemMessages)) {
+          if (isArray(systemMessages)) {
                return systemMessages.map((obj, index) => {
                     if (obj.showOn === '0' || obj.showOn === '1') {
                          return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
@@ -150,7 +149,7 @@ export const AllLocations = () => {
                     <FlatList
                          ListHeaderComponent={
                               <>
-                                   {_.size(systemMessages) > 0 ? <Box p="$2">{showSystemMessage()}</Box> : null}
+                                   {size(systemMessages) > 0 ? <Box p="$2">{showSystemMessage()}</Box> : null}
                                    {getActionButtons()}
                               </>
                          }
@@ -186,38 +185,13 @@ const DisplayLocation = (data) => {
      let hoursLabel = '';
      let hasHours = false;
      if (location.hours) {
-          if (_.size(location.hours) > 0) {
-               hasHours = true;
-          }
-          const day = moment().day();
-          if (_.find(location.hours, _.matchesProperty('day', day))) {
-               let todaysHours = _.filter(location.hours, { day: day });
-               if (todaysHours[0]) {
-                    todaysHours = todaysHours[0];
-                    if (todaysHours.isClosed) {
-                         hoursLabel = getTermFromDictionary(language, 'location_closed');
-                    } else {
-                         const closingText = todaysHours.close;
-                         const time1 = closingText.split(':');
-                         const openingText = todaysHours.open;
-                         const time2 = openingText.split(':');
-                         const closeTime = moment().set({ hour: time1[0], minute: time1[1] });
-                         const openTime = moment().set({ hour: time2[0], minute: time2[1] });
-                         const nowTime = moment();
-                         const stillOpen = moment(nowTime).isBefore(closeTime);
-                         const stillClosed = moment(openTime).isBefore(nowTime);
-                         if (!stillOpen) {
-                              hoursLabel = getTermFromDictionary(language, 'location_closed');
-                         }
-                         if (!stillClosed) {
-                              let openingTime = moment(openTime).format('h:mm A');
-                              hoursLabel = 'Closed until ' + openingTime;
-                         } else {
-                              let closingTime = moment(closeTime).format('h:mm A');
-                              hoursLabel = 'Open until ' + closingTime;
-                         }
-                    }
-               }
+          const hoursStatus = getTodaysHoursStatus(location.hours);
+          hasHours = hoursStatus.hasHours;
+
+          if (hoursStatus.status === 'closed_until' && hoursStatus.openingTime) {
+               hoursLabel = 'Closed until ' + formatTime(hoursStatus.openingTime);
+          } else if (hoursStatus.status === 'open_until' && hoursStatus.closingTime) {
+               hoursLabel = 'Open until ' + formatTime(hoursStatus.closingTime);
           } else {
                hoursLabel = getTermFromDictionary(language, 'location_closed');
           }

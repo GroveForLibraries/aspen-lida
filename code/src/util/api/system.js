@@ -1,5 +1,4 @@
 import { LIBRARY, isBrandedApp } from '../globals';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { logDebugMessage, logErrorMessage, logInfoMessage, logWarnMessage } from '../logging';
 import { GLOBALS } from '../globals';
 import { popToast } from '../../components/feedback';
@@ -7,6 +6,7 @@ import { createApiClient } from './apiFactory';
 import { generateSwatches, buildSwatchFromThemeTokens } from '../../helpers/helpers';
 import { getTermFromDictionary } from '../../translations/TranslationHelper';
 import { notifyThemeCatalogChanged } from '../../hooks/useThemeData';
+import { getCurrentLibraryId, getCurrentLocationId } from '../db/sessionContext';
 
 /**
  * Return basic information about the library
@@ -18,9 +18,9 @@ export async function getLibraryInfo(url = null, id = null) {
      let libraryId;
 
      try {
-          libraryId = await AsyncStorage.getItem('@libraryId');
+          libraryId = getCurrentLibraryId();
      } catch (e) {
-          logErrorMessage('Error loading library info');
+          logErrorMessage('Error loading library id from session context');
           logErrorMessage(e);
      }
 
@@ -141,7 +141,7 @@ export async function getCatalogStatus(url = null) {
  * @returns {Promise<*|*[]>}
  */
 export async function getAppSettings(url, timeout, slug) {
-     const APPSETTINGS_STALE_MS = 48 * 60 * 60 * 1000; // 48 hours
+     const APPSETTINGS_STALE_MS = 5 * 60 * 1000; // 5 minutes
 
      try {
           // Check SQLite cache first
@@ -210,7 +210,7 @@ export async function getLocalIllForm(url = null, id) {
 export async function getLocationInfo(url = null, locationId = null) {
      if (!locationId) {
           try {
-               locationId = await AsyncStorage.getItem('@locationId');
+               locationId = getCurrentLocationId();
           } catch (e) {
                logDebugMessage(e);
           }
@@ -235,7 +235,7 @@ export async function getSelfCheckSettings(url = null, locationIdOverride = null
 
      if (locationId === null || typeof locationId === 'undefined' || locationId === '') {
           try {
-               locationId = await AsyncStorage.getItem('@locationId');
+               locationId = getCurrentLocationId();
           } catch (e) {
                logDebugMessage(e);
           }
@@ -258,6 +258,102 @@ export function normalizeBooleanLike(value) {
           if (lowered === 'false') return false;
      }
      return undefined;
+}
+
+function getAppSettingValue(settings = {}, key) {
+     if (!key) return undefined;
+
+     if (settings && typeof settings === 'object' && !Array.isArray(settings)) {
+          if (Object.prototype.hasOwnProperty.call(settings, key)) {
+               return settings[key];
+          }
+
+          if (settings.settings && typeof settings.settings === 'object') {
+               return getAppSettingValue(settings.settings, key);
+          }
+     }
+
+     const items = Array.isArray(settings)
+          ? settings
+          : settings && typeof settings === 'object'
+               ? Object.values(settings)
+               : [];
+
+     for (const item of items) {
+          if (!item || typeof item !== 'object') continue;
+          const itemKey = item.key ?? item.name ?? item.setting ?? item.code ?? item.id;
+          if (String(itemKey) !== String(key)) continue;
+          if (Object.prototype.hasOwnProperty.call(item, 'value')) return item.value;
+          if (Object.prototype.hasOwnProperty.call(item, 'settingValue')) return item.settingValue;
+          if (Object.prototype.hasOwnProperty.call(item, 'defaultValue')) return item.defaultValue;
+          if (Object.prototype.hasOwnProperty.call(item, 'enabled')) return item.enabled;
+          return undefined;
+     }
+
+     return undefined;
+}
+
+function getDefaultThemeResult(fallbackThemeId, locationId = null) {
+     const COLOR_SCHEMES = ['#3dbdd6', '#9acf87', '#c1adcc'];
+     return {
+          palettes: COLOR_SCHEMES.map(generateSwatches),
+          themeId: fallbackThemeId,
+          locationId,
+          header: null,
+     };
+}
+
+function buildThemeResultFromLegacyTheme(result, themeId, locationId = null) {
+     if (result === undefined || result === null) {
+          return null;
+     }
+
+     const COLOR_SCHEMES = [result.primaryBackgroundColor, result.secondaryBackgroundColor, result.tertiaryBackgroundColor];
+     const palettes = COLOR_SCHEMES.map(generateSwatches);
+     return {
+          palettes,
+          themeId,
+          locationId,
+          header: null,
+     };
+}
+
+function buildThemeResultFromAspenLiDATheme(result, themeId, locationId = null) {
+     if (!result || typeof result !== 'object') {
+          return null;
+     }
+
+     const normalizedTheme = {
+          header: result.header && typeof result.header === 'object'
+               ? { ...result.header, backgroundColor: normalizeHexColor(result.header.backgroundColor) }
+               : result.header ?? null,
+          primary: normalizeColorGroup(result.primary),
+          secondary: normalizeColorGroup(result.secondary),
+          tertiary: normalizeColorGroup(result.tertiary),
+     };
+
+     const colorGroups = [normalizedTheme.primary, normalizedTheme.secondary, normalizedTheme.tertiary];
+     if (!colorGroups.every((group) => typeof group?.base === 'string' && group.base.length > 0)) {
+          return null;
+     }
+
+     return {
+          palettes: colorGroups.map(buildSwatchFromThemeTokens),
+          themeId,
+          locationId,
+          header: normalizedTheme.header,
+     };
+}
+
+async function replaceStoredThemeCatalog(locationId, themes = []) {
+     const normalizedLocationId = toNumberOrNull(locationId);
+     if (normalizedLocationId === null) {
+          return;
+     }
+
+     const { saveThemeCatalog } = require('../db');
+     await saveThemeCatalog(normalizedLocationId, Array.isArray(themes) ? themes : []);
+     notifyThemeCatalogChanged();
 }
 
 export function resolveSelfCheckEnabled(result = {}) {
@@ -526,13 +622,99 @@ export async function getThemeInfo(url = null, locationId = null) {
 
      if (!libraryUrl) {
           logWarnMessage('No library URL provided, returning backup theme');
-          const COLOR_SCHEMES = ['#3dbdd6', '#9acf87', '#c1adcc'];
-          return { palettes: COLOR_SCHEMES.map(generateSwatches), themeId: fallbackThemeId, locationId: resolvedLocationId, header: null };
+          return getDefaultThemeResult(fallbackThemeId, resolvedLocationId);
      }
 
-     await getAppSettings(libraryUrl, 10000, GLOBALS.slug);
+     const appSettings = await getAppSettings(libraryUrl, 10000, GLOBALS.slug);
+     const rawUseSingleTheme = getAppSettingValue(appSettings, 'useSingleTheme');
+     const useSingleTheme = normalizeBooleanLike(rawUseSingleTheme);
+     const overallTheme = String(getAppSettingValue(appSettings, 'overallTheme') ?? '').trim();
 
-     if (isBranded && locationId) {
+     if (typeof rawUseSingleTheme === 'undefined') {
+          logDebugMessage('App settings missing useSingleTheme, using legacy getThemeInfo with GLOBALS.themeId');
+          await replaceStoredThemeCatalog(resolvedLocationId, []);
+
+          const legacyClient = createApiClient({
+               url: libraryUrl,
+               timeout: 10000,
+          });
+          const legacyResponse = await legacyClient.get('/SystemAPI?method=getThemeInfo', {
+               id: GLOBALS.themeId,
+          });
+
+          if (legacyResponse.ok) {
+               const legacyResult = legacyResponse.data?.result?.theme;
+               if (legacyResult !== undefined) {
+                    logDebugMessage('Legacy theme downloaded and swatches generated.');
+                    return buildThemeResultFromLegacyTheme(legacyResult, fallbackThemeId, resolvedLocationId);
+               }
+
+               logInfoMessage('Backup theme loaded due to unexpected legacy theme response.');
+               logErrorMessage(legacyResponse);
+               return getDefaultThemeResult(fallbackThemeId, resolvedLocationId);
+          }
+
+          logInfoMessage('Backup theme loaded due to legacy theme request issue.');
+          logErrorMessage(legacyResponse);
+          return getDefaultThemeResult(fallbackThemeId, resolvedLocationId);
+     }
+
+     if (useSingleTheme === true) {
+          await replaceStoredThemeCatalog(resolvedLocationId, []);
+
+          const singleThemeClient = createApiClient({
+               url: libraryUrl,
+               timeout: 10000,
+          });
+
+          let endpoint = null;
+          let requestedThemeId = null;
+          let responseThemeBuilder = null;
+
+          if (overallTheme === '-1') {
+               endpoint = '/SystemAPI?method=getThemeInfo';
+               requestedThemeId = fallbackThemeId;
+               responseThemeBuilder = (result) => buildThemeResultFromLegacyTheme(result, fallbackThemeId, resolvedLocationId);
+               logDebugMessage(`App settings force single default web theme ${requestedThemeId}`);
+          } else if (overallTheme.startsWith('app-')) {
+               requestedThemeId = overallTheme.slice(4);
+               endpoint = '/SystemAPI?method=getAspenLiDAThemeInfo';
+               responseThemeBuilder = (result) => buildThemeResultFromAspenLiDATheme(result, toNumberOrNull(requestedThemeId) ?? requestedThemeId, resolvedLocationId);
+               logDebugMessage(`App settings force AspenLiDA app theme ${requestedThemeId}`);
+          } else if (overallTheme.startsWith('web-')) {
+               requestedThemeId = overallTheme.slice(4);
+               endpoint = '/SystemAPI?method=getThemeInfo';
+               responseThemeBuilder = (result) => buildThemeResultFromLegacyTheme(result, toNumberOrNull(requestedThemeId) ?? requestedThemeId, resolvedLocationId);
+               logDebugMessage(`App settings force web theme ${requestedThemeId}`);
+          } else if (overallTheme) {
+               requestedThemeId = overallTheme;
+               endpoint = '/SystemAPI?method=getThemeInfo';
+               responseThemeBuilder = (result) => buildThemeResultFromLegacyTheme(result, toNumberOrNull(requestedThemeId) ?? requestedThemeId, resolvedLocationId);
+               logWarnMessage(`Unknown overallTheme format "${overallTheme}", falling back to getThemeInfo with raw value`);
+          }
+
+          if (endpoint && requestedThemeId !== null && requestedThemeId !== '') {
+               const singleThemeResponse = await singleThemeClient.get(endpoint, {
+                    id: requestedThemeId,
+               });
+
+               if (singleThemeResponse.ok) {
+                    const rawResult = singleThemeResponse.data?.result?.theme ?? singleThemeResponse.data?.result;
+                    const themeResult = responseThemeBuilder?.(rawResult);
+                    if (themeResult) {
+                         logDebugMessage(`Theme downloaded from ${endpoint} and swatches generated.`);
+                         return themeResult;
+                    }
+
+                    logWarnMessage(`Single theme response from ${endpoint} did not contain usable theme data, falling back to standard theme resolution.`);
+               } else {
+                    logWarnMessage(`Single theme request failed for ${endpoint} with id=${requestedThemeId}, falling back to standard theme resolution.`);
+                    logWarnMessage(singleThemeResponse);
+               }
+          }
+     }
+
+     if (useSingleTheme !== true && isBranded && locationId) {
           const aspenLiDAThemesClient = createApiClient({
                url: libraryUrl,
                timeout: 10000,
@@ -543,10 +725,9 @@ export async function getThemeInfo(url = null, locationId = null) {
           if (aspenLiDAThemesResponse.ok && aspenLiDAThemesResponse.data?.result?.success) {
                fallbackThemeInfoId = resolveThemeInfoIdFromWebThemes(aspenLiDAThemesResponse.data.result.themes);
                const themes = normalizeAspenLiDAThemesPayload(aspenLiDAThemesResponse.data.result.themes);
+               await replaceStoredThemeCatalog(locationId, themes);
                if (themes.length > 0) {
-                    const { saveThemeCatalog, loadThemeState } = require('../db');
-                    await saveThemeCatalog(locationId, themes);
-                    notifyThemeCatalogChanged();
+                    const { loadThemeState } = require('../db');
 
                     const currentThemeState = await loadThemeState();
                     const isSameLocationAsStored = currentThemeState?.locationId === resolvedLocationId;
@@ -572,33 +753,31 @@ export async function getThemeInfo(url = null, locationId = null) {
           }
      }
 
+     if (!isBranded) {
+          await replaceStoredThemeCatalog(resolvedLocationId, []);
+     }
+
      const client = createApiClient({
           url: libraryUrl,
           timeout: 10000,
      });
      const response = await client.get('/SystemAPI?method=getThemeInfo', {
-          id: isBranded ? (fallbackThemeInfoId ?? locationId) : GLOBALS.themeId,
+          id: isBranded ? (fallbackThemeInfoId ?? locationId ?? fallbackThemeId) : GLOBALS.themeId,
      });
 
      if (response.ok) {
           const result = response.data?.result?.theme;
           if (result !== undefined) {
-               const COLOR_SCHEMES = [result.primaryBackgroundColor, result.secondaryBackgroundColor, result.tertiaryBackgroundColor];
-               const palettes = COLOR_SCHEMES.map(generateSwatches);
                logDebugMessage('Theme downloaded and swatches generated.');
-               return { palettes, themeId: fallbackThemeId, locationId: resolvedLocationId, header: null };
+               return buildThemeResultFromLegacyTheme(result, fallbackThemeId, resolvedLocationId);
           }
 
-          const COLOR_SCHEMES = ['#3dbdd6', '#9acf87', '#c1adcc'];
-          const palettes = COLOR_SCHEMES.map(generateSwatches);
           logInfoMessage('Backup theme loaded due to unexpected response.');
           logErrorMessage(response);
-          return { palettes, themeId: fallbackThemeId, locationId: resolvedLocationId, header: null };
+          return getDefaultThemeResult(fallbackThemeId, resolvedLocationId);
      }
 
-     const COLOR_SCHEMES = ['#3dbdd6', '#9acf87', '#c1adcc'];
-     const palettes = COLOR_SCHEMES.map(generateSwatches);
      logInfoMessage('Backup theme loaded due to server or client issue.');
      logErrorMessage(response);
-     return { palettes, themeId: fallbackThemeId, locationId: resolvedLocationId, header: null };
+     return getDefaultThemeResult(fallbackThemeId, resolvedLocationId);
 }

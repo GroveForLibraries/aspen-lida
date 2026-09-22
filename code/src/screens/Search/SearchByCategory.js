@@ -1,12 +1,12 @@
 import { Box, Button, ButtonGroup, ButtonText, Center, FlatList, Heading, SafeAreaView, ScrollView, Text } from '@gluestack-ui/themed';
 import { useRoute } from '@react-navigation/native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import _ from 'lodash';
+import { isArray, size } from '../../helpers/helpers';
 import React from 'react';
 
 // custom components and helper files
 import { loadError } from '../../components/loadError';
-import { LoadingSpinner, loadingSpinner } from '../../components/loadingSpinner';
+import { loadingSpinner } from '../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../components/Notifications';
 import { SystemMessagesContext } from '../../context/initialContext';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
@@ -52,7 +52,7 @@ export const SearchResultsForBrowseCategory = () => {
      const systemMessagesForScreen = [];
 
      React.useEffect(() => {
-          if (_.isArray(systemMessages)) {
+          if (isArray(systemMessages)) {
                systemMessages.map((obj, index, collection) => {
                     if (obj.showOn === '0') {
                          systemMessagesForScreen.push(obj);
@@ -94,7 +94,7 @@ export const SearchResultsForBrowseCategory = () => {
      };
 
      const showSystemMessage = () => {
-          if (_.isArray(systemMessages)) {
+          if (isArray(systemMessages)) {
                return systemMessages.map((obj, index, collection) => {
                     if (obj.showOn === '0') {
                          return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
@@ -107,7 +107,7 @@ export const SearchResultsForBrowseCategory = () => {
      const NoResults = () => {
           return (
                <>
-                    {_.size(systemMessagesForScreen) > 0 ? <Box p="$2">{showSystemMessage()}</Box> : null}
+                    {size(systemMessagesForScreen) > 0 ? <Box p="$2">{showSystemMessage()}</Box> : null}
                     <Center flex={1}>
                          <Heading pt="$5" color={textColor}>{getTermFromDictionary(language, 'no_results')}</Heading>
                     </Center>
@@ -117,7 +117,7 @@ export const SearchResultsForBrowseCategory = () => {
 
      return (
           <SafeAreaView style={{ flex: 1 }}>
-               {_.size(systemMessagesForScreen) > 0 ? <Box p="$2">{showSystemMessage()}</Box> : null}
+               {size(systemMessagesForScreen) > 0 ? <Box p="$2">{showSystemMessage()}</Box> : null}
                {status === 'loading' || isFetching ? (
                     loadingSpinner('Fetching results...')
                ) : status === 'error' ? (

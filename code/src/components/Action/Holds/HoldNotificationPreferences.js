@@ -2,7 +2,6 @@ import React from 'react';
 import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FormControl, FormControlLabel, FormControlLabelText, FormControlHelper, Select, SelectTrigger, SelectInput, SelectIcon, SelectPortal, SelectBackdrop, SelectContent, SelectDragIndicatorWrapper, SelectDragIndicator, SelectItem, Icon, ChevronDownIcon, Input, InputField, Checkbox, CheckboxLabel, Text, CheckIcon, CheckboxIndicator, CheckboxIcon, FormControlHelperText, SelectScrollView } from '@gluestack-ui/themed';
-import _ from 'lodash';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { useTranslationWithValues } from '../../../hooks/useTranslationWithValues';
 
@@ -11,7 +10,7 @@ export const HoldNotificationPreferences = (props) => {
      const insets = useSafeAreaInsets();
 
      const holdNotificationInfo = user.holdNotificationInfo;
-     const smsCarriers = holdNotificationInfo.smsCarriers;
+     const smsCarriers = Object.values(holdNotificationInfo.smsCarriers ?? {});
 
      const { text: emailNotificationLabel } = useTranslationWithValues(
           'hold_email_notification',
@@ -68,7 +67,7 @@ export const HoldNotificationPreferences = (props) => {
                          </FormControl>
                     </>
                ) : null}
-               {!_.isEmpty(smsCarriers) ? (
+                {smsCarriers.length > 0 ? (
                     <>
                          <FormControl mb="$1">
                               <Checkbox
@@ -96,7 +95,7 @@ export const HoldNotificationPreferences = (props) => {
                                         <Select name="smsCarrier" selectedValue={smsCarrier} accessibilityLabel={getTermFromDictionary(language, 'hold_sms_select_carrier')} onValueChange={(itemValue) => setSMSCarrier(itemValue)}>
                                              <SelectTrigger variant="outline" size="md">
                                                   {smsCarrier && smsCarrier !== -1 ? (
-                                                       _.map(smsCarriers, function (carrier, selectedIndex, array) {
+                                                       smsCarriers.map((carrier, selectedIndex) => {
                                                             if (selectedIndex === smsCarrier) {
                                                                  return <SelectInput py={0} placeholder="Select a Carrier" value={carrier} color={textColor} />;
                                                             }
@@ -113,7 +112,7 @@ export const HoldNotificationPreferences = (props) => {
                                                             <SelectDragIndicator />
                                                        </SelectDragIndicatorWrapper>
                                                        <SelectScrollView>
-                                                            {_.map(smsCarriers, function (carrier, index, array) {
+                                                            {smsCarriers.map((carrier, index) => {
                                                                  if (index === smsCarrier) {
                                                                       return <SelectItem key={index} label={carrier} value={index} bgColor={theme.tokens.colors.tertiary['300']} sx={{ _text: { color: theme.tokens.colors.tertiary['500-text'] } }} />;
                                                                  }

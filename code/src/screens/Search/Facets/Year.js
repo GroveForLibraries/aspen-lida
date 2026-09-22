@@ -1,5 +1,4 @@
-import _ from 'lodash';
-import moment from 'moment';
+import { getCurrentDate, isEmpty, subtractYears, size } from '../../../helpers/helpers';
 import { Box, Button, ButtonGroup, ButtonText, FormControl, HStack, Input, InputField, Text, VStack } from '@gluestack-ui/themed';
 import React from 'react';
 import { ScrollView } from 'react-native';
@@ -23,8 +22,8 @@ export const Facet_Year = ({ data, category, updater, language }) => {
      }, []);
 
      const _updateYearTo = (jump) => {
-          const jumpTo = moment().subtract(jump, 'years');
-          const year = moment(jumpTo).format('YYYY');
+          const jumpTo = subtractYears(getCurrentDate(), jump);
+          const year = jumpTo ? String(jumpTo.getFullYear()) : '';
           setYearFrom(year);
           setYearTo('*');
           const years = '[' + year + '+TO+*]';
@@ -40,7 +39,7 @@ export const Facet_Year = ({ data, category, updater, language }) => {
                setYearTo(newValue);
           }
 
-          if (_.size(newValue) === 4) {
+          if (size(newValue) === 4) {
                updateFacet(type === 'yearFrom' ? newValue : yearFrom, type === 'yearTo' ? newValue : yearTo);
           }
      };
@@ -48,10 +47,10 @@ export const Facet_Year = ({ data, category, updater, language }) => {
      const updateFacet = (from = yearFrom, to = yearTo) => {
           let fromValue = from;
           let toValue = to;
-          if (_.isEmpty(from)) {
+          if (isEmpty(from)) {
                fromValue = '*';
           }
-          if (_.isEmpty(to)) {
+          if (isEmpty(to)) {
                toValue = '*';
           }
           const years = '[' + fromValue + '+TO+' + toValue + ']';

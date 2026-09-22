@@ -22,8 +22,8 @@ import { evaluateStartupCache, SplashScreen } from '../screens/Auth/Splash';
 import { getTermFromDictionary } from '../translations/TranslationService';
 import { GLOBALS, LIBRARY } from '../util/globals';
 import { checkCachedUrl } from '../util/api/system';
-import { RemoveData } from '../helpers/helpers';
-import { saveLibraryUrl, isSQLiteMigrationNeeded } from '../util/db';
+import { parseStoredNumber, RemoveData } from '../helpers/helpers';
+import { saveLibraryUrl, isSQLiteMigrationNeeded, setCurrentLibraryId } from '../util/db';
 import LibraryCardScanner from './LibraryCardScanner';
 import TitleWithLogo from '../components/TitleWithLogo'
 
@@ -38,11 +38,15 @@ enableScreens();
 
 const Stack = createNativeStackNavigator();
 
-let routingInstrumentation = null;
+// `Sentry.ReactNavigationInstrumentation` was removed from @sentry/react-native
+// in favor of this integration-based API - the old class silently no-op'd here
+// (caught by try/catch, leaving `integrations` empty), meaning no navigation
+// breadcrumbs or performance transactions were ever actually being captured.
+let navigationIntegration = null;
 try {
-     routingInstrumentation = new Sentry.ReactNavigationInstrumentation();
+     navigationIntegration = Sentry.reactNavigationIntegration();
 }catch (e) {
-     routingInstrumentation = null;
+     navigationIntegration = null;
      logWarnMessage("Could not create sentry routing instrumentation " + e);
 }
 
@@ -71,16 +75,16 @@ distribution = distribution.toString();
 try {
      logDebugMessage("Initializing sentry");
      let integrations = [];
-     if (routingInstrumentation != null) {
-          integrations.push(routingInstrumentation);
+     if (navigationIntegration != null) {
+          integrations.push(navigationIntegration);
      }
      Sentry.init({
           dsn: Constants.expoConfig.extra.sentryDSN,
           enableAutoSessionTracking: true,
           sessionTrackingIntervalMillis: 10000,
           debug: false,
-          tracesSampleRate: 0.1,
-          sampleRate: 0.1,
+          tracesSampleRate: 0.5,
+          sampleRate: 1,
           environment: Updates.channel ?? Updates.releaseChannel,
           release: releaseCode,
           dist: distribution,
@@ -89,6 +93,9 @@ try {
 
      Sentry.setTag('patch', GLOBALS.appPatch);
      Sentry.setTag('stage', GLOBALS.appStage);
+     Sentry.setTag('slug', GLOBALS.slug);
+     Sentry.setTag('libraryId', GLOBALS.libraryId);
+     Sentry.setTag('releaseChannel', GLOBALS.releaseChannel);
 }catch(e) {
      logErrorMessage("Could not initialize sentry " + e);
 }
@@ -138,6 +145,15 @@ export function App() {
                isSQLiteMigrationNeeded: false,
                migrationError: false }
       );
+
+     React.useEffect(() => {
+          // Keep Sentry's user context in sync with auth state (sign in, sign
+          // out, and cold-start session restoration) so every error reported
+          // while a session is active can be tied back to that session, and
+          // to which library server it was talking to.
+          Sentry.setUser(state.userToken ? { id: state.userToken } : null);
+          Sentry.setTag('libraryUrl', LIBRARY.url ?? undefined);
+     }, [state.userToken]);
 
      React.useEffect(() => {
           const timer = setInterval(async () => {
@@ -201,6 +217,11 @@ export function App() {
                            await checkCachedUrl(libraryUrl).then(async (result) => {
                                 if (result) {
                                      LIBRARY.url = libraryUrl;
+                                     const storedLibraryId = await AsyncStorage.getItem('@libraryId');
+                                     const resolvedLibraryId = parseStoredNumber(storedLibraryId);
+                                     if (resolvedLibraryId != null) {
+                                          setCurrentLibraryId(resolvedLibraryId);
+                                     }
                                      await saveLibraryUrl(libraryUrl);
                                      logDebugMessage('Connection successful. Continuing...');
 
@@ -285,10 +306,23 @@ export function App() {
                     //queryClient.invalidateQueries({});
                     const userToken = GLOBALS.appSessionId;
                     await AsyncStorage.setItem('@userToken', userToken);
+
+                    let startupCache = null;
+                    let refreshData = true;
+                    try {
+                         startupCache = await evaluateStartupCache();
+                         refreshData = !(startupCache?.canBypassLoading ?? false);
+                    } catch (error) {
+                         logErrorMessage('Failed startup cache evaluation on sign-in, using Loading screen fallback');
+                         logErrorMessage(error);
+                         refreshData = true;
+                    }
+
                     dispatch({
                          type: 'SIGN_IN',
                          token: userToken,
-                         refreshData: true });
+                         refreshData,
+                         startupCache });
                },
                signOut: async () => {
                     logDebugMessage('Session ended.');
@@ -328,6 +362,10 @@ function AppContent({state}) {
                RemoveData(queryClient);
           }
      }, [state.isSignOut]);
+
+     React.useEffect(() => {
+          navigationIntegration?.registerNavigationContainer(navigationRef);
+     }, []);
 
      const language = useActiveLanguage();
      const { colorMode } = useTheme();

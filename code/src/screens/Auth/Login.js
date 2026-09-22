@@ -4,7 +4,7 @@ import Constants from 'expo-constants';
 import * as Location from 'expo-location';
 import * as SecureStore from 'expo-secure-store';
 import * as WebBrowser from 'expo-web-browser';
-import _ from 'lodash';
+import { isObject, sortBy } from '../../helpers/helpers';
 import { Pressable, Box, Button, ButtonGroup, ButtonText, ButtonIcon, Center, Image, Text, KeyboardAvoidingView, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
@@ -12,7 +12,7 @@ import { Platform } from 'react-native';
 import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { getLibraryInfo } from '../../util/api/system';
-import { saveLibrary, saveLibraryUrl } from '../../util/db';
+import { saveLibrary, saveLibraryUrl, setCurrentLibraryId, setCurrentLocationId } from '../../util/db';
 
 // custom components and helper files
 import { GLOBALS } from '../../util/globals';
@@ -113,7 +113,7 @@ export const LoginScreen = () => {
                      if (isCommunity) {
                           await fetchAllLibrariesFromGreenhouse().then((response) => {
                                if(response.success) {
-                                    const libraries = _.sortBy(response.libraries ?? [], ['name', 'librarySystem']);
+                                    const libraries = sortBy(response.libraries ?? [], ['name', 'librarySystem']);
                                     setAllLibraries(libraries);
                                } else {
                                     setAllLibraries([]);
@@ -167,9 +167,13 @@ export const LoginScreen = () => {
            }
            setSelectedLibrary(data);
            LIBRARY.url = data.baseUrl; // Keep for backwards compatibility until all code migrated
+           setCurrentLibraryId(data.libraryId);
+           if (data.locationId != null) {
+                setCurrentLocationId(data.locationId);
+           }
            await saveLibraryUrl(data.baseUrl); // Save to SQLite
            await getLibraryInfo(data.baseUrl, data.libraryId).then(async (result) => {
-                if (_.isObject(result)) {
+                if (isObject(result)) {
                      const library = result.data.result?.library ?? [];
                      logDebugMessage("Saving library to SQLite on Login screen: " + library.displayName + ' (' + library.libraryId + ')');
                      await saveLibrary(library);

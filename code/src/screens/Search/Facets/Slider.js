@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import { find } from '../../../helpers/helpers';
 import { Box, FormControl, HStack, Input, InputField } from '@gluestack-ui/themed';
 import React from 'react';
 import { ScrollView } from 'react-native';
@@ -46,8 +46,8 @@ export const Facet_Slider = ({ data, category, updater, language }) => {
 
      const appliedStartValue = () => {
           let value = 0.0;
-          if (_.find(data, ['isApplied', true])) {
-               const appliedFilterObj = _.find(data, ['isApplied', true]);
+          if (find(data, ['isApplied', true])) {
+               const appliedFilterObj = find(data, ['isApplied', true]);
                value = appliedFilterObj['value'];
           }
           setStartValue(value);
@@ -55,8 +55,8 @@ export const Facet_Slider = ({ data, category, updater, language }) => {
 
      const appliedEndValue = () => {
           let value = 5.0;
-          if (_.find(data, ['isApplied', true])) {
-               const appliedFilterObj = _.find(data, ['isApplied', true]);
+          if (find(data, ['isApplied', true])) {
+               const appliedFilterObj = find(data, ['isApplied', true]);
                value = appliedFilterObj['value'];
           }
           setEndValue(value);

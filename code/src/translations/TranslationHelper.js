@@ -1,13 +1,12 @@
-import moment from 'moment';
+import { getCurrentDate } from '../helpers/helpers';
 
-import {logDebugMessage} from "../util/logging";
 
 /**
  * Has the last updated time as well as an array per language of all translations
- * @type {{lastUpdated: *|moment.Moment}}
+ * @type {{lastUpdated: Date}}
  */
 export let translationsLibrary = {
-     lastUpdated: moment(),
+     lastUpdated: getCurrentDate(),
 };
 
 export const getTermFromDictionary = (language = 'en', key, ellipsis = false, dictionaryOverride = undefined) => {

@@ -1,6 +1,6 @@
 import { GLOBALS } from '../globals';
 import { createApiClient } from './apiFactory';
-import { logDebugMessage, logErrorMessage, logInfoMessage, logWarnMessage, getErrorMessage } from '../logging';
+import { logDebugMessage, logErrorMessage } from '../logging';
 
 /**
  * Returns manifestation data for the given grouped work id and format

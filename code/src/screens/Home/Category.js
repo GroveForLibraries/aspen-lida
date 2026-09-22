@@ -1,6 +1,6 @@
 import { Button, ButtonGroup, ButtonIcon, ButtonText, FlatList, View, HStack, Pressable, Text, SafeAreaView, Box, Badge, BadgeText } from '@gluestack-ui/themed';
 import { ScrollView } from 'react-native';
-import _ from 'lodash';
+import { isEqual } from '../../helpers/helpers';
 import React from 'react';
 
 import { useLibrary } from '../../hooks/useLibrarySystemData';
@@ -16,6 +16,7 @@ import { popToast } from '../../components/feedback';
 
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 import { useTheme } from '../../themes/theme';
+import { isValidUrl } from '../../helpers/helpers';
 
 const loggedEmptyCategoryKeys = new Set();
 
@@ -193,7 +194,7 @@ const DisplayBrowseCategoryRecord = ({record}) => {
      const language = useActiveLanguage();
 
      let type = 'grouped_work';
-     if (!_.isUndefined(record.source)) {
+     if (record.source !== undefined) {
           if (record.source === 'library_calendar' || record.source === 'springshare_libcal' || record.source === 'communico' || record.source === 'assabet' || record.source === 'aspenEvents' || record.source === 'aspenEvent') {
                type = 'Event';
           } else {
@@ -201,9 +202,9 @@ const DisplayBrowseCategoryRecord = ({record}) => {
           }
      }
 
-     if (!_.isUndefined(record.type)) {
+     if (record.type !== undefined) {
           type = record.type;
-     } else if (!_.isUndefined(record.recordtype)) {
+     } else if (record.recordtype !== undefined) {
           type = record.recordtype;
      }
 
@@ -212,24 +213,24 @@ const DisplayBrowseCategoryRecord = ({record}) => {
           id = record.textId;
      }
 
-     if (!_.isUndefined(record.listId) && !_.isUndefined(record.sourceId)) {
+     if (record.listId !== undefined && record.sourceId !== undefined) {
           id = record.sourceId;
      }
 
      if (type === 'Event' || type === 'event') {
-          if (_.includes(id, 'lc_')) {
+          if (typeof id === 'string' && id.includes('lc_')) {
                type = 'library_calendar_event';
           }
-          if (_.includes(id, 'libcal_')) {
+          if (typeof id === 'string' && id.includes('libcal_')) {
                type = 'springshare_libcal_event';
           }
-          if (_.includes(id, 'communico_')) {
+          if (typeof id === 'string' && id.includes('communico_')) {
                type = 'communico_event';
           }
-          if (_.includes(id, 'assabet_')) {
+          if (typeof id === 'string' && id.includes('assabet_')) {
                type = 'assabet_event';
           }
-          if (_.includes(id, 'aspenEvent_')) {
+          if (typeof id === 'string' && id.includes('aspenEvent_')) {
                type = 'aspenEvent_event';
           }
      }
@@ -243,7 +244,11 @@ const DisplayBrowseCategoryRecord = ({record}) => {
      }
 
      const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
-     const imageUrl = library.baseUrl + '/bookcover.php?id=' + id + '&size=medium&type=' + type;
+     let imageUrl = library.baseUrl + '/bookcover.php?id=' + id + '&size=medium&type=' + type;
+
+     if (type === 'Event' || _.includes(type, '_event')) {
+          imageUrl = isValidUrl(record.image) ? record.image : (library.baseUrl + '/bookcover.php?id=' + id + '&size=medium&type=' + type);
+     }
 
      let isNew = false;
      if (typeof record.isNew !== 'undefined') {
@@ -270,7 +275,7 @@ const DisplayBrowseCategoryRecord = ({record}) => {
                     id: key,
                     title: title,
                     prevRoute: 'HomeScreen' });
-          } else if (type === 'Event' || _.includes(type, '_event')) {
+          } else if (type === 'Event' || type.includes('_event')) {
                let eventSource = 'unknown';
                if (type === 'communico_event') {
                     eventSource = 'communico';
@@ -429,4 +434,4 @@ const DisplayMoreResultsButton = ({ category }) => {
      )
 }
 
-export default React.memo(DisplayBrowseCategory, (prevProps, nextProps) => _.isEqual(prevProps.category, nextProps.category));
+export default React.memo(DisplayBrowseCategory, (prevProps, nextProps) => isEqual(prevProps.category, nextProps.category));
