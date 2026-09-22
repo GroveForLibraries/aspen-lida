@@ -9,8 +9,11 @@ import { logDebugMessage, logErrorMessage } from '../logging';
 export async function isUserDataEmpty() {
      try {
           const db = await getDb();
+          // user_state is no longer a single id=1 row (26.09.01 made it multi-row, keyed by
+          // user_id, so a second user logging in doesn't overwrite the first) - this just
+          // needs to know whether the table has ever been populated for anyone at all.
           const result = await db.getFirstAsync(
-               `SELECT COUNT(*) as count FROM user_state WHERE id = 1;`
+               `SELECT COUNT(*) as count FROM user_state;`
           );
           const count = result?.count ?? 0;
           logDebugMessage(`SQLite migration check: user_state row exists = ${count > 0}`);

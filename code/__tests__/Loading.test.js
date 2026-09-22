@@ -221,6 +221,7 @@ jest.mock('../src/util/db', () => ({
      })),
      saveThemeState: jest.fn(() => Promise.resolve()),
      isStoredThemeIdMatch: jest.fn(() => Promise.resolve(false)),
+     setCurrentLibraryId: jest.fn(),
 }));
 
 const mockNavigate = jest.fn();

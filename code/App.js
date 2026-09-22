@@ -16,12 +16,12 @@ import { AuthProvider } from './src/context/AuthContext';
 import { CheckoutsProvider, GroupedWorkProvider, HoldsProvider, SearchProvider, SystemMessagesProvider } from './src/context/initialContext';
 
 import { SplashScreenNative } from './src/screens/Auth/SplashNative';
-import { buildThemeForLibrary, THEME_STALE_MS, useThemeForDisplay } from './src/themes/theme';
-import { ToastRegistrar } from './src/components/feedback';
+import { buildThemeForLibrary, useThemeForDisplay } from './src/themes/theme';
+import { ToastRegistrar } from './src/components/feedback/ToastRegistrar';
 
 import { logDebugMessage, logErrorMessage } from './src/util/logging.js';
 import { initDatabase } from './src/util/db';
-import { loadLibraryUrl, loadThemeState, saveThemeState, isStoredThemeIdMatch } from './src/util/db';
+import { loadLibraryUrl, loadThemeState, saveThemeState } from './src/util/db';
 import { GLOBALS } from './src/util/globals';
 
 logDebugMessage("1 Enabling Screens, react-native-screens");
@@ -159,27 +159,25 @@ export default function AppContainer() {
                     await restorePersistedQueries();
                     const mode = current?.colorMode === 'dark' ? 'dark' : 'light';
                     const textColor = mode === 'dark' ? '$coolGray200' : '$warmGray600';
-                    const hasStoredTheme = Boolean(current?.themeColors?.primary && current?.themeColors?.secondary && current?.themeColors?.tertiary);
-                    const hasMatchingThemeId = await isStoredThemeIdMatch(GLOBALS.themeId ?? 1);
-                    const themeAgeMs = current?.updatedAt ? Date.now() - current.updatedAt : Number.POSITIVE_INFINITY;
-                    const isThemeStale = themeAgeMs > THEME_STALE_MS;
+                    const persistedLibraryUrl = await loadLibraryUrl();
+                    const themeUrl = persistedLibraryUrl || GLOBALS.url || Constants.expoConfig.extra.apiUrl;
 
-                    if (!hasStoredTheme || !hasMatchingThemeId || isThemeStale) {
-                         const persistedLibraryUrl = await loadLibraryUrl();
-                         const themeUrl = persistedLibraryUrl || GLOBALS.url || Constants.expoConfig.extra.apiUrl;
-                         logDebugMessage(`4 Building theme for current themeId using url=${themeUrl ?? 'none'} stale=${isThemeStale} ageMs=${themeAgeMs}`);
-                         if (!themeUrl) {
-                              logDebugMessage('4 Skipping startup theme fetch because no library URL is available yet');
-                         } else {
-                              const builtTheme = await buildThemeForLibrary(themeUrl);
-                              await saveThemeState({
-                                   themeId: builtTheme.themeId,
-                                   colorMode: mode,
-                                   textColor,
-                                   themeColors: builtTheme.themeColors,
-                              });
-                         }
-                    } else if (!current?.textColor || !current?.colorMode) {
+                    if (!themeUrl) {
+                         logDebugMessage('4 Skipping startup theme fetch because no library URL is available yet');
+                    } else {
+                         logDebugMessage(`4 Building theme for current launch using url=${themeUrl}`);
+                         const builtTheme = await buildThemeForLibrary(themeUrl);
+                         await saveThemeState({
+                              themeId: builtTheme.themeId,
+                              locationId: builtTheme.locationId,
+                              colorMode: mode,
+                              textColor,
+                              themeColors: builtTheme.themeColors,
+                              header: builtTheme.header,
+                         });
+                    }
+
+                    if (!themeUrl && (!current?.textColor || !current?.colorMode)) {
                          await saveThemeState({
                               ...current,
                               colorMode: mode,

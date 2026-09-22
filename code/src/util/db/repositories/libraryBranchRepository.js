@@ -1,41 +1,15 @@
 import { getDb } from '../sqlite';
 import { safeStringify } from '../serialize';
+import { getCurrentLocationId, setCurrentLocationId } from '../sessionContext';
+import { logDebugMessage } from '../../logging';
+import { boolToInt, intToBool, numberOrNull, safeParse } from '../../../helpers/helpers';
 
-const ROW_ID = 1;
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function boolToInt(value) {
-     if (typeof value === 'boolean') return value ? 1 : 0;
-     if (value === 1 || value === '1' || value === 'true') return 1;
-     if (value === 0 || value === '0' || value === 'false') return 0;
-     return null;
-}
-
-function intToBool(value) {
-     if (value === 1) return true;
-     if (value === 0) return false;
-     return null;
-}
-
-function numberOrNull(value) {
-     const num = Number(value);
-     return Number.isFinite(num) ? num : null;
-}
-
-function safeParse(json) {
-     if (!json || typeof json !== 'string') return null;
-     try {
-          return JSON.parse(json);
-     } catch {
-          return null;
-     }
-}
-
-async function ensureLibraryBranchRow(db, now) {
+async function ensureLibraryBranchRow(db, now, locationId) {
+     if (locationId == null) return;
      await db.runAsync(
-          `INSERT OR IGNORE INTO library_branch_state (id, updated_at) VALUES (?, ?);`,
-          [ROW_ID, now]
+          `INSERT INTO library_branch_state (location_id, updated_at) VALUES (?, ?)
+           ON CONFLICT(location_id) DO NOTHING;`,
+          [locationId, now]
      );
 }
 
@@ -43,13 +17,20 @@ async function ensureLibraryBranchRow(db, now) {
 
 /**
  * Saves the current location (branch) object.
- * Called when location info is fetched from API.
- * Location object contains all branch details including hours and display settings.
+ * Called when location info is fetched from API. Rows are keyed by location_id so a
+ * different branch/location gets its own row instead of overwriting this one.
  */
 export async function saveLocation(location = {}) {
+     const locationId = numberOrNull(location.locationId) ?? getCurrentLocationId();
+     if (locationId == null) {
+          logDebugMessage('saveLocation: no current location id, skipping save');
+          return;
+     }
+     setCurrentLocationId(locationId);
+
      const db = await getDb();
      const now = Date.now();
-     await ensureLibraryBranchRow(db, now);
+     await ensureLibraryBranchRow(db, now, locationId);
      await db.runAsync(
           `UPDATE library_branch_state SET
                 updated_at = ?,
@@ -59,16 +40,16 @@ export async function saveLocation(location = {}) {
                 is_main_branch = ?,
                 solr_scope = ?,
                 location_json = ?
-           WHERE id = ?;`,
+           WHERE location_id = ?;`,
           [
                now,
-               numberOrNull(location.locationId),
+               locationId,
                location.displayName ?? null,
                numberOrNull(location.libraryId),
                boolToInt(location.isMainBranch),
                location.solrScope ?? null,
                safeStringify(location),
-               ROW_ID,
+               locationId,
           ]
      );
 }
@@ -77,10 +58,13 @@ export async function saveLocation(location = {}) {
  * Loads the current location from database.
  */
 export async function loadLocation() {
+     const locationId = getCurrentLocationId();
+     if (locationId == null) return null;
+
      const db = await getDb();
      const row = await db.getFirstAsync(
-          `SELECT location_json FROM library_branch_state WHERE id = ? LIMIT 1;`,
-          [ROW_ID]
+          `SELECT location_json FROM library_branch_state WHERE location_id = ? LIMIT 1;`,
+          [locationId]
      );
      return safeParse(row?.location_json);
 }
@@ -89,15 +73,21 @@ export async function loadLocation() {
  * Saves the search scope for the current location.
  */
 export async function saveScope(scope = '') {
+     const locationId = getCurrentLocationId();
+     if (locationId == null) {
+          logDebugMessage('saveScope: no current location id, skipping save');
+          return;
+     }
+
      const db = await getDb();
      const now = Date.now();
-     await ensureLibraryBranchRow(db, now);
+     await ensureLibraryBranchRow(db, now, locationId);
      await db.runAsync(
           `UPDATE library_branch_state SET
                 updated_at = ?,
                 scope = ?
-           WHERE id = ?;`,
-          [now, scope ?? null, ROW_ID]
+           WHERE location_id = ?;`,
+          [now, scope ?? null, locationId]
      );
 }
 
@@ -105,10 +95,13 @@ export async function saveScope(scope = '') {
  * Loads the search scope from database.
  */
 export async function loadScope() {
+     const locationId = getCurrentLocationId();
+     if (locationId == null) return '';
+
      const db = await getDb();
      const row = await db.getFirstAsync(
-          `SELECT scope FROM library_branch_state WHERE id = ? LIMIT 1;`,
-          [ROW_ID]
+          `SELECT scope FROM library_branch_state WHERE location_id = ? LIMIT 1;`,
+          [locationId]
      );
      return row?.scope ?? '';
 }
@@ -117,15 +110,21 @@ export async function loadScope() {
  * Saves self-check enabled status.
  */
 export async function saveSelfCheckEnabled(enabled = false) {
+     const locationId = getCurrentLocationId();
+     if (locationId == null) {
+          logDebugMessage('saveSelfCheckEnabled: no current location id, skipping save');
+          return;
+     }
+
      const db = await getDb();
      const now = Date.now();
-     await ensureLibraryBranchRow(db, now);
+     await ensureLibraryBranchRow(db, now, locationId);
      await db.runAsync(
           `UPDATE library_branch_state SET
                 updated_at = ?,
                 self_check_enabled = ?
-           WHERE id = ?;`,
-          [now, boolToInt(enabled), ROW_ID]
+           WHERE location_id = ?;`,
+          [now, boolToInt(enabled), locationId]
      );
 }
 
@@ -133,10 +132,13 @@ export async function saveSelfCheckEnabled(enabled = false) {
  * Loads self-check enabled status from database.
  */
 export async function loadSelfCheckEnabled() {
+     const locationId = getCurrentLocationId();
+     if (locationId == null) return null;
+
      const db = await getDb();
      const row = await db.getFirstAsync(
-          `SELECT self_check_enabled FROM library_branch_state WHERE id = ? LIMIT 1;`,
-          [ROW_ID]
+          `SELECT self_check_enabled FROM library_branch_state WHERE location_id = ? LIMIT 1;`,
+          [locationId]
      );
      return intToBool(row?.self_check_enabled);
 }
@@ -145,15 +147,21 @@ export async function loadSelfCheckEnabled() {
  * Saves self-check settings (barcode styles, keyboard type, etc.).
  */
 export async function saveSelfCheckSettings(settings = {}) {
+     const locationId = getCurrentLocationId();
+     if (locationId == null) {
+          logDebugMessage('saveSelfCheckSettings: no current location id, skipping save');
+          return;
+     }
+
      const db = await getDb();
      const now = Date.now();
-     await ensureLibraryBranchRow(db, now);
+     await ensureLibraryBranchRow(db, now, locationId);
      await db.runAsync(
           `UPDATE library_branch_state SET
                 updated_at = ?,
                 self_check_settings_json = ?
-           WHERE id = ?;`,
-          [now, safeStringify(settings), ROW_ID]
+           WHERE location_id = ?;`,
+          [now, safeStringify(settings), locationId]
      );
 }
 
@@ -161,10 +169,13 @@ export async function saveSelfCheckSettings(settings = {}) {
  * Loads self-check settings from database.
  */
 export async function loadSelfCheckSettings() {
+     const locationId = getCurrentLocationId();
+     if (locationId == null) return {};
+
      const db = await getDb();
      const row = await db.getFirstAsync(
-          `SELECT self_check_settings_json FROM library_branch_state WHERE id = ? LIMIT 1;`,
-          [ROW_ID]
+          `SELECT self_check_settings_json FROM library_branch_state WHERE location_id = ? LIMIT 1;`,
+          [locationId]
      );
      return safeParse(row?.self_check_settings_json) ?? {};
 }
@@ -174,15 +185,21 @@ export async function loadSelfCheckSettings() {
  * Stores as JSON array for easy retrieval.
  */
 export async function saveLocations(locations = []) {
+     const locationId = getCurrentLocationId();
+     if (locationId == null) {
+          logDebugMessage('saveLocations: no current location id, skipping save');
+          return;
+     }
+
      const db = await getDb();
      const now = Date.now();
-     await ensureLibraryBranchRow(db, now);
+     await ensureLibraryBranchRow(db, now, locationId);
      await db.runAsync(
           `UPDATE library_branch_state SET
                 updated_at = ?,
                 locations_json = ?
-           WHERE id = ?;`,
-          [now, safeStringify(locations), ROW_ID]
+           WHERE location_id = ?;`,
+          [now, safeStringify(locations), locationId]
      );
 }
 
@@ -190,10 +207,13 @@ export async function saveLocations(locations = []) {
  * Loads all available locations from database.
  */
 export async function loadLocations() {
+     const locationId = getCurrentLocationId();
+     if (locationId == null) return [];
+
      const db = await getDb();
      const row = await db.getFirstAsync(
-          `SELECT locations_json FROM library_branch_state WHERE id = ? LIMIT 1;`,
-          [ROW_ID]
+          `SELECT locations_json FROM library_branch_state WHERE location_id = ? LIMIT 1;`,
+          [locationId]
      );
      return safeParse(row?.locations_json) ?? [];
 }
@@ -201,35 +221,43 @@ export async function loadLocations() {
 // ─── Utility functions ─────────────────────────────────────────────────────────
 
 /**
- * Saves all library branch data in a single database transaction.
+ * Saves all library branch data.
  * Used when initializing library branch data on app startup.
  */
 export async function saveAllLibraryBranchData(state = {}) {
+     const locationId = numberOrNull(state.location?.locationId) ?? getCurrentLocationId();
+     if (locationId == null) {
+          logDebugMessage('saveAllLibraryBranchData: no current location id, skipping save');
+          return;
+     }
+     setCurrentLocationId(locationId);
+
      const db = await getDb();
      const now = Date.now();
-     await ensureLibraryBranchRow(db, now);
+     await ensureLibraryBranchRow(db, now, locationId);
 
-     await db.withTransactionAsync(async () => {
-          await saveLocation(state.location ?? {});
-          await saveScope(state.scope ?? '');
-          if (Object.prototype.hasOwnProperty.call(state, 'enableSelfCheck')) {
-               await saveSelfCheckEnabled(state.enableSelfCheck);
-          }
-          if (Object.prototype.hasOwnProperty.call(state, 'selfCheckSettings')) {
-               await saveSelfCheckSettings(state.selfCheckSettings ?? {});
-          }
-          await saveLocations(state.locations ?? []);
-     });
+     await saveLocation(state.location ?? {});
+     await saveScope(state.scope ?? '');
+     if (Object.prototype.hasOwnProperty.call(state, 'enableSelfCheck')) {
+          await saveSelfCheckEnabled(state.enableSelfCheck);
+     }
+     if (Object.prototype.hasOwnProperty.call(state, 'selfCheckSettings')) {
+          await saveSelfCheckSettings(state.selfCheckSettings ?? {});
+     }
+     await saveLocations(state.locations ?? []);
 }
 
 /**
- * Loads all library branch data from database.
+ * Loads all library branch data from database for the current location.
  */
 export async function loadAllLibraryBranchData() {
+     const locationId = getCurrentLocationId();
+     if (locationId == null) return null;
+
      const db = await getDb();
      const row = await db.getFirstAsync(
-          `SELECT * FROM library_branch_state WHERE id = ? LIMIT 1;`,
-          [ROW_ID]
+          `SELECT * FROM library_branch_state WHERE location_id = ? LIMIT 1;`,
+          [locationId]
      );
 
      if (!row) return null;
@@ -245,15 +273,19 @@ export async function loadAllLibraryBranchData() {
 }
 
 /**
- * Resets all library branch data (typically on logout).
+ * Resets the current location's library branch data.
+ * Not wired into logout (logout must not delete/clear SQLite data) - available for
+ * flows that genuinely need to force a refetch for the current location.
  */
 export async function resetAllLibraryBranchData() {
+     const locationId = getCurrentLocationId();
+     if (locationId == null) return;
+
      const db = await getDb();
      const now = Date.now();
      await db.runAsync(
           `UPDATE library_branch_state SET
                 updated_at = ?,
-                location_id = NULL,
                 display_name = NULL,
                 library_id = NULL,
                 is_main_branch = NULL,
@@ -263,8 +295,7 @@ export async function resetAllLibraryBranchData() {
                 location_json = NULL,
                 self_check_settings_json = NULL,
                 locations_json = NULL
-           WHERE id = ?;`,
-          [now, ROW_ID]
+           WHERE location_id = ?;`,
+          [now, locationId]
      );
 }
-

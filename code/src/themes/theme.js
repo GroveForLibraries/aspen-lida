@@ -253,9 +253,7 @@ export function useTheme() {
 
      const updateColorMode = React.useCallback(async (mode) => {
           await updateColorModeValue(mode);
-          const nextTextColor = mode === 'light' ? '#1c1917' : '#f3f4f6';
-          await updateTextColorValue(nextTextColor);
-     }, [updateColorModeValue, updateTextColorValue]);
+     }, [updateColorModeValue]);
 
      const updateTextColor = React.useCallback(async (value) => {
           await updateTextColorValue(value);
@@ -291,7 +289,6 @@ export function UseColorMode(props) {
      const { colorMode, theme } = useThemeForDisplay();
      const location = useLibraryLocation();
      const themes = useAvailableThemes(location?.locationId);
-     const updateTextColor = useUpdateThemeTextColor();
      const currentMode = colorMode === 'dark' ? 'wb-sunny' : 'nightlight-round';
      const currentColorMode = colorMode === 'dark' ? 'Dark' : 'Light';
      const currentModeB = colorMode === 'dark' ? 'nightlight-round' : 'wb-sunny';
@@ -318,7 +315,6 @@ export function UseColorMode(props) {
 
           logDebugMessage("Switching color mode to: " + newColorMode);
           await updateColorMode(newColorMode);
-          await updateTextColor(newColorMode === 'light' ? '#1c1917' : '#f3f4f6');
      };
 
      if (showText) {
@@ -481,4 +477,3 @@ const themeSwitcherStyles = StyleSheet.create({
      },
 });
 
-export const THEME_STALE_MS = 12 * 60 * 60 * 1000;

@@ -16,6 +16,7 @@ import { popToast } from '../../components/feedback';
 
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 import { useTheme } from '../../themes/theme';
+import { isValidUrl } from '../../helpers/helpers';
 
 const loggedEmptyCategoryKeys = new Set();
 
@@ -243,7 +244,11 @@ const DisplayBrowseCategoryRecord = ({record}) => {
      }
 
      const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
-     const imageUrl = library.baseUrl + '/bookcover.php?id=' + id + '&size=medium&type=' + type;
+     let imageUrl = library.baseUrl + '/bookcover.php?id=' + id + '&size=medium&type=' + type;
+
+     if (type === 'Event' || _.includes(type, '_event')) {
+          imageUrl = isValidUrl(record.image) ? record.image : (library.baseUrl + '/bookcover.php?id=' + id + '&size=medium&type=' + type);
+     }
 
      let isNew = false;
      if (typeof record.isNew !== 'undefined') {
