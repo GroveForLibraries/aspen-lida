@@ -19,7 +19,7 @@ import React, { useRef } from 'react';
 import { AuthContext } from '../../context/AuthContext';
 import { DisplayMessage } from '../../components/Notifications';
 
-import { useUpdateLibrary, useUpdateCatalogStatus, useCatalogStatus } from '../../hooks/useLibrarySystemData';
+import { useUpdateLibrary, useUpdateCatalogStatus, useCatalogStatus, useAppSettings } from '../../hooks/useLibrarySystemData';
 import { useUpdateActiveLanguage } from '../../hooks/useLanguageData';
 import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
@@ -29,7 +29,7 @@ import { stripHTML } from '../../helpers/helpers';
 import { GLOBALS, LIBRARY } from '../../util/globals';
 import { formatDiscoveryVersion } from '../../helpers/helpers';
 import { ResetExpiredPin } from './ResetExpiredPin';
-import { saveAllLibraryBranchData } from '../../util/db';
+import { saveAllLibraryBranchData, setCurrentLocationId, setCurrentLibraryId } from '../../util/db';
 
 import { logDebugMessage, logInfoMessage, logWarnMessage, getErrorMessage } from '../../util/logging.js';
 import { createApiClient } from '../../util/api/apiFactory';
@@ -65,6 +65,7 @@ export const GetLoginForm = (props) => {
       const { status: catalogStatus } = useCatalogStatus();
       const updateLibrary = useUpdateLibrary();
      const updateLanguage = useUpdateActiveLanguage();
+     const appSettings = useAppSettings();
      const patronsLibrary = props.selectedLibrary;
 
      const { usernameLabel, passwordLabel, allowBarcodeScanner, allowCode39, updateSelectedLibrary } = props;
@@ -147,15 +148,16 @@ export const GetLoginForm = (props) => {
      const initialValidation = async () => {
           setLoginError(false);
           setLoginErrorMessage('');
+           setCurrentLibraryId(patronsLibrary['libraryId']);
            updateCatalogStatus(0, null);
            logInfoMessage ("Base Url is: " + patronsLibrary['baseUrl'] + " library is: " + patronsLibrary['libraryId']);
            const result = await checkAspenDiscovery(patronsLibrary['baseUrl'], patronsLibrary['libraryId']);
           if (result.ok) {
                const libraryInfo = result.data?.result?.library;
                updateLibrary(libraryInfo);
-               LIBRARY.id = patronsLibrary['libraryId'];
                LIBRARY.url = patronsLibrary['baseUrl'];
                LIBRARY.version = formatDiscoveryVersion(libraryInfo.discoveryVersion);
+               setCurrentLibraryId(patronsLibrary['libraryId']);
                logDebugMessage("Successfully received library info");
 
                // check if catalog is in offline mode
@@ -253,7 +255,7 @@ export const GetLoginForm = (props) => {
            // Save username for convenience on next login
            await AsyncStorage.setItem('@userBarcode', username);
            await AsyncStorage.setItem('@lastStoredVersion', Constants.expoConfig.version);
-          const autoPickUserHomeLocation = parseInt(LIBRARY.appSettings?.autoPickUserHomeLocation ?? 0);
+          const autoPickUserHomeLocation = parseInt(appSettings?.autoPickUserHomeLocation ?? 0);
           let selectedLocationId = patronsLibrary['locationId'];
           let selectedBaseUrl = patronsLibrary['baseUrl'];
 
@@ -265,7 +267,8 @@ export const GetLoginForm = (props) => {
                          logDebugMessage('Successfully retrieved location info for user home location while logging in, setting asyncStorage library and location to: ' + patronHomeLocation.displayName + ' (' + patronHomeLocation.libraryId + ')');
                          updateSelectedLibrary(patronHomeLocation);
                          LIBRARY.url = patronHomeLocation.baseUrl;
-                         LIBRARY.id = patronHomeLocation.libraryId;
+                         setCurrentLibraryId(patronHomeLocation.libraryId);
+                         setCurrentLocationId(patronHomeLocation.locationId);
                          await SecureStore.setItemAsync('library', JSON.stringify(patronHomeLocation.libraryId));
                          await AsyncStorage.setItem('@libraryId', JSON.stringify(patronHomeLocation.libraryId));
                          await SecureStore.setItemAsync('libraryName', patronHomeLocation.displayName);
@@ -281,7 +284,8 @@ export const GetLoginForm = (props) => {
                          // just store what we know
                          logDebugMessage('Problem getting location info for user home location. Setting library and location to: ' + patronsLibrary['name']);
                          LIBRARY.url = patronsLibrary['baseUrl'];
-                         LIBRARY.id = patronsLibrary['libraryId'];
+                         setCurrentLibraryId(patronsLibrary['libraryId']);
+                         setCurrentLocationId(patronsLibrary['locationId']);
                          await SecureStore.setItemAsync('library', patronsLibrary['libraryId']);
                          await AsyncStorage.setItem('@libraryId', patronsLibrary['libraryId']);
                          await SecureStore.setItemAsync('libraryName', patronsLibrary['name']);
@@ -297,7 +301,8 @@ export const GetLoginForm = (props) => {
           } else {
                logDebugMessage('No home location set for user or autoPickUserHomeLocation is disabled, setting library and location to: ' + patronsLibrary['name']);
                LIBRARY.url = patronsLibrary['baseUrl'];
-               LIBRARY.id = patronsLibrary['libraryId'];
+               setCurrentLibraryId(patronsLibrary['libraryId']);
+               setCurrentLocationId(patronsLibrary['locationId']);
                updateSelectedLibrary(patronsLibrary);
                await SecureStore.setItemAsync('library', patronsLibrary['libraryId']);
                await AsyncStorage.setItem('@libraryId', patronsLibrary['libraryId']);
@@ -312,6 +317,7 @@ export const GetLoginForm = (props) => {
                selectedBaseUrl = patronsLibrary['baseUrl'];
           }
 
+          setCurrentLocationId(selectedLocationId);
           const activeLocation = await persistLibraryBranchDataAfterLogin(selectedBaseUrl, selectedLocationId);
 
           try {

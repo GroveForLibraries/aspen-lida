@@ -1,10 +1,12 @@
 import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
-import { GLOBALS, LIBRARY } from '../globals';
+import { GLOBALS } from '../globals';
 import { createApiClient } from './apiFactory';
 import { Platform } from 'react-native';
 import { getAppSettings } from './system';
 import { logDebugMessage } from '../logging';
+import { setCurrentLibraryId } from '../db';
+import { numberOrNull } from '../../helpers/helpers';
 
 /**
  * Determines the appropriate Greenhouse API configuration based on the app's slug and release channel, and whether the app is branded or not
@@ -102,10 +104,14 @@ export async function fetchNearbyLibrariesFromGreenhouse() {
 
           if (isBranded) {
                logDebugMessage("Getting branded app settings");
-               await getAppSettings(GLOBALS.url, GLOBALS.timeoutAverage, GLOBALS.slug);
-               logDebugMessage(LIBRARY.appSettings);
+               const resolvedLibraryId = numberOrNull(libraries?.[0]?.libraryId);
+               if (resolvedLibraryId != null) {
+                    setCurrentLibraryId(resolvedLibraryId);
+               }
+               const appSettings = await getAppSettings(GLOBALS.url, GLOBALS.timeoutAverage, GLOBALS.slug);
+               logDebugMessage(appSettings);
 
-               const autoPickUserHomeLocation = LIBRARY.appSettings?.autoPickUserHomeLocation ?? false;
+               const autoPickUserHomeLocation = appSettings?.autoPickUserHomeLocation ?? false;
                logDebugMessage(`autoPickUserHomeLocation: ${autoPickUserHomeLocation}`);
 
                if (autoPickUserHomeLocation) {

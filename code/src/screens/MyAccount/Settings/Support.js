@@ -1,7 +1,7 @@
 import * as Device from 'expo-device';
 import * as Linking from 'expo-linking';
 import _ from 'lodash';
-import { Alert, Box, Center, HStack, Pressable, Text, VStack, ScrollView, Button, ButtonText, Divider, AlertText, CloseIcon } from '@gluestack-ui/themed';
+import { Alert, Box, Center, HStack, Pressable, Text, VStack, ScrollView, Button, ButtonText, Divider, AlertText, CloseIcon, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalBody, ModalFooter, ModalCloseButton, ButtonGroup, Heading, Icon } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
 import { checkVersion } from 'react-native-check-version';
@@ -12,7 +12,7 @@ import { getTermFromDictionary } from '../../../translations/TranslationService'
 import { getTranslatedTermsForUserPreferredLanguage, setTranslationsLibrary, translationsLibrary } from '../../../translations/TranslationService';
 import { GLOBALS } from '../../../util/globals';
 import { useNavigation } from '@react-navigation/native';
-import { logDebugMessage, logErrorMessage } from '../../../util/logging';
+import { logDebugMessage, logErrorMessage, dumpSQLiteTable} from '../../../util/logging';
 import { useActiveLanguage, useAllLanguageData, useLanguageUserStateQuery, useUpdateAvailableLanguages, useUpdateDictionary } from '../../../hooks/useLanguageData';
 import { buildThemeForLibrary, useTheme } from '../../../themes/theme';
 import { useAllLibrarySystemData, useLibraryQuery } from '../../../hooks/useLibrarySystemData';
@@ -33,6 +33,16 @@ function formatCachedDateTime(updatedAt) {
      return new Date(updatedAt).toLocaleString();
 }
 
+// Mapping of cache keys to SQLite table names
+const CACHE_KEY_TO_TABLE_MAP = {
+     accounts: 'user_accounts',
+     library: 'library_system_state',
+     location: 'library_branch_state',
+     language: 'language_state',
+     theme: 'theme_state',
+     browse_categories: 'browse_category_state',
+};
+
 export const SupportScreen = () => {
      const navigation = useNavigation();
      const accountsQuery = useAccounts();
@@ -51,6 +61,7 @@ export const SupportScreen = () => {
      const updateDictionary = useUpdateDictionary();
      const { theme, textColor, colorMode } = useTheme();
      const [refreshingCache, setRefreshingCache] = React.useState({});
+     const [dumpingCache, setDumpingCache] = React.useState({});
      const isAnyCacheRefreshing = Object.values(refreshingCache).some(Boolean);
      const [status, setStatus] = React.useState({
           needsUpdate: false,
@@ -58,6 +69,13 @@ export const SupportScreen = () => {
           latest: GLOBALS.appVersion,
           canOpenUrl: false,
      });
+     const [pendingDumpCacheKey, setPendingDumpCacheKey] = React.useState(null);
+
+
+     // Debug mode: tap "Data Caches" title 5 times to enable dump buttons
+     const [dataCachesTapCount, setDataCachesTapCount] = React.useState(0);
+     const [showDumpButtons, setShowDumpButtons] = React.useState(false);
+     const tapTimeoutRef = React.useRef(null);
 
      const accounts = accountsQuery.data;
      const userDebugMessage = debugMessagesQuery.data ?? [];
@@ -80,143 +98,216 @@ export const SupportScreen = () => {
           })();
      }, []);
 
-     const refreshCache = React.useCallback(async (cacheKey, refetch) => {
-          setRefreshingCache((prev) => ({ ...prev, [cacheKey]: true }));
-          try {
-               if (!libraryUrl) {
-                    logDebugMessage('Support refresh skipped: no cached library URL available');
-                    return;
-               }
+     const handleDataCachesTitleTap = () => {
+          const newCount = dataCachesTapCount + 1;
+          setDataCachesTapCount(newCount);
 
-               if (cacheKey === 'accounts') {
-                    const profileResp = await refreshProfile(libraryUrl);
-                    if (profileResp?.ok) {
-                         const profile = profileResp?.data?.result?.profile ?? {};
-                         await saveUserProfile(profile);
-
-                         const pickupResp = await getPickupLocations(libraryUrl);
-                         if (pickupResp?.ok) {
-                              const pickupLocations = formatPickupLocations(pickupResp.data?.result ?? {});
-                              await saveLocations(pickupLocations?.locations ?? []);
-                         }
-
-                         const linkedResp = await getLinkedAccounts(libraryUrl, activeLanguage ?? 'en');
-                         if (linkedResp?.ok) {
-                              const linkedAccounts = formatLinkedAccounts(profile, [], library?.barcodeStyle ?? 'UNKNOWN', linkedResp.data?.result?.linkedAccounts);
-                              await saveAccounts(linkedAccounts.accounts ?? []);
-                              await saveCards(linkedAccounts.cards ?? []);
-                         }
-
-                         const appPrefsResp = await getAppPreferencesForUser(libraryUrl, activeLanguage ?? 'en');
-                         if (appPrefsResp?.ok) {
-                              await saveAppPreferences(appPrefsResp.data?.result ?? {});
-                         }
-
-                         const notifResp = await fetchNotificationHistory(1, 20, true, libraryUrl, activeLanguage ?? 'en');
-                         if (notifResp?.ok) {
-                              const notificationHistory = formatNotificationHistory(notifResp.data?.result ?? {});
-                              await saveNotificationHistory(notificationHistory);
-                         }
-                    }
-               }
-
-               if (cacheKey === 'library') {
-                    const catalogResp = await getCatalogStatus(libraryUrl);
-                    let catalogStatus = 0;
-                    let catalogStatusMessage = '';
-                    if (catalogResp?.ok) {
-                         catalogStatus = catalogResp.data?.result?.catalogStatus ?? 0;
-                         if (catalogResp.data?.result?.api?.message) {
-                              catalogStatusMessage = stripHTML(catalogResp.data.result.api.message);
-                         }
-                    }
-
-                    const libraryResp = await getLibraryInfo(libraryUrl, libraryId);
-                    if (libraryResp?.ok) {
-                         const libraryInfo = libraryResp.data?.result?.library ?? {};
-                         const linksResp = await getLibraryLinks(libraryUrl);
-                         const menu = linksResp?.ok ? (linksResp.data?.result?.items ?? []) : [];
-
-                         await saveCatalogStatus(catalogStatus, catalogStatusMessage);
-                         await saveLibrary(libraryInfo);
-                         await saveMenu(menu);
-                    }
-               }
-
-               if (cacheKey === 'location') {
-                    const locationResp = await getLocationInfo(libraryUrl);
-                    if (locationResp?.ok) {
-                         const locationData = locationResp.data?.result?.location ?? [];
-                         const selfCheckResp = await getSelfCheckSettings(libraryUrl, locationData?.locationId ?? null);
-                         const updateData = { location: locationData };
-
-                         // Only update self-check if API succeeds
-                         if (selfCheckResp?.ok && selfCheckResp.data?.result?.success) {
-                              const rawEnabled = selfCheckResp.data.result.settings?.isEnabled;
-                              updateData.enableSelfCheck = rawEnabled === true || rawEnabled === 1 || rawEnabled === '1' || rawEnabled === 'true';
-                              updateData.selfCheckSettings = selfCheckResp.data.result.settings ?? {};
-                         }
-
-                         await saveAllLibraryBranchData(updateData);
-                    }
-               }
-
-               if (cacheKey === 'language') {
-                    const activeLanguageCode = activeLanguage ?? 'en';
-                    const languageResponse = await getLibraryLanguages(libraryUrl);
-                    if (languageResponse?.ok) {
-                         //No need to sort these since they are already sorted by the API
-                         const fetchedLanguages = normalizeLibraryLanguagesPayload(
-                              languageResponse?.data?.result?.languages
-                         );
-                         await updateLanguages(fetchedLanguages);
-
-                         await getTranslatedTermsForUserPreferredLanguage(activeLanguageCode, libraryUrl);
-                         setTranslationsLibrary(translationsLibrary);
-                         await updateDictionary(translationsLibrary);
-                    }else{
-                         logDebugMessage("Dod not get a successful response loading lanugage data");
-                    }
-               }
-
-               if (cacheKey === 'theme') {
-                    logDebugMessage('Theme cache refresh triggered from Support screen');
-                    const themeResponse = await buildThemeForLibrary(libraryUrl);
-                    if (themeResponse) {
-                         await saveThemeState({
-                              themeId: themeResponse.themeId,
-                              colorMode: colorMode === 'dark' ? 'dark' : 'light',
-                              textColor: colorMode === 'dark' ? '$coolGray200' : '$warmGray600',
-                              themeColors: themeResponse.themeColors,
-                         });
-                    }
-               }
-
-               if (cacheKey === 'browse_categories') {
-                    const browseCategoriesResp = await getBrowseCategoriesAndHomeLinks({ patronsLibrary: library }, userStateQuery.data?.user ?? {}, { valueUser: '', valueSecret: '' });
-                    if (browseCategoriesResp?.ok) {
-                         const browseData = browseCategoriesResp.data?.result ?? {};
-                         await saveAllBrowseCategoryData({
-                              browseCategoriesData: browseData.browseCategoriesData ?? [],
-                              categoryCounts: browseData.categoryCounts ?? {},
-                              maxCategories: browseData.maxCategories ?? 10,
-                         });
-                    }
-               }
-
-               await refetch();
-               await userStateQuery.refetch();
-               await allLibrarySystemDataQuery.refetch();
-               await allLibraryBranchDataQuery.refetch();
-               await allLanguageDataQuery.refetch();
-               await themeStateQuery.refetch();
-               await browseCategoryDataQuery.refetch();
-          } catch (e) {
-               logErrorMessage(e);
-          } finally {
-               setRefreshingCache((prev) => ({ ...prev, [cacheKey]: false }));
+          // Clear existing timeout
+          if (tapTimeoutRef.current) {
+               clearTimeout(tapTimeoutRef.current);
           }
-     }, [activeLanguage, allLanguageDataQuery, allLibraryBranchDataQuery, allLibrarySystemDataQuery, browseCategoryDataQuery, library, library?.barcodeStyle, libraryId, libraryUrl, themeStateQuery, updateDictionary, updateLanguages, userStateQuery]);
+
+          // If 5 taps reached, enable debug mode
+          if (newCount >= 5) {
+               setShowDumpButtons(true);
+               setDataCachesTapCount(0);
+               logDebugMessage('Support debug mode enabled - dump buttons visible');
+          } else {
+               // Reset count after 1 second of inactivity
+               tapTimeoutRef.current = setTimeout(() => {
+                    setDataCachesTapCount(0);
+               }, 1000);
+          }
+     };
+
+     const dumpCacheToSentry = React.useCallback(async (cacheKey) => {
+          const tableName = CACHE_KEY_TO_TABLE_MAP[cacheKey];
+          if (!tableName) {
+               logErrorMessage(`No table mapping found for cache key: ${cacheKey}`);
+               return;
+          }
+
+          setDumpingCache((prev) => ({ ...prev, [cacheKey]: true }));
+          try {
+               const result = await dumpSQLiteTable(tableName, {
+                    limit: 1000,
+                    includeSchema: true,
+                    level: 'info',
+               });
+
+               if (result.success) {
+                    logDebugMessage(`Successfully dumped ${tableName} table to Error Logger`);
+               } else {
+                    logErrorMessage(`Failed to dump ${tableName} table: ${result.error}`);
+               }
+          } catch (error) {
+               logErrorMessage(`Error dumping ${tableName} to Error Logger: ${error.message}`);
+          } finally {
+               setDumpingCache((prev) => ({ ...prev, [cacheKey]: false }));
+          }
+      }, []);
+
+      const handleDumpCachePress = React.useCallback((cacheKey) => {
+           if (cacheKey !== 'accounts') {
+                dumpCacheToSentry(cacheKey);
+                return;
+           }
+
+           setPendingDumpCacheKey(cacheKey);
+      }, [dumpCacheToSentry]);
+
+      const dismissDumpConfirm = React.useCallback(() => {
+           setPendingDumpCacheKey(null);
+      }, []);
+
+      const confirmDumpCache = React.useCallback(() => {
+           if (!pendingDumpCacheKey) {
+                return;
+           }
+
+           const cacheKey = pendingDumpCacheKey;
+           setPendingDumpCacheKey(null);
+           dumpCacheToSentry(cacheKey);
+      }, [dumpCacheToSentry, pendingDumpCacheKey]);
+
+      const refreshCache = React.useCallback(
+          async (cacheKey, refetch) => {
+               setRefreshingCache((prev) => ({ ...prev, [cacheKey]: true }));
+               try {
+                    if (!libraryUrl) {
+                         logDebugMessage('Support refresh skipped: no cached library URL available');
+                         return;
+                    }
+
+                    if (cacheKey === 'accounts') {
+                         const profileResp = await refreshProfile(libraryUrl);
+                         if (profileResp?.ok) {
+                              const profile = profileResp?.data?.result?.profile ?? {};
+                              await saveUserProfile(profile);
+
+                              const pickupResp = await getPickupLocations(libraryUrl);
+                              if (pickupResp?.ok) {
+                                   const pickupLocations = formatPickupLocations(pickupResp.data?.result ?? {});
+                                   await saveLocations(pickupLocations?.locations ?? []);
+                              }
+
+                              const linkedResp = await getLinkedAccounts(libraryUrl, activeLanguage ?? 'en');
+                              if (linkedResp?.ok) {
+                                   const linkedAccounts = formatLinkedAccounts(profile, [], library?.barcodeStyle ?? 'UNKNOWN', linkedResp.data?.result?.linkedAccounts);
+                                   await saveAccounts(linkedAccounts.accounts ?? []);
+                                   await saveCards(linkedAccounts.cards ?? []);
+                              }
+
+                              const appPrefsResp = await getAppPreferencesForUser(libraryUrl, activeLanguage ?? 'en');
+                              if (appPrefsResp?.ok) {
+                                   await saveAppPreferences(appPrefsResp.data?.result ?? {});
+                              }
+
+                              const notifResp = await fetchNotificationHistory(1, 20, true, libraryUrl, activeLanguage ?? 'en');
+                              if (notifResp?.ok) {
+                                   const notificationHistory = formatNotificationHistory(notifResp.data?.result ?? {});
+                                   await saveNotificationHistory(notificationHistory);
+                              }
+                         }
+                    }
+
+                    if (cacheKey === 'library') {
+                         const catalogResp = await getCatalogStatus(libraryUrl);
+                         let catalogStatus = 0;
+                         let catalogStatusMessage = '';
+                         if (catalogResp?.ok) {
+                              catalogStatus = catalogResp.data?.result?.catalogStatus ?? 0;
+                              if (catalogResp.data?.result?.api?.message) {
+                                   catalogStatusMessage = stripHTML(catalogResp.data.result.api.message);
+                              }
+                         }
+
+                         const libraryResp = await getLibraryInfo(libraryUrl, libraryId);
+                         if (libraryResp?.ok) {
+                              const libraryInfo = libraryResp.data?.result?.library ?? {};
+                              const linksResp = await getLibraryLinks(libraryUrl);
+                              const menu = linksResp?.ok ? (linksResp.data?.result?.items ?? []) : [];
+
+                              await saveCatalogStatus(catalogStatus, catalogStatusMessage);
+                              await saveLibrary(libraryInfo);
+                              await saveMenu(menu);
+                         }
+                    }
+
+                    if (cacheKey === 'location') {
+                         const locationResp = await getLocationInfo(libraryUrl);
+                         if (locationResp?.ok) {
+                              const locationData = locationResp.data?.result?.location ?? [];
+                              const selfCheckResp = await getSelfCheckSettings(libraryUrl, locationData?.locationId ?? null);
+                              const updateData = { location: locationData };
+
+                              // Only update self-check if API succeeds
+                              if (selfCheckResp?.ok && selfCheckResp.data?.result?.success) {
+                                   const rawEnabled = selfCheckResp.data.result.settings?.isEnabled;
+                                   updateData.enableSelfCheck = rawEnabled === true || rawEnabled === 1 || rawEnabled === '1' || rawEnabled === 'true';
+                                   updateData.selfCheckSettings = selfCheckResp.data.result.settings ?? {};
+                              }
+
+                              await saveAllLibraryBranchData(updateData);
+                         }
+                    }
+
+                    if (cacheKey === 'language') {
+                         const activeLanguageCode = activeLanguage ?? 'en';
+                         const languageResponse = await getLibraryLanguages(libraryUrl);
+                         if (languageResponse?.ok) {
+                              //No need to sort these since they are already sorted by the API
+                              const fetchedLanguages = normalizeLibraryLanguagesPayload(languageResponse?.data?.result?.languages);
+                              await updateLanguages(fetchedLanguages);
+
+                              await getTranslatedTermsForUserPreferredLanguage(activeLanguageCode, libraryUrl);
+                              setTranslationsLibrary(translationsLibrary);
+                              await updateDictionary(translationsLibrary);
+                         } else {
+                              logDebugMessage('Dod not get a successful response loading lanugage data');
+                         }
+                    }
+
+                    if (cacheKey === 'theme') {
+                         logDebugMessage('Theme cache refresh triggered from Support screen');
+                         const themeResponse = await buildThemeForLibrary(libraryUrl);
+                         if (themeResponse) {
+                              await saveThemeState({
+                                   themeId: themeResponse.themeId,
+                                   colorMode: colorMode === 'dark' ? 'dark' : 'light',
+                                   textColor: colorMode === 'dark' ? '$coolGray200' : '$warmGray600',
+                                   themeColors: themeResponse.themeColors,
+                              });
+                         }
+                    }
+
+                    if (cacheKey === 'browse_categories') {
+                         const browseCategoriesResp = await getBrowseCategoriesAndHomeLinks({ patronsLibrary: library }, userStateQuery.data?.user ?? {}, { valueUser: '', valueSecret: '' });
+                         if (browseCategoriesResp?.ok) {
+                              const browseData = browseCategoriesResp.data?.result ?? {};
+                              await saveAllBrowseCategoryData({
+                                   browseCategoriesData: browseData.browseCategoriesData ?? [],
+                                   categoryCounts: browseData.categoryCounts ?? {},
+                                   maxCategories: browseData.maxCategories ?? 10,
+                              });
+                         }
+                    }
+
+                    await refetch();
+                    await userStateQuery.refetch();
+                    await allLibrarySystemDataQuery.refetch();
+                    await allLibraryBranchDataQuery.refetch();
+                    await allLanguageDataQuery.refetch();
+                    await themeStateQuery.refetch();
+                    await browseCategoryDataQuery.refetch();
+               } catch (e) {
+                    logErrorMessage(e);
+               } finally {
+                    setRefreshingCache((prev) => ({ ...prev, [cacheKey]: false }));
+               }
+          },
+          [activeLanguage, allLanguageDataQuery, allLibraryBranchDataQuery, allLibrarySystemDataQuery, browseCategoryDataQuery, library, library?.barcodeStyle, libraryId, libraryUrl, themeStateQuery, updateDictionary, updateLanguages, userStateQuery]
+     );
 
      const cacheItems = [
           {
@@ -273,6 +364,34 @@ export const SupportScreen = () => {
 
      return (
           <Box safeArea={5} flex={1}>
+               <Modal isOpen={pendingDumpCacheKey === 'accounts'} onClose={dismissDumpConfirm} closeOnOverlayClick={true} size="md">
+                    <ModalBackdrop />
+                    <ModalContent maxWidth="90%" bg={colorMode === 'light' ? '$warmGray50' : '$coolGray800'}>
+                         <ModalHeader>
+                              <Heading size="$md" color={textColor}>
+                                   Confirm User Data Share
+                              </Heading>
+                              <ModalCloseButton p="$3" onPress={dismissDumpConfirm}>
+                                   <Icon as={CloseIcon} color={textColor} />
+                              </ModalCloseButton>
+                         </ModalHeader>
+                         <ModalBody>
+                              <Text color={colorMode === 'light' ? '$coolGray600' : '$warmGray400'} fontSize="$sm">
+                                   This data may include personally identifiable information, is strictly for diagnostic purposes, and is removed after 30 days. Only continue if you are being requested to do so.
+                              </Text>
+                         </ModalBody>
+                         <ModalFooter>
+                              <ButtonGroup space={2} size="sm">
+                                   <Button variant="outline" onPress={dismissDumpConfirm}>
+                                        <ButtonText>Cancel</ButtonText>
+                                   </Button>
+                                   <Button action="negative" onPress={confirmDumpCache}>
+                                        <ButtonText>Continue</ButtonText>
+                                   </Button>
+                              </ButtonGroup>
+                         </ModalFooter>
+                    </ModalContent>
+               </Modal>
                <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
                     <VStack space="sm" px="$4" py="$2">
                          <VStack justifyContent="space-between" py="$1">
@@ -331,9 +450,11 @@ export const SupportScreen = () => {
                          </VStack>
                          <Divider my="$2" />
                          <VStack justifyContent="space-between" py="$1">
-                              <Text bold color={textColor}>
-                                   Data Caches
-                              </Text>
+                              <Pressable onPress={handleDataCachesTitleTap}>
+                                   <Text bold color={textColor}>
+                                        Data Caches
+                                   </Text>
+                              </Pressable>
                               <VStack space="$2" mt="$2">
                                    {cacheItems.map((cacheItem) => (
                                         <Box key={cacheItem.key} py="$2">
@@ -346,9 +467,16 @@ export const SupportScreen = () => {
                                                             Cached: {formatCachedDateTime(cacheItem.updatedAt)}
                                                        </Text>
                                                   </VStack>
-                                                  <Button size="sm" variant="outline" borderColor={colorMode === 'light' ? '$coolGray600' : '$warmGray400'} isDisabled={Boolean(refreshingCache[cacheItem.key]) || isAnyCacheRefreshing} onPress={() => refreshCache(cacheItem.key, cacheItem.refetch)}>
-                                                       <ButtonText color={colorMode === 'light' ? '$coolGray600' : '$warmGray400'}>{refreshingCache[cacheItem.key] ? 'Updating...' : 'Update'}</ButtonText>
-                                                  </Button>
+                                                  <HStack space="sm" alignItems="center">
+                                                       {showDumpButtons && (
+                                                            <Button size="sm" variant="outline" borderColor={colorMode === 'light' ? '$red600' : '$red400'} isDisabled={Boolean(dumpingCache[cacheItem.key]) || isAnyCacheRefreshing} onPress={() => handleDumpCachePress(cacheItem.key)}>
+                                                                 <ButtonText color={colorMode === 'light' ? '$red600' : '$red400'}>{dumpingCache[cacheItem.key] ? 'Sharing...' : 'Share'}</ButtonText>
+                                                            </Button>
+                                                       )}
+                                                       <Button size="sm" variant="outline" borderColor={colorMode === 'light' ? '$coolGray600' : '$warmGray400'} isDisabled={Boolean(refreshingCache[cacheItem.key]) || isAnyCacheRefreshing} onPress={() => refreshCache(cacheItem.key, cacheItem.refetch)}>
+                                                            <ButtonText color={colorMode === 'light' ? '$coolGray600' : '$warmGray400'}>{refreshingCache[cacheItem.key] ? 'Updating...' : 'Update'}</ButtonText>
+                                                       </Button>
+                                                  </HStack>
                                              </HStack>
                                         </Box>
                                    ))}

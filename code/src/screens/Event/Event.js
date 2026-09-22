@@ -59,12 +59,12 @@ export const EventScreen = () => {
      const library = useLibrary();
      const language = useActiveLanguage();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
-     const { textColor, theme, colorMode } = useTheme();
      const [hasValidImage, setHasValidImage] = React.useState(false);
      const [eventData, setEventData] = React.useState([]);
      const [errorMessage, setErrorMessage] = React.useState('');
 
      const { status, data, error, isFetching } = useQuery(['event', id, source, language, library.baseUrl], () => getEventDetails(id, source, language, library.baseUrl), {
+          refetchOnMount: 'always',
           onSuccess: (data) => {
                if(data.ok) {
                     setEventData(data.data.result);

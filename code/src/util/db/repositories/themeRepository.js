@@ -1,22 +1,9 @@
 import { getDb } from '../sqlite';
 import { safeStringify } from '../serialize';
-import {logDebugMessage} from "../../logging";
+import { logDebugMessage } from '../../logging';
+import { numberOrNull, safeParse } from '../../../helpers/helpers';
 
 const ROW_ID = 1;
-
-function numberOrNull(value) {
-     const num = Number(value);
-     return Number.isFinite(num) ? num : null;
-}
-
-function safeParse(json) {
-     if (!json || typeof json !== 'string') return null;
-     try {
-          return JSON.parse(json);
-     } catch {
-          return null;
-     }
-}
 
 async function ensureThemeRow(db, now) {
      await db.runAsync(
@@ -30,7 +17,6 @@ export async function saveThemeState(state = {}) {
      const now = Date.now();
      await ensureThemeRow(db, now);
      logDebugMessage("Saving Theme State");
-     logDebugMessage(state);
      await db.runAsync(
           `UPDATE theme_state SET
                 updated_at = ?,
@@ -56,17 +42,15 @@ export async function saveThemeState(state = {}) {
 
 export async function loadThemeState() {
      const db = await getDb();
-     const row = await db.getFirstAsync(
-          `SELECT * FROM theme_state WHERE id = ? LIMIT 1;`,
-          [ROW_ID]
-     );
+     const row = await db.getFirstAsync(`SELECT * FROM theme_state WHERE id = ? LIMIT 1;`, [ROW_ID]);
 
      if (!row) return null;
 
      // Always derive textColor from colorMode so it can never be stale or inconsistent
      // regardless of what was stored (different code paths used different token formats).
      const colorMode = row.color_mode ?? 'light';
-     const result = {
+
+     return {
           themeId: row.theme_id ?? null,
           locationId: row.location_id ?? null,
           colorMode,
@@ -75,9 +59,6 @@ export async function loadThemeState() {
           header: safeParse(row.header_json),
           updatedAt: row.updated_at ?? 0,
      };
-     //logDebugMessage("Loading theme state");
-     //logDebugMessage(result);
-     return result;
 }
 
 export async function saveThemeColors(themeColors, themeId, locationId, header) {
@@ -140,40 +121,45 @@ export async function isStoredThemeIdMatch(themeId) {
  * @param locationId
  * @param themes
  */
+// Not wrapped in a transaction: this can run concurrently with other startup/login SQLite
+// work (e.g. a location's branch data being saved at the same time), and expo-sqlite
+// doesn't support overlapping transactions on one connection ("cannot rollback - no
+// transaction is active" if two try to run at once - previously left Loading.js hanging on
+// a promise that never resolved). A theme catalog fetch for the same location running twice
+// at once is not a realistic concurrent case in this app, and any transient inconsistency
+// self-heals on the next fetch, so this is not worth the collision risk.
 export async function saveThemeCatalog(locationId, themes = []) {
      const db = await getDb();
      const now = Date.now();
      const id = numberOrNull(locationId);
      if (id === null) return;
 
-     await db.withTransactionAsync(async () => {
-          await db.runAsync(`DELETE FROM theme_catalog WHERE location_id = ?;`, [id]);
+     await db.runAsync(`DELETE FROM theme_catalog WHERE location_id = ?;`, [id]);
 
-          for (const theme of themes) {
-               const themeId = numberOrNull(theme?.id);
-               if (themeId === null) continue;
+     for (const theme of themes) {
+          const themeId = numberOrNull(theme?.id);
+          if (themeId === null) continue;
 
-               await db.runAsync(
-                    `INSERT OR REPLACE INTO theme_catalog (
-                          location_id, theme_id, updated_at, weight, name, base_mode, logo,
-                          header_json, primary_json, secondary_json, tertiary_json
-                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
-                    [
-                         id,
-                         themeId,
-                         now,
-                         numberOrNull(theme?.weight) ?? 0,
-                         theme?.name ?? null,
-                         theme?.baseMode ?? null,
-                         theme?.logo ?? null,
-                         safeStringify(theme?.header ?? null),
-                         safeStringify(theme?.primary ?? null),
-                         safeStringify(theme?.secondary ?? null),
-                         safeStringify(theme?.tertiary ?? null),
-                    ]
-               );
-          }
-     });
+          await db.runAsync(
+               `INSERT OR REPLACE INTO theme_catalog (
+                     location_id, theme_id, updated_at, weight, name, base_mode, logo,
+                     header_json, primary_json, secondary_json, tertiary_json
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+               [
+                    id,
+                    themeId,
+                    now,
+                    numberOrNull(theme?.weight) ?? 0,
+                    theme?.name ?? null,
+                    theme?.baseMode ?? null,
+                    theme?.logo ?? null,
+                    safeStringify(theme?.header ?? null),
+                    safeStringify(theme?.primary ?? null),
+                    safeStringify(theme?.secondary ?? null),
+                    safeStringify(theme?.tertiary ?? null),
+               ]
+          );
+     }
 }
 
 /**

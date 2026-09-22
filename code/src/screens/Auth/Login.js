@@ -12,7 +12,7 @@ import { Platform } from 'react-native';
 import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { getLibraryInfo } from '../../util/api/system';
-import { saveLibrary, saveLibraryUrl } from '../../util/db';
+import { saveLibrary, saveLibraryUrl, setCurrentLibraryId, setCurrentLocationId } from '../../util/db';
 
 // custom components and helper files
 import { GLOBALS } from '../../util/globals';
@@ -167,6 +167,10 @@ export const LoginScreen = () => {
            }
            setSelectedLibrary(data);
            LIBRARY.url = data.baseUrl; // Keep for backwards compatibility until all code migrated
+           setCurrentLibraryId(data.libraryId);
+           if (data.locationId != null) {
+                setCurrentLocationId(data.locationId);
+           }
            await saveLibraryUrl(data.baseUrl); // Save to SQLite
            await getLibraryInfo(data.baseUrl, data.libraryId).then(async (result) => {
                 if (_.isObject(result)) {
