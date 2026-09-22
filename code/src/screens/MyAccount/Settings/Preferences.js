@@ -2,7 +2,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
-import _ from 'lodash';
+import { find, isEmpty, matchesProperty } from '../../../helpers/helpers';
 import { Box, Divider, HStack, Icon, Pressable, Text, VStack, ChevronRightIcon } from '@gluestack-ui/themed';
 import React from 'react';
 
@@ -36,9 +36,9 @@ export const PreferencesScreen = () => {
                          : await Notifications.getExpoPushTokenAsync({
                               projectId: Constants.expoConfig.extra.eas.projectId })).data;
                     if (token) {
-                         if (!_.isEmpty(user.notification_preferences)) {
+                         if (!isEmpty(user.notification_preferences)) {
                               const tokenStorage = user.notification_preferences;
-                              if (_.find(tokenStorage, _.matchesProperty('token', token))) {
+                              if (find(tokenStorage, matchesProperty('token', token))) {
                                    updateExpoToken(token);
                               }
                          }

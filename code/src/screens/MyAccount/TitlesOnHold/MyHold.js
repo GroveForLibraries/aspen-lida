@@ -1,7 +1,7 @@
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import {useNavigation} from '@react-navigation/native';
 import { Image } from 'expo-image';
-import _ from 'lodash';
+
 import {
      Actionsheet,
      ActionsheetItem,
@@ -35,7 +35,7 @@ import { navigateStack } from '../../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../../translations/TranslationService';
 import { cancelHold, cancelHolds, freezeHold, freezeHolds, thawHold, thawHolds } from '../../../util/api/user';
 import { formatPickupLocations } from '../../../util/api/userHelper';
-import { formatDiscoveryVersion } from '../../../helpers/helpers';
+import { formatDiscoveryVersion, isArray, map } from '../../../helpers/helpers';
 import { checkoutItem, getPickupLocations } from '../../../util/api/user';
 import { SelectPickupLocation } from './SelectPickupLocation';
 import { SelectThawDate } from './SelectThawDate.js';
@@ -417,8 +417,8 @@ export const ManageSelectedHolds = (props) => {
      let numToThaw = 0;
      let numSelected = 0;
 
-     if (_.isArray(selectedValues)) {
-          _.map(selectedValues, function (item, index, collection) {
+     if (isArray(selectedValues)) {
+          map(selectedValues, function (item, index, collection) {
                if (item.includes('freeze')) {
                     const arr = item.split('|');
                     titlesToFreeze.push({
@@ -450,7 +450,7 @@ export const ManageSelectedHolds = (props) => {
           numToCancel = titlesToCancel.length;
           numToFreeze = titlesToFreeze.length;
           numToThaw = titlesToThaw.length;
-          numSelected = _.toString(selectedValues.length);
+          numSelected = String(selectedValues.length);
      }
 
      const numToCancelLabel = getTermFromDictionary(language, 'cancel_selected_holds') + ' (' + numToCancel + ')';
@@ -578,8 +578,8 @@ export const ManageAllHolds = (props) => {
 
      const holdsNotReady = holds[1].data;
 
-     if (_.isArray(holdsNotReady)) {
-          _.map(holdsNotReady, function (item, index, collection) {
+     if (isArray(holdsNotReady)) {
+          map(holdsNotReady, function (item, index, collection) {
                let record = item.recordId;
                if(item.source === 'overdrive') {
                   record = item.sourceId

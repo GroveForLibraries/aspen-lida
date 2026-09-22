@@ -1,5 +1,5 @@
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
-import _ from 'lodash';
+import { findIndex, get, isNumber, nth } from '../../../helpers/helpers';
 import {
      ActionsheetItem,
      ActionsheetItemText,
@@ -42,22 +42,22 @@ import { ScrollView } from '@gluestack-ui/themed';
 
 export const SelectPickupLocation = (props) => {
      const { locations, sublocations, onClose, currentPickupId, holdId, userId, libraryContext, holdsContext, resetGroup, language, textColor, colorMode, theme } = props;
-     let pickupLocation = _.findIndex(locations, function (o) {
+     let pickupLocation = findIndex(locations, function (o) {
           return o.locationId === currentPickupId;
      });
 
      let pickupId = currentPickupId;
-     if (_.isNumber(pickupId)) {
-          pickupId = _.toString(pickupId);
+     if (isNumber(pickupId)) {
+          pickupId = String(pickupId);
      }
 
-     pickupLocation = _.nth(locations, pickupLocation);
-     let pickupLocationCode = _.get(pickupLocation, 'code', '');
-     if (_.isNumber(pickupLocationCode)) {
-          pickupLocationCode = _.toString(pickupLocationCode);
+     pickupLocation = nth(locations, pickupLocation);
+     let pickupLocationCode = get(pickupLocation, 'code', '');
+     if (isNumber(pickupLocationCode)) {
+          pickupLocationCode = String(pickupLocationCode);
      }
      if (pickupId != false) {
-          pickupLocation = pickupId.concat('_', pickupLocationCode);
+          pickupLocation = `${pickupId}_${pickupLocationCode}`;
      }else{
           pickupLocation = '';
      }
@@ -110,7 +110,7 @@ export const SelectPickupLocation = (props) => {
                                                   {locations.map((item, index) => {
                                                        const locationId = item.locationId;
                                                        const code = item.code;
-                                                       const id = locationId.concat('_', code);
+                                                       const id = `${locationId}_${code}`;
                                                        if (id === location) {
                                                             return <SelectInput py={0} value={item.name} color={textColor} />;
                                                        }
@@ -129,7 +129,7 @@ export const SelectPickupLocation = (props) => {
                                                             {locations.map((item, index) => {
                                                                  const locationId = item.locationId;
                                                                  const code = item.code;
-                                                                 const id = locationId.concat('_', code);
+                                                                 const id = `${locationId}_${code}`;
                                                                  return <SelectItem value={id} label={item.name} key={index}  bgColor={location === (id) ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: location === (id) ? theme.tokens.colors.tertiary['500-text'] : textColor } }}/>;
                                                             })}
                                                        </ScrollView>

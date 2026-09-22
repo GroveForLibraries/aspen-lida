@@ -1,8 +1,7 @@
 import { Entypo, MaterialIcons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import _ from 'lodash';
-import moment from 'moment';
+import { formatTime, getTodaysHoursStatus, map, sample, size, trim, trimEnd, trimStart } from '../../helpers/helpers';
 import {
      Accordion,
      AccordionItem,
@@ -49,7 +48,7 @@ export const MoreMenu = () => {
      const { textColor, theme, colorMode } = useTheme();
 
      const { signOut } = React.useContext(AuthContext);
-     const hasMenuItems = _.size(menu);
+     const hasMenuItems = size(menu);
      const navigation = useNavigation();
      const [showDeleteConfirmationModal, setShowDeleteConfirmationModal] = React.useState(false);
      const [showDeleteResultsModal, setShowDeleteResultsModal] = React.useState(false);
@@ -206,41 +205,15 @@ const MyLibrary = () => {
 
      const { textColor, theme, colorMode } = useTheme();
 
-     let isClosedToday = false;
      let hoursLabel = '';
      if (location?.hours) {
-          const day = moment().day();
-          if (_.find(location.hours, _.matchesProperty('day', day))) {
-               let todaysHours = _.filter(location.hours, { day: day });
-               if (todaysHours[0]) {
-                    todaysHours = todaysHours[0];
-                    if (todaysHours.isClosed) {
-                         isClosedToday = true;
-                         hoursLabel = getTermFromDictionary(language, 'location_closed');
-                    } else {
-                         const closingText = todaysHours.close;
-                         const time1 = closingText.split(':');
-                         const openingText = todaysHours.open;
-                         const time2 = openingText.split(':');
-                         const closeTime = moment().set({ hour: time1[0], minute: time1[1] });
-                         const openTime = moment().set({ hour: time2[0], minute: time2[1] });
-                         const nowTime = moment();
-                         const stillOpen = moment(nowTime).isBefore(closeTime);
-                         const stillClosed = moment(openTime).isBefore(nowTime);
-                         if (!stillOpen) {
-                              isClosedToday = true;
-                              hoursLabel = getTermFromDictionary(language, 'location_closed');
-                         }
-                         if (!stillClosed) {
-                              isClosedToday = true;
-                              let openingTime = moment(openTime).format('h:mm A');
-                              hoursLabel = 'Closed until ' + openingTime;
-                         } else {
-                              let closingTime = moment(closeTime).format('h:mm A');
-                              hoursLabel = 'Open until ' + closingTime;
-                         }
-                    }
-               }
+          const hoursStatus = getTodaysHoursStatus(location.hours);
+          if (hoursStatus.status === 'closed_until' && hoursStatus.openingTime) {
+               hoursLabel = 'Closed until ' + formatTime(hoursStatus.openingTime);
+          } else if (hoursStatus.status === 'open_until' && hoursStatus.closingTime) {
+               hoursLabel = 'Open until ' + formatTime(hoursStatus.closingTime);
+          } else {
+               hoursLabel = getTermFromDictionary(language, 'location_closed');
           }
      }
 
@@ -269,7 +242,7 @@ const ViewAllLocations = () => {
      const locations = useAvailableLocations();
      const { textColor, theme, colorMode } = useTheme();
 
-     if (_.size(locations) > 1) {
+     if (size(locations) > 1) {
           return (
                <Pressable px="$2" py="$3" onPress={() => navigate('AllLocations')}>
                     <HStack space="sm" alignItems="center">
@@ -379,10 +352,10 @@ const MenuLink = (payload) => {
      const library = useLibrary();
      const categories = payload.links;
      let hasMultiple = false;
-     if (_.size(categories) > 1) {
+     if (size(categories) > 1) {
           hasMultiple = true;
      }
-     let categoryLabel = _.sample(categories);
+     let categoryLabel = sample(categories);
      categoryLabel = categoryLabel.category;
 
      const { textColor, theme, colorMode } = useTheme();
@@ -418,7 +391,7 @@ const MenuLink = (payload) => {
           if (!isValidHttpUrl(url)) {
                /* Assume the URL is a relative one to Aspen Discovery */
                logDebugMessage('URL not valid!');
-               formattedUrl = _.trimEnd(library.baseUrl, '/') + '/' + _.trimStart(url, '/');
+               formattedUrl = trimEnd(library.baseUrl, '/') + '/' + trimStart(url, '/');
           }
           if (formattedUrl.includes(library.baseUrl)) {
                /* If Aspen Discovery, append minimalInterface to clean up the UI */
@@ -497,7 +470,7 @@ const MenuLink = (payload) => {
                               </AccordionHeader>
 
                               <AccordionContent p="$0" pt="$1">
-                                   {_.map(categories, function (item, index) {
+                                   {map(categories, function (item, index) {
                                         return (
                                              <Pressable
                                                   key={index}
@@ -532,7 +505,7 @@ const MenuLink = (payload) => {
 
      return (
           <>
-               {_.map(categories, function (item, index) {
+               {map(categories, function (item, index) {
                     return (
                          <Pressable key={index} px="$2" py="$3" borderRadius="$md" onPress={() => openURL(item.url)}>
                               <HStack space="sm" alignItems="center">
@@ -549,7 +522,7 @@ const MenuLink = (payload) => {
 };
 
 function appendQuery(url, query) {
-     let newQuery = _.trim(query, '?&');
+     let newQuery = trim(query, '?&');
 
      if (newQuery) {
           let glue = url.includes('?') === false ? '?' : '&';

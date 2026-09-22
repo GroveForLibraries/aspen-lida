@@ -1,7 +1,6 @@
 import React from 'react';
 import { Badge, BadgeText, Box, HStack, Pressable, Text, VStack, Button, ButtonText, ButtonIcon, Center } from '@gluestack-ui/themed';
 
-import { useUserState } from '../../hooks/useUserData';
 import { TrashIcon } from 'lucide-react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';

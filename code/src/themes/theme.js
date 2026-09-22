@@ -1,6 +1,6 @@
 import React from 'react';
 import { MaterialIcons } from '@expo/vector-icons';
-import { findNodeHandle, Modal, ScrollView, StyleSheet, UIManager, View } from 'react-native';
+import { Modal, ScrollView, StyleSheet, View } from 'react-native';
 import {
      Box,
      createConfig,

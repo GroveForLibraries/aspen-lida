@@ -1,5 +1,5 @@
 import React from 'react';
-import _ from 'lodash';
+import { forEach, isEmpty, map, merge } from '../../helpers/helpers';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -35,13 +35,13 @@ export const SelfRegistration = () => {
                          const formFields = response.data.result ?? [];
                          setFields(formFields);
                          let object = {};
-                         _.map(formFields, function(section, index, collection) {
+												 formFields.forEach((section) => {
                               const properties = section.properties;
-                              _.forEach(properties, function (field, key) {
+                              forEach(properties, function (field, key) {
                                    let prop = field.property;
                                    const property = {
                                         [prop]: '' };
-                                   _.merge(object, property);
+                                   merge(object, property);
                               });
                          });
                          setValues(object);
@@ -65,15 +65,15 @@ export const SelfRegistration = () => {
 	}
 
 	const getFields = () => {
-		if(_.size(fields) > 0) {
+		if(fields.length > 0) {
 			return (
 				<>
-					{_.map(fields, function(section, index, collection) {
+					{map(fields, function(section, index, collection) {
 						const {label, properties} = section;
 						return (
 							<Box mb="$5">
 							<Text bold fontSize="$md" color={textColor}>{label}</Text>
-							{_.map(properties, function(field, key) {
+							{map(properties, function(field, key) {
 							const {type, description, maxLength, required, property} = field;
 							const fieldLabel = field.label;
 							if (type === 'text') {
@@ -90,7 +90,7 @@ export const SelfRegistration = () => {
 										                   onChangeText={(value) => {
 											                   handleInputChange(property, value);
 										                   }}/></Input>
-										{!_.isEmpty(description) ? (
+										{!isEmpty(description) ? (
 											<FormControlHelper>
 												<FormControlHelperText>
 													{description}
@@ -113,7 +113,7 @@ export const SelfRegistration = () => {
 											                   handleInputChange(property, value);
 										                   }}/>
 										</Input>
-										{!_.isEmpty(description) ? (
+										{!isEmpty(description) ? (
 											<FormControlHelper>
 												<FormControlHelperText>
 													{description}
@@ -135,7 +135,7 @@ export const SelfRegistration = () => {
 										                   onChangeText={(value) => {
 											                   handleInputChange(property, value);
 										                   }} /></Input>
-										{!_.isEmpty(description) ? (
+										{!isEmpty(description) ? (
 											<FormControlHelper>
 												<FormControlHelperText>
 													{description}
@@ -172,14 +172,14 @@ export const SelfRegistration = () => {
 														<SelectDragIndicator />
 													</SelectDragIndicatorWrapper>
 													<SelectScrollView>
-														{_.map(values, function (item, index, array) {
+														{map(values, function (item, index, array) {
 															return <SelectItem key={index} value={index} label={item} bgColor={property === index ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: property === index ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />;
 														})}
 													</SelectScrollView>
 												</SelectContent>
 											</SelectPortal>
 										</Select>
-										{!_.isEmpty(description) ? (
+										{!isEmpty(description) ? (
                                                        <FormControlHelper>
                                                             <FormControlHelperText>
                                                                  {description}

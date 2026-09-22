@@ -3,7 +3,7 @@ import { popToast } from '../../components/feedback';
 import * as WebBrowser from 'expo-web-browser';
 import { getTermFromDictionary } from '../../translations/TranslationHelper';
 import { checkoutItem, overDriveSample, placeHold } from './user';
-import { addDays, formatLocalDateYYYYMMDD, orderByFields, parseToDate } from '../../helpers/helpers';
+import { orderByFields } from '../../helpers/helpers';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export function formatPickupLocations(data) {
