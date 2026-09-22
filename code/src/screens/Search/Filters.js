@@ -1,6 +1,5 @@
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation, useNavigationState, StackActions } from '@react-navigation/native';
-import _ from 'lodash';
+import { filter, forEach, isEmpty, isObjectLike } from '../../helpers/helpers';
 import React from 'react';
 import {
     Box,
@@ -26,7 +25,6 @@ import { LoadingSpinner } from '../../components/loadingSpinner';
 
 import { SearchContext } from '../../context/initialContext';
 import { useLibraryLocation } from '../../hooks/useLibraryBranchData';
-import { useUserState } from '../../hooks/useUserData';
 import { navigateStack } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 
@@ -80,24 +78,24 @@ export const FiltersScreen = () => {
      };
 
      const appliedFacet = (cluster) => {
-          const facetData = _.filter(SearchGlobal.availableFacets, ['label', cluster]);
-          const pendingFacets = _.filter(pendingFilters, ['field', facetData[0]['field']]);
+          const facetData = filter(SearchGlobal.availableFacets, ['label', cluster]);
+          const pendingFacets = filter(pendingFilters, ['field', facetData[0]['field']]);
           let text = '';
-          if (_.isObjectLike(SearchGlobal.appliedFilters) && !_.isUndefined(SearchGlobal.appliedFilters[cluster])) {
+          if (isObjectLike(SearchGlobal.appliedFilters) && SearchGlobal.appliedFilters[cluster] !== undefined) {
                const facet = SearchGlobal.appliedFilters[cluster];
-               _.forEach(facet, function (item, key) {
+               forEach(facet, function (item, key) {
                     if (text.length === 0) {
-                         text = text.concat(_.toString(item['display']));
+                         text = text.concat(String(item['display'] ?? ''));
                     } else {
-                         text = text.concat(', ', _.toString(item['display']));
+                         text = text.concat(', ', String(item['display'] ?? ''));
                     }
                });
           }
 
           let pendingText = '';
-          if (!_.isUndefined(pendingFacets[0])) {
+          if (pendingFacets[0] !== undefined) {
                const obj = pendingFacets[0]['facets'];
-               _.forEach(obj, function (value, key) {
+               forEach(obj, function (value, key) {
                     if (value === 'year desc,title asc') {
                          value = getTermFromDictionary(language, 'year_desc_title_asc');
                     } else if (value === 'relevance') {
@@ -117,44 +115,44 @@ export const FiltersScreen = () => {
                     } else if (value === 'total_holds desc') {
                          value = getTermFromDictionary(language, 'total_holds_desc');
                     } else if (value === 'global') {
-                         if (locationGroupedWorkDisplaySettings.superScopeLabel || _.isEmpty(locationGroupedWorkDisplaySettings.superScopeLabel)) {
+                         if (locationGroupedWorkDisplaySettings.superScopeLabel || isEmpty(locationGroupedWorkDisplaySettings.superScopeLabel)) {
                               value = locationGroupedWorkDisplaySettings.superScopeLabel;
-                         } else if (libraryGroupedWorkDisplaySettings.superScopeLabel || _.isEmpty(libraryGroupedWorkDisplaySettings.superScopeLabel)) {
+                         } else if (libraryGroupedWorkDisplaySettings.superScopeLabel || isEmpty(libraryGroupedWorkDisplaySettings.superScopeLabel)) {
                               value = libraryGroupedWorkDisplaySettings.superScopeLabel;
                          }
                     } else if (value === 'local') {
-                         if (locationGroupedWorkDisplaySettings.localLabel || _.isEmpty(locationGroupedWorkDisplaySettings.localLabel)) {
+                         if (locationGroupedWorkDisplaySettings.localLabel || isEmpty(locationGroupedWorkDisplaySettings.localLabel)) {
                               value = locationGroupedWorkDisplaySettings.localLabel;
-                         } else if (libraryGroupedWorkDisplaySettings.localLabel || _.isEmpty(libraryGroupedWorkDisplaySettings.localLabel)) {
+                         } else if (libraryGroupedWorkDisplaySettings.localLabel || isEmpty(libraryGroupedWorkDisplaySettings.localLabel)) {
                               value = libraryGroupedWorkDisplaySettings.localLabel;
                          }
                     } else if (value === 'available') {
-                         if (locationGroupedWorkDisplaySettings.availableLabel || _.isEmpty(locationGroupedWorkDisplaySettings.availableLabel)) {
+                         if (locationGroupedWorkDisplaySettings.availableLabel || isEmpty(locationGroupedWorkDisplaySettings.availableLabel)) {
                               value = locationGroupedWorkDisplaySettings.availableLabel;
-                         } else if (libraryGroupedWorkDisplaySettings.availableLabel || _.isEmpty(libraryGroupedWorkDisplaySettings.availableLabel)) {
+                         } else if (libraryGroupedWorkDisplaySettings.availableLabel || isEmpty(libraryGroupedWorkDisplaySettings.availableLabel)) {
                               value = libraryGroupedWorkDisplaySettings.availableLabel;
                          }
                     } else if (value === 'available_online') {
-                         if (locationGroupedWorkDisplaySettings.availableOnlineLabel || _.isEmpty(locationGroupedWorkDisplaySettings.availableOnlineLabel)) {
+                         if (locationGroupedWorkDisplaySettings.availableOnlineLabel || isEmpty(locationGroupedWorkDisplaySettings.availableOnlineLabel)) {
                               value = locationGroupedWorkDisplaySettings.availableOnlineLabel;
-                         } else if (libraryGroupedWorkDisplaySettings.availableOnlineLabel || _.isEmpty(libraryGroupedWorkDisplaySettings.availableOnlineLabel)) {
+                         } else if (libraryGroupedWorkDisplaySettings.availableOnlineLabel || isEmpty(libraryGroupedWorkDisplaySettings.availableOnlineLabel)) {
                               value = libraryGroupedWorkDisplaySettings.availableOnlineLabel;
                          }
                     } else {
                          // do nothing
                     }
                     if (pendingText.length === 0) {
-                         pendingText = pendingText.concat(_.toString(value));
+                         pendingText = pendingText.concat(String(value ?? ''));
                     } else {
-                         pendingText = pendingText.concat(', ', _.toString(value));
+                         pendingText = pendingText.concat(', ', String(value ?? ''));
                     }
                });
           }
 
-          if (!_.isEmpty(text) || !_.isEmpty(pendingText)) {
-               if (!_.isEmpty(pendingText) && _.isEmpty(text)) {
+          if (!isEmpty(text) || !isEmpty(pendingText)) {
+               if (!isEmpty(pendingText) && isEmpty(text)) {
                     return <Text italic color={textColor}>{pendingText}</Text>;
-               } else if (!_.isEmpty(pendingText) && !_.isEmpty(text)) {
+               } else if (!isEmpty(pendingText) && !isEmpty(text)) {
                     return <Text italic color={textColor}>{pendingText}</Text>;
                } else {
                     return <Text color={textColor}>{text}</Text>;

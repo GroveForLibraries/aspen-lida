@@ -1,5 +1,5 @@
 import React from 'react';
-import _ from 'lodash';
+
 import {
      CloseIcon,
      Modal,
@@ -28,7 +28,7 @@ import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useUserState, useUpdateUserProfile } from '../../hooks/useUserData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { refreshProfile, updateAlternateLibraryCard } from '../../util/api/user';
-import { decodeHTML } from '../../helpers/helpers';
+import { decodeHTML, isObject, merge } from '../../helpers/helpers';
 import { completeAction } from '../../util/api/userHelper';
 import { useWindowDimensions } from 'react-native';
 import RenderHtml from 'react-native-render-html';
@@ -70,7 +70,7 @@ export const AddAlternateLibraryCard = (props) => {
           activeAccount } = props;
 
      let isPlacingHold = false;
-     if (_.isObject(action)) {
+     if (isObject(action)) {
           isPlacingHold = action.includes('hold');
      }
 
@@ -218,7 +218,7 @@ export const AddAlternateLibraryCard = (props) => {
                                                             confirmationNeeded: result.confirmationNeeded ?? false,
                                                             confirmationId: result.confirmationId ?? null,
                                                             recordId: id ?? null };
-                                                       tmp = _.merge(obj, tmp);
+                                                       tmp = merge(obj, tmp);
                                                        setHoldConfirmationResponse(tmp);
                                                   }
 
@@ -232,7 +232,7 @@ export const AddAlternateLibraryCard = (props) => {
                                                             bibId: id ?? null,
                                                             items: result.items ?? [] };
 
-                                                       tmp = _.merge(obj, tmp);
+                                                       tmp = merge(obj, tmp);
                                                        setHoldSelectItemResponse(tmp);
                                                   }
 
