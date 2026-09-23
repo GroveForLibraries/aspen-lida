@@ -5,6 +5,7 @@ import { HStack } from '@/components/ui/hstack';
 import { Pressable } from '@/components/ui/pressable';
 import { ThemedText as Text } from '@/src/components/themed/ThemedText';
 import { useTheme } from '../../themes/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 /**
  * ModalHeader component for displaying a header in a modal with optional back and close buttons.
@@ -22,9 +23,10 @@ export const ModalHeader = ({ title, onBack, onClose, showBack = true, showClose
      const { brand } = useTheme();
      const iconColor = brand.primary['500-text'];
      const bg = brand.primary[500];
+     const insets = useSafeAreaInsets();
 
      return (
-          <Box className="px-3 py-3" style={{ backgroundColor: bg }}>
+          <Box className="px-3 pb-3" style={{ backgroundColor: bg, paddingTop: insets.top + 12 }}>
                <HStack className="items-center justify-between">
                     <Box className="min-w-10">
                          {showBack && onBack ? (
