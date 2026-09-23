@@ -1,11 +1,10 @@
 import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import * as Notifications from 'expo-notifications';
 import * as SecureStore from 'expo-secure-store';
-import {Box, Center, Heading, Progress, VStack} from '@gluestack-ui/themed';
 import React from 'react';
 import * as Sentry from '@sentry/react-native';
 import { SystemMessagesContext } from '../../context/initialContext';
-import { buildThemeForLibrary, useTheme } from '../../themes/theme';
+import { buildThemeForLibrary, runExclusiveThemeInit, useTheme, TOKENS } from '../../themes/theme';
 import {
      getTermFromDictionary,
      setTranslationsLibrary } from '../../translations/TranslationService';
@@ -21,7 +20,6 @@ import {getHomeScreenFeed} from '../../util/api/search';
 import {
      refreshProfile
 } from '../../util/api/user';
-
 import { LIBRARY } from '../../util/globals';
 import {CatalogOffline} from './CatalogOffline';
 import {ForceLogout} from './ForceLogout';
@@ -40,7 +38,6 @@ import {
      loadBrowseCategories,
      loadThemeState,
      saveThemeState,
-     isStoredThemeIdMatch,
      loadLocation,
      setCurrentUserId,
      setCurrentLocationId,
@@ -58,11 +55,15 @@ import {
      useUpdateAvailableLanguages,
      useUpdateDictionary,
      useUpdateLanguageDisplayName } from '../../hooks/useLanguageData';
-
 import {getErrorMessage, logDebugMessage, logErrorMessage, logWarnMessage} from '../../util/logging.js';
-import { isPlainObject, orderByFields, stripHTML, RemoveData, parseStoredNumber } from '../../helpers/helpers';
+import { isPlainObject, stripHTML, RemoveData, parseStoredNumber } from '../../helpers/helpers';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useDataSync } from '../../hooks/useDataSync';
+import { Box } from '@/components/ui/box';
+import { ThemedHeading as Heading } from '@/src/components/themed/ThemedHeading';
+import { Progress, ProgressFilledTrack } from '@/components/ui/progress';
+import { VStack } from '@/components/ui/vstack';
+import { ScreenContainer } from '@/src/components/ScreenContainer';
 
 const USER_DATA_STALE_MS = 24 * 60 * 60 * 1000;         // 24 hours
 const LANGUAGE_DATA_STALE_MS = 24 * 60 * 60 * 1000;     // 24 hours
@@ -102,6 +103,11 @@ function resolveSelfCheckEnabled(result = {}) {
      return undefined;
 }
 
+/**
+ * LoadingScreen component that handles the initial loading and data fetching for the app, including user data, library branch data, library system metadata, and language data. It also manages error handling and displays a progress indicator during the loading process.
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const LoadingScreen = () => {
      const queryClient = useQueryClient();
      const navigation = useNavigation();
@@ -173,6 +179,8 @@ export const LoadingScreen = () => {
         const hasResolvedLibraryContext = !!LIBRARY.url;
 
      const insets = useSafeAreaInsets();
+     const { neutralPairs, brand } = useTheme();
+     const borderColor = neutralPairs?.border?.light ?? TOKENS.semanticTokens.light.border;
 
      const numSteps = 14;
 
@@ -652,28 +660,30 @@ export const LoadingScreen = () => {
                queryClient.clear();
 
                try {
-                    const currentThemeState = await loadThemeState();
-                    const currentLocation = await loadLocation();
-                    const currentLocationId = currentLocation?.locationId != null ? Number(currentLocation.locationId) : null;
-                    const mode = currentThemeState?.colorMode === 'dark' ? 'dark' : 'light';
-                    await updateColorMode(mode);
-                    if (LIBRARY.url) {
-                         const builtTheme = await buildThemeForLibrary(LIBRARY.url, currentLocationId);
-                         await saveThemeState({
-                              themeId: builtTheme.themeId,
-                              locationId: builtTheme.locationId,
-                              colorMode: mode,
-                              textColor: mode === 'dark' ? 'textLight50' : 'textLight950',
-                              themeColors: builtTheme.themeColors,
-                              header: builtTheme.header });
-                         await updateTheme(builtTheme.theme, builtTheme.themeId, builtTheme.locationId, builtTheme.header);
-                    } else if (currentThemeState?.themeColors?.primary && currentThemeState?.themeColors?.secondary && currentThemeState?.themeColors?.tertiary) {
-                         await updateTheme({
+                    await runExclusiveThemeInit(async () => {
+                         const currentThemeState = await loadThemeState();
+                         const currentLocation = await loadLocation();
+                         const currentLocationId = currentLocation?.locationId != null ? Number(currentLocation.locationId) : null;
+                         const mode = currentThemeState?.colorMode === 'dark' ? 'dark' : 'light';
+                         await updateColorMode(mode);
+                         if (LIBRARY.url) {
+                              const builtTheme = await buildThemeForLibrary(LIBRARY.url, currentLocationId);
+                              await saveThemeState({
+                                   themeId: builtTheme.themeId,
+                                   locationId: builtTheme.locationId,
+                                   colorMode: mode,
+                                   textColor: mode === 'dark' ? 'textLight50' : 'textLight950',
+                                   themeColors: builtTheme.themeColors,
+                                   header: builtTheme.header });
+                              await updateTheme(builtTheme.theme, builtTheme.themeId, builtTheme.locationId, builtTheme.header);
+                         } else if (currentThemeState?.themeColors?.primary && currentThemeState?.themeColors?.secondary && currentThemeState?.themeColors?.tertiary) {
+                            await updateTheme({
                               tokens: {
                                    colors: currentThemeState.themeColors,
                               },
                          }, currentThemeState.themeId, currentThemeState.locationId, currentThemeState.header);
-                    }
+                         }
+                    });
                } catch (e) {
                     logErrorMessage('Unable to load theme state in Loading screen');
                     logErrorMessage(e);
@@ -1130,17 +1140,17 @@ export const LoadingScreen = () => {
      }
 
      return (
-          <Center flex={1} px="$3" width="$full">
-               <Box w="90%" maxW={400} pt={insets.top} pb={insets.bottom} pl={insets.left} pr={insets.right}>
+          <ScreenContainer className="items-center justify-center w-full">
+               <Box style={{ width: '90%', maxWidth: 400, paddingTop: insets.top, paddingBottom: insets.bottom, paddingLeft: insets.left, paddingRight: insets.right }}>
                     <VStack>
-                         <Heading pb="$5" size="md" color={textColor}>
+                         <Heading size="md" className="pb-5">
                               {loadingText}
                          </Heading>
-                         <Progress value={progress} width="$full" h="$3" size="lg" testID="progress-bar">
-                              <Progress.FilledTrack />
+                         <Progress value={progress} size="md" testID="progress-bar" style={{ width: '100%', backgroundColor: borderColor }}>
+                              <ProgressFilledTrack style={{ backgroundColor: brand.primary[500] }} />
                          </Progress>
                     </VStack>
                </Box>
-          </Center>
+          </ScreenContainer>
      );
 };

@@ -1,45 +1,8 @@
 import { useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
-import {
-     Box,
-     Button,
-     ButtonText,
-     ButtonSpinner,
-     Checkbox,
-     CheckboxIndicator,
-     CheckboxIcon,
-     CheckboxLabel,
-     CheckIcon,
-     FormControl,
-     FormControlLabel,
-     FormControlLabelText,
-     Input,
-     InputField,
-     Select,
-     SelectTrigger,
-     SelectInput,
-     SelectIcon,
-     SelectPortal,
-     SelectBackdrop,
-     SelectContent,
-     SelectDragIndicatorWrapper,
-     SelectDragIndicator,
-     SelectItem,
-     SelectScrollView,
-     Text,
-     Textarea,
-     TextareaInput,
-     ScrollView,
-     HStack,
-     ChevronDownIcon,
-     Alert,
-     AlertText
-} from '@gluestack-ui/themed';
 import React from 'react';
-import { Platform } from 'react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { loadingSpinner } from '../../components/loadingSpinner';
 import { refreshProfile, submitLocalIllRequest } from '../../util/api/user';
-
 import { useLibraryLocation } from '../../hooks/useLibraryBranchData';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useUserState, useUpdateUserProfile } from '../../hooks/useUserData';
@@ -47,10 +10,25 @@ import { loadError } from '../../components/loadError';
 import { getLocalIllForm } from '../../util/api/system';
 import { logDebugMessage, logErrorMessage, logInfoMessage, getErrorMessage } from '../../util/logging';
 import { stripHTML } from '../../helpers/helpers';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 import { useTheme } from '../../themes/theme';
+import { ThemedAlert as Alert, ThemedAlertText as AlertText } from '../../components/themed/ThemedAlert';
+import { Box } from '@/components/ui/box';
+import { ThemedButton as Button, ThemedButtonSpinner as ButtonSpinner, ThemedButtonText as ButtonText } from '../../components/themed/ThemedButton';
+import { ThemedCheckbox as Checkbox, ThemedCheckboxIcon as CheckboxIcon, ThemedCheckboxIndicator as CheckboxIndicator, ThemedCheckboxLabel as CheckboxLabel } from '../../components/themed/ThemedCheckbox';
+import { HStack } from '@/components/ui/hstack';
+import { ThemedFormControl as FormControl, ThemedInput as Input, ThemedInputField as InputField, ThemedFormControlLabelText as FormControlLabelText, ThemedFormControlLabel as FormControlLabel } from '../../components/themed/ThemedFormControls';
+import { ThemedScrollView as ScrollView } from '@/src/components/themed/ThemedScrollView';
+import { ThemedSelect as Select, ThemedSelectBackdrop as SelectBackdrop, ThemedSelectContent as SelectContent, ThemedSelectDragIndicator as SelectDragIndicator, ThemedSelectDragIndicatorWrapper as SelectDragIndicatorWrapper, ThemedSelectInput as SelectInput, ThemedSelectItem as SelectItem, ThemedSelectPortal as SelectPortal, ThemedSelectScrollView as SelectScrollView, ThemedSelectTrigger as SelectTrigger } from '../../components/themed/ThemedSelect';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
+import { ThemedTextarea as Textarea, ThemedTextareaInput as TextareaInput } from '../../components/themed/ThemedTextarea';
+import { screenContentContainerStyle } from '@/src/components/ScreenContainer';
 
+/**
+ * CreateLocalIllRequest component that fetches the local ILL form configuration and renders a request form for users to submit local ILL requests. It handles form submission, error handling, and user profile updates.
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const CreateLocalIllRequest = () => {
      const [formConfig, setFormConfig] = React.useState([]);
       const [hasError, setHasError] = React.useState(false);
@@ -107,6 +85,12 @@ export const CreateLocalIllRequest = () => {
      return <>{status === 'loading' || isFetching ? loadingSpinner() : (hasError || status === 'error') ? loadError('The ILL System is not setup properly, please contact your library to place a request', '') : <Request config={formConfig} workId={id} workTitle={title} volumeId={volumeId} volumeName={volumeName} />}</>;
 };
 
+/**
+ * Request component that renders the form for creating a local interlibrary loan (ILL) request. It manages the state of the form fields and handles the submission of the request.
+ * @param payload
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 const Request = (payload) => {
      const [title, setTitle] = React.useState('');
      const [note, setNote] = React.useState('');
@@ -119,10 +103,9 @@ const Request = (payload) => {
      const user = userState?.user ?? {};
      const updateUserProfile = useUpdateUserProfile();
      const language = useActiveLanguage();
-     const { theme, colorMode, textColor } = useTheme();
+     const { textColor, brand, neutrals } = useTheme();
      const navigation = useNavigation();
      const queryClient = useQueryClient();
-     const insets = useSafeAreaInsets();
 
      const { config, workId, workTitle, volumeId, volumeName } = payload;
 
@@ -165,7 +148,7 @@ const Request = (payload) => {
           const field = config.fields.introText;
           if (field.display === 'show') {
                return (
-                    <Text size="sm" pb="$3" color={textColor}>
+                    <Text size="sm" className="pb-3">
                          {stripHTML(field.label)}
                     </Text>
                );
@@ -181,9 +164,9 @@ const Request = (payload) => {
                     fullTitle += " " + volumeName;
                }
                return (
-                    <FormControl my="$2" isRequired={field.required}>
+                    <FormControl className="my-2" isRequired={field.required}>
                          <FormControlLabel>
-                              <FormControlLabelText color={textColor}>{field.label}</FormControlLabelText>
+                              <FormControlLabelText>{field.label}</FormControlLabelText>
                          </FormControlLabel>
                          <Input>
                               <InputField
@@ -205,7 +188,7 @@ const Request = (payload) => {
           const field = config.fields.feeInformationText;
           if (field.display === 'show' && field.label && field.label.trim() !== '') {
                return (
-                    <Text fontWeight="bold" color={textColor}>
+                    <Text bold>
                          {stripHTML(field.label)}
                     </Text>
                );
@@ -217,20 +200,18 @@ const Request = (payload) => {
           const field = config.fields.acceptFee;
           if (field.display === 'show') {
                return (
-                    <FormControl my="$2" maxWidth="90%" isRequired={field.required}>
+                    <FormControl className="my-2 max-w-[90%]" isRequired={field.required}>
                          <Checkbox
                               value="accept"
                               accessibilityLabel={field.description ?? field.label}
                               onChange={(value) => {
                                    setAcceptFee(value);
                               }}>
-                              <CheckboxIndicator mr="$2">
-                                   <CheckboxIcon>
-                                        <CheckIcon />
-                                   </CheckboxIcon>
+                              <CheckboxIndicator className="mr-2">
+                                   <CheckboxIcon />
                               </CheckboxIndicator>
                               <CheckboxLabel>
-                                   <Text color={textColor}>{field.label}</Text>
+                                   <Text>{field.label}</Text>
                               </CheckboxLabel>
                          </Checkbox>
                     </FormControl>
@@ -243,9 +224,9 @@ const Request = (payload) => {
           const field = config.fields.note;
           if (field.display === 'show') {
                return (
-                    <FormControl my="$2" isRequired={field.required}>
+                    <FormControl className="my-2" isRequired={field.required}>
                          <FormControlLabel>
-                              <FormControlLabelText color={textColor}>{field.label}</FormControlLabelText>
+                              <FormControlLabelText>{field.label}</FormControlLabelText>
                          </FormControlLabel>
                          <Textarea>
                               <TextareaInput
@@ -268,36 +249,36 @@ const Request = (payload) => {
           if (field.display === 'show' && Array.isArray(field.options)) {
                const locations = field.options;
                return (
-                    <FormControl my="$2" isRequired={field.required}>
+                    <FormControl className="my-2" isRequired={field.required}>
                          <FormControlLabel>
-                              <FormControlLabelText color={textColor}>{field.label}</FormControlLabelText>
+                              <FormControlLabelText>{field.label}</FormControlLabelText>
                          </FormControlLabel>
                          <Select
                               selectedValue={pickupLocation}
                               onValueChange={(itemValue) => {
                                    setPickupLocation(itemValue);
                               }}>
-                              <SelectTrigger variant="outline" size="md">
+                              <SelectTrigger>
                                    {pickupLocation ? (
                                         locations.map((location, index) => {
                                              if (location.code === pickupLocation) {
-                                                  return <SelectInput py={0} key={index} value={location.displayName} color={textColor} />;
+                                                  return <SelectInput key={index} value={location.displayName} />;
                                              }
                                         })
                                    ) : (
-                                        <SelectInput py={0} placeholder="Select a pickup location" color={textColor} />
+                                        // TODO(translation): Replace hardcoded placeholder with TranslationService-backed key.
+                                        <SelectInput placeholder="Select a pickup location" />
                                    )}
-                                   <SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
                               </SelectTrigger>
                               <SelectPortal>
                                    <SelectBackdrop />
-                                   <SelectContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"} pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}>
+                                   <SelectContent>
                                         <SelectDragIndicatorWrapper>
                                              <SelectDragIndicator />
                                         </SelectDragIndicatorWrapper>
                                         <SelectScrollView>
                                              {locations.map((location, index) => {
-                                                  return <SelectItem key={index} label={location.displayName} value={location.code} bgColor={pickupLocation === location.code ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: pickupLocation === location.code ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />;
+                                                  return <SelectItem key={index} label={location.displayName} value={location.code} style={{ backgroundColor: pickupLocation === location.code ? brand.tertiary[300] : 'transparent' }} textStyle={{ color: pickupLocation === location.code ? brand.tertiary['500-text'] : textColor }} />;
                                              })}
                                         </SelectScrollView>
                                    </SelectContent>
@@ -313,9 +294,9 @@ const Request = (payload) => {
           const field = config.fields.catalogKey;
           if (field.display === 'show') {
                return (
-                    <FormControl my="$2" isDisabled isRequired={field.required}>
+                    <FormControl className="my-2" isDisabled isRequired={field.required}>
                          <FormControlLabel>
-                              <FormControlLabelText color={textColor}>{field.label}</FormControlLabelText>
+                              <FormControlLabelText>{field.label}</FormControlLabelText>
                          </FormControlLabel>
                          <Input>
                               <InputField name={field.property} defaultValue={catalogKey} accessibilityLabel={field.description ?? field.label} />
@@ -330,9 +311,9 @@ const Request = (payload) => {
           const field = config.fields.volumeId;
           if (field.display === 'show') {
                return (
-                    <FormControl my="$2" isDisabled isRequired={field.required}>
+                    <FormControl className="my-2" isDisabled isRequired={field.required}>
                          <FormControlLabel>
-                              <FormControlLabelText color={textColor}>{field.label}</FormControlLabelText>
+                              <FormControlLabelText>{field.label}</FormControlLabelText>
                          </FormControlLabel>
                          <Input>
                               <InputField name={field.property} defaultValue={volumeId} accessibilityLabel={field.description ?? field.label} />
@@ -345,18 +326,18 @@ const Request = (payload) => {
 
      const getActions = () => {
           return (
-               <HStack space="md" pt="$3">
+               <HStack space="md" className="pt-3">
                     <Button
-                         bgColor={theme['tokens']['colors']['secondary']['500']}
+                         colorScheme="secondary"
                          isDisabled={isSubmitting}
                          onPress={() => {
                               setIsSubmitting(true);
                               handleSubmission();
                          }}>
-                         <ButtonText color={theme['tokens']['colors']['secondary']['500-text']}>
+                        <ButtonText>
                               {isSubmitting ? (
                                    <>
-                                        <ButtonSpinner mr="$2" />
+                                        <ButtonSpinner className="mr-2" />
                                         {config.buttonLabelProcessing}
                                    </>
                               ) : (
@@ -364,8 +345,8 @@ const Request = (payload) => {
                               )}
                          </ButtonText>
                     </Button>
-                    <Button variant="outline" onPress={() => navigation.goBack()} borderColor={colorMode === 'light' ? "$warmGray300" : "$coolGray500"}>
-                         <ButtonText color={colorMode === 'light' ? "$warmGray500" : "$coolGray300"}>Cancel</ButtonText>
+                    <Button variant="outline" onPress={() => navigation.goBack()} style={{ borderColor: neutrals.border }}>
+                         <ButtonText style={{ color: neutrals.textMain }}>Cancel</ButtonText>
                     </Button>
                </HStack>
           );
@@ -374,8 +355,8 @@ const Request = (payload) => {
      const getErrorMessage = () => {
           if (errorMessage) {
                return (
-                    <Alert width="100%" maxwidth="$full" action="warning" variant="solid">
-                         <AlertText size="xs" bold>
+                    <Alert className="w-full" action="warning" variant="solid">
+                         <AlertText action="warning" variant="solid" size="xs" bold>
                               {errorMessage}
                          </AlertText>
                     </Alert>
@@ -385,8 +366,8 @@ const Request = (payload) => {
      };
 
      return (
-          <ScrollView>
-               <Box p="$5">
+          <ScrollView contentContainerStyle={screenContentContainerStyle}>
+               <Box className="py-5">
                     {errorMessage ? getErrorMessage() : null}
                     {getIntroText()}
                     {getTitleField()}

@@ -1,16 +1,25 @@
-import { Box, FlatList, HStack, Switch, Text } from '@gluestack-ui/themed';
 import React from 'react';
-import { LoadingSpinner } from '../../../components/loadingSpinner';
-import { DisplayErrorAlertDialog } from '../../../components/loadError';
+import { Box } from '@/components/ui/box';
+import { FlatList } from '@/components/ui/flat-list';
+import { HStack } from '@/components/ui/hstack';
+import { ThemedSwitch as Switch } from '@/src/components/themed/ThemedSwitch';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
+import { LoadingSpinner } from '@/src/components/loadingSpinner';
+import { DisplayErrorAlertDialog } from '@/src/components/loadError';
+import { useLibrary } from '@/src/hooks/useLibrarySystemData';
+import { useBrowseCategoryList, useUpdateBrowseCategoryList, useToggleBrowseCategoryVisibility, useToggleBrowseCategoryVisibilityBatch, useMaxCategories, useUpdateBrowseCategories } from '@/src/hooks/useBrowseCategoryData';
+import { updateBrowseCategoryStatus } from '@/src/util/api/user';
+import { getBrowseCategoryListForUser, getHomeScreenFeed } from '@/src/util/api/search';
+import { logDebugMessage, logErrorMessage, getErrorMessage } from '@/src/util/logging';
+import { useTheme } from '@/src/themes/theme';
+import { popToast } from '@/src/components/feedback';
+import { screenContentContainerStyle } from '@/src/components/ScreenContainer';
 
-import { useLibrary } from '../../../hooks/useLibrarySystemData';
-import { useBrowseCategoryList, useUpdateBrowseCategoryList, useToggleBrowseCategoryVisibility, useToggleBrowseCategoryVisibilityBatch, useMaxCategories, useUpdateBrowseCategories } from '../../../hooks/useBrowseCategoryData';
-import { updateBrowseCategoryStatus } from '../../../util/api/user';
-import { getBrowseCategoryListForUser, getHomeScreenFeed } from '../../../util/api/search';
-import { logDebugMessage, logErrorMessage, getErrorMessage } from '../../../util/logging';
-import { useTheme } from '../../../themes/theme';
-import { popToast } from '../../../components/feedback';
-
+/**
+ * Settings_BrowseCategories component that displays a list of browse categories for the user to manage. It fetches the category list from the API, allows users to toggle visibility of categories, and handles syncing changes with the backend. It also manages loading states and error handling.
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const Settings_BrowseCategories = () => {
      const library = useLibrary();
      const list = useBrowseCategoryList();
@@ -63,6 +72,7 @@ export const Settings_BrowseCategories = () => {
 
      return (
           <FlatList
+               contentContainerStyle={screenContentContainerStyle}
                keyExtractor={(item, index) => {
                     // `sourceId` is the best unique identifier when present; fallback adds index to avoid key collisions.
                     if (item?.sourceId) {
@@ -84,7 +94,7 @@ const DisplayCategory = (data) => {
      const [errorTitle, setErrorTitle] = React.useState('');
      const [errorMessage, setErrorMessage] = React.useState('');
      const library = useLibrary();
-     const { colorMode, textColor, theme} = useTheme();
+     const { colorMode, neutralPairs, brand } = useTheme();
      const toggleCategoryVisibility = useToggleBrowseCategoryVisibility();
      const toggleCategoryVisibilityBatch = useToggleBrowseCategoryVisibilityBatch();
      const maxNum = useMaxCategories();
@@ -202,34 +212,26 @@ const DisplayCategory = (data) => {
            });
      };
      return (
-          <Box borderBottomWidth="$1" _dark={{ borderColor: 'gray.600' }} borderColor="coolGray.200" pl="$4" pr="$5" py="$2">
-               <HStack space={3} alignItems="center" justifyContent="space-between" pb={1}>
-                    <Text
-                         flexWrap="wrap"
-                         flex={1}
-                         color={textColor}
-                         bold
-                         fontSize="$lg">
+          <Box className="py-2" style={{ borderBottomWidth: 1, borderColor: colorMode === 'light' ? neutralPairs.surfaceMuted.light : neutralPairs.iconMuted.dark }}>
+               <HStack space="sm" className="items-center justify-between pb-1">
+                    <Text bold size="lg" className="flex-wrap flex-1">
                          {category.title}
                     </Text>
                     <Switch
                          size="md"
                          name={category.key}
-                         onToggle={() => {
+                         onValueChange={() => {
                               updateToggle(category);
                          }}
-                         value={isVisible}
                          isDisabled={isUpdating}
+                         value={isVisible}
                          trackColor={{
-                              true: theme.tokens.colors.primary['500'],
-                              false: colorMode === 'light' ? '$backgroundLight300' : '$backgroundLight700'
+                              true: brand.primary[500],
+                              false: neutralPairs.surface,
                          }}
-
                     />
                </HStack>
-               {showErrorDialog && (
-                    <DisplayErrorAlertDialog title={errorTitle} message={errorMessage} />
-               )}
+               {showErrorDialog && <DisplayErrorAlertDialog title={errorTitle} message={errorMessage} />}
           </Box>
      );
 };

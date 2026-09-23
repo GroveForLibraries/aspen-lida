@@ -1,0 +1,12 @@
+/* App-owned theme additions that must survive a `gluestack-ui init` regenerating global.css.
+   Kept in a separate file (imported from global.css) so a regeneration only requires re-adding
+   the import line, not rediscovering and rewriting the fixes themselves. */
+
+/* Tailwind v4's default theme has no font-size step below xs (0.75rem), but gluestack's Text and
+   Heading size variant maps 2xs to the text-2xs class, so that class was resolving to nothing.
+   Restore it as the next step down from xs, following Tailwind's own text size / line-height
+   pairing convention. */
+@theme {
+  --text-2xs: 0.625rem;
+  --text-2xs--line-height: calc(0.875 / 0.625);
+}

@@ -1,9 +1,14 @@
-import {Button, ButtonText} from '@gluestack-ui/themed';
+import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../themed/ThemedButton';
 import React from 'react';
-import {navigate} from '../../../helpers/RootNavigator';
-import { useTheme } from '../../../themes/theme';
+import {navigate} from '@/src/helpers/RootNavigator';
+import { useTheme } from '@/src/themes/theme';
 
-
+/**
+ * StartLocalIllRequest component for displaying a button that navigates to the "Create Local ILL Request" screen.
+ * @param props
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const StartLocalIllRequest = (props) => {
      const openLocalIllRequest = () => {
           if (typeof props.onBeforeNavigate === 'function') {
@@ -16,17 +21,15 @@ export const StartLocalIllRequest = (props) => {
                volumeName: props.volumeName ?? null
           });
      };
-     const { theme } = useTheme();
+     const {  } = useTheme();
 
      return (
           <Button
                size="md"
-               bgColor={theme.tokens.colors.primary['500']}
                variant="solid"
-               minWidth="100%"
-               maxWidth="100%"
+               colorScheme="primary" className="min-w-full max-w-full"
                onPress={openLocalIllRequest}>
-               <ButtonText color={theme.tokens.colors.primary['500-text']} textAlign="center">
+               <ButtonText className="text-center">
                     {props.title}
                </ButtonText>
           </Button>

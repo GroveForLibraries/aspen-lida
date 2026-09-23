@@ -1,14 +1,26 @@
 import { useNavigation } from '@react-navigation/native';
-import { AlertDialog, AlertDialogBackdrop, AlertDialogBody, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, Button, ButtonText, ButtonGroup, Text, Heading, Center, CloseIcon, Pressable } from '@gluestack-ui/themed';
 import React from 'react';
-
+import { ThemedAlertDialogContent as AlertDialogContent, ThemedAlertDialog as AlertDialog, ThemedAlertDialogBackdrop as AlertDialogBackdrop, ThemedAlertDialogBody as AlertDialogBody, ThemedAlertDialogFooter as AlertDialogFooter, ThemedAlertDialogHeader as AlertDialogHeader } from '@/src/components/themed/ThemedAlertDialog';
+import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../components/themed/ThemedButton';
+import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
+import { Center } from '@/components/ui/center';
+import { ThemedCloseIcon as CloseIcon } from '@/src/components/themed/ThemedFormControls';
+import { Pressable } from '@/components/ui/pressable';
+import { ThemedHeading as Heading } from '@/src/components/themed/ThemedHeading';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
 import { SearchGlobal } from '../../util/globals';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { useTheme } from '../../themes/theme';
 
+/**
+ * UnsavedChangesExit component that displays a confirmation dialog when the user attempts to exit with unsaved changes. It provides options to save changes, discard changes, or cancel the exit action.
+ * @param props
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const UnsavedChangesExit = (props) => {
      const { updateSearch, discardChanges, language, hasPendingChanges } = props;
-     const { theme, colorMode, textColor } = useTheme();
+     const { neutralPairs } = useTheme();
      const navigation = useNavigation();
      const [isOpen, setIsOpen] = React.useState(false);
      const onClose = () => setIsOpen(false);
@@ -47,24 +59,24 @@ export const UnsavedChangesExit = (props) => {
      return (
           <Center>
                <Pressable onPress={() => getStatus()}>
-                    <CloseIcon size="lg" color={textColor} />
+                    <CloseIcon size={20} />
                </Pressable>
                <AlertDialog leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={onClose} useRNModal={true}>
                     <AlertDialogBackdrop/>
-                    <AlertDialogContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
+                    <AlertDialogContent>
                          <AlertDialogHeader>
-                              <Heading color={textColor}>{getTermFromDictionary(language, 'discard_changes')}</Heading>
+                              <Heading>{getTermFromDictionary(language, 'discard_changes')}</Heading>
                          </AlertDialogHeader>
                          <AlertDialogBody>
-                              <Text color={textColor}>{getTermFromDictionary(language, 'unsaved_changes_warning')}</Text>
+                              <Text>{getTermFromDictionary(language, 'unsaved_changes_warning')}</Text>
                          </AlertDialogBody>
                          <AlertDialogFooter>
                               <ButtonGroup space="sm">
-                                   <Button bgColor={theme.tokens.colors.primary['500']} onPress={updateClose} ref={cancelRef}>
-                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'save')}</ButtonText>
+                                   <Button colorScheme="primary" onPress={updateClose} ref={cancelRef}>
+                                        <ButtonText>{getTermFromDictionary(language, 'save')}</ButtonText>
                                    </Button>
                                    <Button variant="link" onPress={forceClose}>
-                                        <ButtonText color="$error500">{getTermFromDictionary(language, 'discard')}</ButtonText>
+                                        <ButtonText style={{ color: neutralPairs.danger }}>{getTermFromDictionary(language, 'discard')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </AlertDialogFooter>

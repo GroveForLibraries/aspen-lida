@@ -1,0 +1,9 @@
+{
+  "tailwind": {
+    "css": "global.css"
+  },
+  "app": {
+    "entry": "App.js",
+    "components": "components/ui"
+  }
+}

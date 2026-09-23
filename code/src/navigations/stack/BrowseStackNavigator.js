@@ -1,6 +1,4 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Pressable, Icon, useToken } from '@gluestack-ui/themed';
-import { MaterialIcons } from '@expo/vector-icons';
 import React from 'react';
 import Scanner from '../../components/Scanner';
 import TitleWithLogo from '../../components/TitleWithLogo'
@@ -20,16 +18,20 @@ import { SearchResultsForBrowseCategory } from '../../screens/Search/SearchByCat
 import { SearchResultsForList } from '../../screens/Search/SearchByList';
 import { SearchResultsForSavedSearch } from '../../screens/Search/SearchBySavedSearch';
 import { SearchResults } from '../../screens/Search/SearchResults';
-import { BackIcon } from '../../themes/theme';
+import { BackIcon } from '../../themes/ThemeSwitcher';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 import { ModalHeader } from '../../components/Headers/ModalHeader';
 
 const Stack = createNativeStackNavigator();
 
+/**
+ * BrowseStackNavigator component for managing the navigation stack of the Browse tab, including screens for home, grouped work details, search results, and modals.
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 const BrowseStackNavigator = () => {
      const language = useActiveLanguage();
-     const { textColor } = useTheme();
      return (
           <Stack.Navigator
                id="BrowseStack"
@@ -48,7 +50,6 @@ const BrowseStackNavigator = () => {
                               const title = getTermFromDictionary(language, 'nav_discover');
                               return <TitleWithLogo title={title} hideBack={true} />;
                          },
-                         //title: getTermFromDictionary(language, 'nav_discover'),
                     }}
                />
                <Stack.Screen
@@ -59,7 +60,6 @@ const BrowseStackNavigator = () => {
                               const title = route.params.title ?? getTermFromDictionary(language, 'item_details');
                               return <TitleWithLogo title={title} />;
                          },
-                         //title: route.params.title ?? getTermFromDictionary(language, 'item_details'),
                     })}
                     initialParams={{ prevRoute: 'HomeScreen' }}
                />
@@ -149,7 +149,6 @@ const BrowseStackNavigator = () => {
                     name="SearchByCategory"
                     component={SearchResultsForBrowseCategory}
                     options={({ route }) => ({
-                         //title: getTermFromDictionary(language, 'results_for') + ' ' + route.params.title,
                          header: () => {
                               const title = getTermFromDictionary(language, 'results_for') + ' ' + route.params.title;
                               return <TitleWithLogo title={title} />;
@@ -164,7 +163,6 @@ const BrowseStackNavigator = () => {
                               const title = route.params.title ?? getTermFromDictionary(language, 'item_details');
                               return <TitleWithLogo title={title} />;
                          },
-                         //title: route.params.title ?? getTermFromDictionary(language, 'item_details'),
                     })}
                     initialParams={{ prevRoute: 'SearchResults' }}
                />
@@ -176,7 +174,6 @@ const BrowseStackNavigator = () => {
                               const title = route.params?.title ? getTermFromDictionary(language, 'results_for') + ' ' + route.params.title : getTermFromDictionary(language, 'search_results');
                               return <TitleWithLogo title={title} />;
                          },
-                         //title: route.params?.title ? getTermFromDictionary(language, 'results_for') + ' ' + route.params.title : getTermFromDictionary(language, 'search_results'),
                     })}
                />
                <Stack.Screen
@@ -187,7 +184,6 @@ const BrowseStackNavigator = () => {
                               const title = route.params?.title ? getTermFromDictionary(language, 'results_for') + ' ' + route.params.title : getTermFromDictionary(language, 'search_results');
                               return <TitleWithLogo title={title} />;
                          },
-                         //title: route.params?.title ? getTermFromDictionary(language, 'results_for') + ' ' + route.params.title : getTermFromDictionary(language, 'search_results'),
                     })}
                />
                <Stack.Screen
@@ -198,7 +194,6 @@ const BrowseStackNavigator = () => {
                               const title = route.params?.title ?? getTermFromDictionary(language, 'item_details');
                               return <TitleWithLogo title={title} />;
                          },
-                         //title: route.params?.title ?? getTermFromDictionary(language, 'item_details'),
                     })}
                     initialParams={{ prevRoute: 'SearchResults' }}
                />
@@ -211,7 +206,6 @@ const BrowseStackNavigator = () => {
                               const title = getTermFromDictionary(language, 'results_for') + ' ' + route.params.title;
                               return <TitleWithLogo title={title} />;
                          },
-                         //title: getTermFromDictionary(language, 'results_for') + ' ' + route.params.title,
                     })}
                />
                <Stack.Screen
@@ -222,7 +216,6 @@ const BrowseStackNavigator = () => {
                               const title = route.params.title ?? getTermFromDictionary(language, 'item_details');
                               return <TitleWithLogo title={title} />;
                          },
-                         //title: route.params.title ?? getTermFromDictionary(language, 'item_details'),
                     })}
                     initialParams={{ prevRoute: 'SearchResults' }}
                />
@@ -234,7 +227,6 @@ const BrowseStackNavigator = () => {
                               const title = getTermFromDictionary(language, 'results_for') + ' ' + route.params.term;
                               return <TitleWithLogo title={title} />;
                          },
-                         //                         title: getTermFromDictionary(language, 'results_for') + ' ' + route.params.term,
                          params: {
                               pendingParams: [],
                          },
@@ -264,7 +256,6 @@ const BrowseStackNavigator = () => {
                               const title = route.params.title ?? getTermFromDictionary(language, 'event_details');
                               return <TitleWithLogo title={title} />;
                          },
-                         //title: route.params.title ?? getTermFromDictionary(language, 'event_details'),
                     })}
                     initialParams={{ prevRoute: 'HomeScreen' }}
                />
@@ -273,9 +264,13 @@ const BrowseStackNavigator = () => {
 };
 
 const EditionsStack = createNativeStackNavigator();
+/**
+ * EditionsModal component for managing the navigation stack of the Editions modal, including screens for editions and where-is-it details.
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const EditionsModal = () => {
      const language = useActiveLanguage();
-     const { textColor } = useTheme();
      return (
           <EditionsStack.Navigator
                id="EditionsStack"
@@ -333,10 +328,15 @@ export const EditionsModal = () => {
 };
 
 const FilterModalStack = createNativeStackNavigator();
+/**
+ * FilterModal component for managing the navigation stack of the Filter modal, including screens for filters, facets, and search source/index selection.
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 const FilterModal = () => {
      const language = useActiveLanguage();
-     const { colorMode } = useTheme();
-     const iconColor = useToken('colors', colorMode === 'light' ? 'coolGray600' : 'coolGray200');
+     const { neutrals } = useTheme();
+     const iconColor = neutrals.icon;
      return (
           <FilterModalStack.Navigator
                id="SearchFilters"

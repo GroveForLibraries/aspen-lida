@@ -1,5 +1,11 @@
 import {getTermFromDictionary} from '../../translations/TranslationService';
 
+/**
+ * Get the status indicator for a given status and language.
+ * @param status
+ * @param language
+ * @returns {{label: null, indicator: string, message: string}}
+ */
 export function getStatusIndicator(status, language) {
      let label = null;
      let message = '';

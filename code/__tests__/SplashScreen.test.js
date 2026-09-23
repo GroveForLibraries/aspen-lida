@@ -20,12 +20,15 @@ describe('<SplashScreen />', () => {
 
           // 2. Find the image by its accessible 'alt' text (or accessibilityLabel)
           //    and verify it exists
-          const logoImage = screen.getByRole('image', { name: 'Mocked App Name' });
+          // Note: expo-image's test-environment native view mock isn't recognized by
+          // getByRole('image', ...) role inference, so match on the accessibility label instead.
+          const logoImage = screen.getByLabelText('Mocked App Name');
           expect(logoImage).toBeTruthy();
 
           // 3. Verify properties on the image source
           // (Note: Since we mocked 'loginLogo' as 'mock-logo-path' in jest.setup.js, it should match here)
-          expect(logoImage.props.source.uri).toBe('mock-logo-path');
+          // expo-image normalizes `source` into an array of source objects.
+          expect(logoImage.props.source[0].uri).toBe('mock-logo-path');
 
           expect(translationSpy).toHaveBeenCalledWith('en', 'app_name');
 

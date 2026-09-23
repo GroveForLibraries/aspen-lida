@@ -1,17 +1,22 @@
-import { Box, Text } from "@gluestack-ui/themed";
 import React from "react";
-import {getTermFromDictionary} from '../../../translations/TranslationService';
-import { useActiveLanguage } from '../../../hooks/useLanguageData';
+import { Box } from '@/components/ui/box';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
+import {getTermFromDictionary} from '@/src/translations/TranslationService';
+import { useActiveLanguage } from '@/src/hooks/useLanguageData';
 
-// custom components and helper files
-
+/**
+ * Profile_Identity component that displays the identity information of a user profile, including first name and last name. It uses the active language for translations.
+ * @param props
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 const Profile_ContactInformation = (props) => {
     const language = useActiveLanguage();
   return (
-    <Box py={5}>
+    <Box className="py-5">
       <Text bold>{getTermFromDictionary(language, 'patron_primary_phone')}</Text>
       <Text>{props.phone}</Text>
-      <Text bold mt={2}>
+      <Text bold className="mt-2">
           {getTermFromDictionary(language, 'patron_email')}
       </Text>
       <Text>{props.email}</Text>

@@ -1,77 +1,37 @@
-import { MaterialIcons } from '@expo/vector-icons';
+import { ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/ThemedMaterialIcons';
 import { useNavigation } from '@react-navigation/native';
 import React, { useState } from 'react';
-import { popAlert } from '../../../components/feedback';
+import { popAlert } from '@/src/components/feedback';
+import { useUserState, useListGroups, useUpdateUserProfile, useUpdateLists } from '@/src/hooks/useUserData';
+import { navigateStack } from '@/src/helpers/RootNavigator';
+import { getTermFromDictionary } from '@/src/translations/TranslationService';
+import { deleteList, editList, getLists } from '@/src/util/api/list';
+import { refreshProfile } from '@/src/util/api/user';
+import { toArray } from '@/src/helpers/helpers';
+import { useActiveLanguage } from '@/src/hooks/useLanguageData';
+import { useTheme } from '@/src/themes/theme';
+import { ThemedCloseIcon as CloseIcon, ThemedFormControl as FormControl, ThemedInput as Input, ThemedInputField as InputField, ThemedFormControlLabelText as FormControlLabelText, ThemedFormControlLabel as FormControlLabel } from '@/src/components/themed/ThemedFormControls';
+import { ThemedAlertDialog as AlertDialog, ThemedAlertDialogBackdrop as AlertDialogBackdrop, ThemedAlertDialogBody as AlertDialogBody, ThemedAlertDialogCloseButton as AlertDialogCloseButton, ThemedAlertDialogFooter as AlertDialogFooter, ThemedAlertDialogHeader as AlertDialogHeader, ThemedAlertDialogContent as AlertDialogContent } from '@/src/components/themed/ThemedAlertDialog';
+import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../../components/themed/ThemedButton';
+import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
+import { Center } from '@/components/ui/center';
+import { ThemedCheckbox as Checkbox, ThemedCheckboxIcon as CheckboxIcon, ThemedCheckboxIndicator as CheckboxIndicator, ThemedCheckboxLabel as CheckboxLabel } from '../../../components/themed/ThemedCheckbox';
+import { ThemedHeading as Heading } from '@/src/components/themed/ThemedHeading';
+import { HStack } from '@/components/ui/hstack';
+import { ThemedModal as Modal, ThemedModalBackdrop as ModalBackdrop, ThemedModalBody as ModalBody, ThemedModalCloseButton as ModalCloseButton, ThemedModalContent as ModalContent, ThemedModalFooter as ModalFooter, ThemedModalHeader as ModalHeader } from '@/src/components/themed/ThemedModal';
+import { Pressable } from '@/components/ui/pressable';
+import { ThemedRadio as Radio, ThemedRadioGroup as RadioGroup, ThemedRadioIcon as RadioIcon, ThemedRadioIndicator as RadioIndicator, ThemedRadioLabel as RadioLabel } from '../../../components/themed/ThemedRadio';
+import { ThemedSelect as Select, ThemedSelectBackdrop as SelectBackdrop, ThemedSelectContent as SelectContent, ThemedSelectDragIndicator as SelectDragIndicator, ThemedSelectDragIndicatorWrapper as SelectDragIndicatorWrapper, ThemedSelectInput as SelectInput, ThemedSelectItem as SelectItem, ThemedSelectPortal as SelectPortal, ThemedSelectScrollView as SelectScrollView, ThemedSelectTrigger as SelectTrigger } from '../../../components/themed/ThemedSelect';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
+import { ThemedTextarea as Textarea, ThemedTextareaInput as TextareaInput } from '@/src/components/themed/ThemedTextarea';
+import { useLibrary } from '@/src/hooks/useLibrarySystemData';
 
-import { useUserState, useListGroups, useUpdateUserProfile, useUpdateLists } from '../../../hooks/useUserData';
-import { navigateStack } from '../../../helpers/RootNavigator';
-import { getTermFromDictionary } from '../../../translations/TranslationService';
-import { deleteList, editList, getLists } from '../../../util/api/list';
-import { refreshProfile } from '../../../util/api/user';
-import {Platform} from "react-native";
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { toArray } from '../../../helpers/helpers';
-import { useActiveLanguage } from '../../../hooks/useLanguageData';
-import { useTheme } from '../../../themes/theme';
-import {
-     AlertDialog,
-     AlertDialogContent,
-     AlertDialogBody,
-     AlertDialogFooter,
-     Text,
-     Button,
-     ButtonText,
-     ButtonGroup,
-     Pressable,
-     Center,
-     Heading,
-     Icon,
-     Input,
-     InputField,
-     Modal,
-     CircleIcon,
-     CloseIcon,
-     ModalBackdrop,
-     ChevronLeftIcon,
-     ModalCloseButton,
-     ModalContent,
-     ModalBody,
-     ModalFooter,
-     ModalHeader,
-     RadioGroup,
-     Radio,
-     HStack,
-     RadioIcon,
-     RadioIndicator,
-     RadioLabel,
-     TextareaInput,
-     Textarea,
-     FormControl,
-     FormControlLabel,
-     FormControlLabelText,
-     AlertDialogBackdrop,
-     AlertDialogCloseButton,
-     AlertDialogHeader,
-     ButtonIcon,
-     Checkbox,
-     CheckboxIndicator,
-     CheckboxIcon,
-     CheckboxLabel,
-     CheckIcon,
-     SelectTrigger,
-     SelectInput,
-     SelectIcon,
-     ChevronDownIcon,
-     SelectPortal,
-     SelectBackdrop,
-     SelectContent,
-     SelectDragIndicatorWrapper,
-     SelectDragIndicator,
-      SelectItem,
-      SelectScrollView,
-      Select } from '@gluestack-ui/themed';
-import { useLibrary } from '../../../hooks/useLibrarySystemData';
-
+/**
+ * EditList component that allows users to edit the details of a list, including title, description, access level (public/private), and list group. It provides a modal interface for editing and handles API calls to update the list information. It also includes functionality to delete the list with confirmation.
+ * @param props
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 const EditList = (props) => {
       const { data, listId } = props;
       const navigation = useNavigation();
@@ -87,10 +47,10 @@ const EditList = (props) => {
       const [description, setDescription] = React.useState(data.description);
       const [isPublic, setPublic] = React.useState(data.public);
       const [listGroupId, setListGroupId] = React.useState(data.listGroupId);
-      const { theme, textColor, colorMode } = useTheme();
+      const { brand, textColor, neutrals } = useTheme();
 
-      const insets = useSafeAreaInsets();
       const user = userState?.user ?? {};
+      const borderColor = neutrals.border;
 
      React.useLayoutEffect(() => {
           navigation.setOptions({
@@ -100,101 +60,96 @@ const EditList = (props) => {
                               navigateStack('AccountScreenTab', 'MyLists', {
                                    hasPendingChanges: true });
                          }}
-                         mr={3}
-                         p="$1">
-                         <ChevronLeftIcon size={5} color={textColor} />
+                        className="mr-3 p-1">
+                        <MaterialIcons name="chevron-left" size={20} style={{ color: neutrals.actionableIndicator }} />
                     </Pressable>
                ) });
      }, [navigation]);
 
      return (
           <>
-               <ButtonGroup size="sm" justifyContent="center" >
-                    <Button onPress={() => setShowModal(true)} bgColor={theme.tokens.colors.primary['500']}>
-                         <ButtonIcon color={theme.tokens.colors.primary['500-text']} as={MaterialIcons} name="edit" mr="$1" />
-                         <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'edit')}</ButtonText>
+               <ButtonGroup size="sm" className="justify-center" >
+                    <Button onPress={() => setShowModal(true)} colorScheme="primary">
+                         <MaterialIcons name="edit" size={18} color={brand.primary['500-text']} className="mr-1" />
+                         <ButtonText>{getTermFromDictionary(language, 'edit')}</ButtonText>
                     </Button>
                     <DeleteList listId={listId} />
                </ButtonGroup>
-               <Modal isOpen={showModal} onClose={() => setShowModal(false)} size="full" avoidKeyboard>
+               <Modal isOpen={showModal} onClose={() => setShowModal(false)} size="full">
                     <ModalBackdrop />
-                    <ModalContent maxWidth="90%" bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
+                    <ModalContent className="max-w-[90%]">
                          <ModalHeader>
-                              <Heading size="md" color={textColor}>{getTermFromDictionary(language, 'edit')} {data.title}</Heading>
-                              <ModalCloseButton p="$3" onPress={() => { setShowModal(false); }}>
-                                   <Icon as={CloseIcon} color={textColor} />
+                              <Heading>{getTermFromDictionary(language, 'edit')} {data.title}</Heading>
+                              <ModalCloseButton onPress={() => { setShowModal(false); }}>
+                                   <CloseIcon />
                               </ModalCloseButton>
                          </ModalHeader>
                          <ModalBody>
-                              <FormControl pb="$5">
+                              <FormControl>
                                    <FormControlLabel>
-                                        <FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'title')}</FormControlLabelText>
+                                        <FormControlLabelText>{getTermFromDictionary(language, 'title')}</FormControlLabelText>
                                    </FormControlLabel>
-                                   <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}><InputField id="title" defaultValue={data.title} autoComplete="off" onChangeText={(text) => setTitle(text)} color={textColor}/></Input>
+                                   <Input style={{ borderColor }}><InputField id="title" defaultValue={data.title} autoComplete="off" onChangeText={(text) => setTitle(text)} /></Input>
                               </FormControl>
-                              <FormControl pb="$5">
-                                   <FormControlLabel><FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'description')}</FormControlLabelText></FormControlLabel>
-                                   <Textarea id="description" defaultValue={data.description} autoComplete="off" onChangeText={(text) => setDescription(text)}><TextareaInput color={textColor}/></Textarea>
+                              <FormControl>
+                                   <FormControlLabel><FormControlLabelText>{getTermFromDictionary(language, 'description')}</FormControlLabelText></FormControlLabel>
+                                   <Textarea id="description" defaultValue={data.description} autoComplete="off" onChangeText={(text) => setDescription(text)}><TextareaInput /></Textarea>
                               </FormControl>
-                              <FormControl pb="$5">
+                              <FormControl>
                                    <FormControlLabel>
-                                     <FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'access')}</FormControlLabelText>
+                                     <FormControlLabelText>{getTermFromDictionary(language, 'access')}</FormControlLabelText>
                                    </FormControlLabel>
                                    <RadioGroup
                                         value={isPublic ? "true" : "false"}
                                         onChange={(nextValue) => {
                                              setPublic(nextValue === "true");
                                         }}>
-                                        <HStack direction="row" alignItems="center" space="md" w="75%" maxW="300px">
-                                             <Radio value="false" my="$1">
-                                                  <RadioIndicator mr="$2"  borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
-                                                       <RadioIcon as={CircleIcon} color={colorMode === 'light' ? "$coolGray500" : "$warmGray300"} />
+                                        <HStack className="flex-row items-center w-[75%] max-w-75" space="md">
+                                             <Radio value="false" className="my-1">
+                                                  <RadioIndicator className="mr-2" style={{ borderColor }}>
+                                                       <RadioIcon as={MaterialIcons} name="circle" style={{ color: borderColor }} />
                                                   </RadioIndicator>
-                                                  <RadioLabel color={textColor}>{getTermFromDictionary(language, 'private')}</RadioLabel>
+                                                  <RadioLabel>{getTermFromDictionary(language, 'private')}</RadioLabel>
                                              </Radio>
-                                             <Radio value="true" my="$1">
-                                                  <RadioIndicator mr="$2"  borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
-                                                       <RadioIcon as={CircleIcon} color={colorMode === 'light' ? "$coolGray500" : "$warmGray300"} />
+                                             <Radio value="true" className="my-1">
+                                                  <RadioIndicator className="mr-2" style={{ borderColor }}>
+                                                       <RadioIcon as={MaterialIcons} name="circle" style={{ color: borderColor }} />
                                                   </RadioIndicator>
-                                                  <RadioLabel color={textColor}>{getTermFromDictionary(language, 'public')}</RadioLabel>
+                                                  <RadioLabel>{getTermFromDictionary(language, 'public')}</RadioLabel>
                                              </Radio>
                                         </HStack>
                                    </RadioGroup>
                               </FormControl>
                               <FormControl>
                                    <FormControlLabel>
-                                        <FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'list_group')}</FormControlLabelText>
+                                        <FormControlLabelText>{getTermFromDictionary(language, 'list_group')}</FormControlLabelText>
                                    </FormControlLabel>
                                    <Select
                                        name="newListGroupParent"
                                        selectedValue={listGroupId}
                                        accessibilityLabel={getTermFromDictionary(language, 'list_group')}
-                                       onValueChange={(itemValue) => setListGroupId(itemValue)}>
-                                        <SelectTrigger variant="outline" size="md">
+                                        onValueChange={(itemValue) => setListGroupId(itemValue)}>
+                                        <SelectTrigger>
                                               {listGroupId !== -1 ? (
                                                         toArray(listGroups.groups).map((group) => {
                                                              if (group.id === listGroupId) {
-                                                                  return <SelectInput py={0} value={group.title} color={textColor} />;
+                                                                  return <SelectInput value={group.title} />;
                                                              }
                                                         })
                                                    ) :
-                                                   <SelectInput py={0} placeholder={getTermFromDictionary(language, 'no_list_group')} value={-1} color={textColor} />
+                                                   <SelectInput placeholder={getTermFromDictionary(language, 'no_list_group')} value={-1} />
                                              }
-                                             <SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
                                         </SelectTrigger>
                                         <SelectPortal>
                                              <SelectBackdrop />
-                                             <SelectContent
-                                                 bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}
-                                                 pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
-                                             >
+                                             <SelectContent>
                                                   <SelectDragIndicatorWrapper>
                                                        <SelectDragIndicator />
                                                   </SelectDragIndicatorWrapper>
                                                    <SelectScrollView>
-                                                        <SelectItem label={getTermFromDictionary(language, 'no_list_group')} value="-1" key={-1} sx={{ _text: { color: listGroupId === -1 ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />
+                                                        <SelectItem label={getTermFromDictionary(language, 'no_list_group')} value="-1" key={-1} selectedValue={listGroupId} />
                                                         {toArray(listGroups.groups).map((item, index) => {
-                                                             return <SelectItem key={index} value={item.id} label={item.title} bgColor={listGroupId === item.id ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: listGroupId === item.id ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />;
+                                                             return <SelectItem key={index} value={item.id} label={item.title} selectedValue={listGroupId} />;
                                                         })}
                                                    </SelectScrollView>
                                              </SelectContent>
@@ -204,11 +159,11 @@ const EditList = (props) => {
                          </ModalBody>
                          <ModalFooter>
                               <ButtonGroup>
-                                   <Button variant="outline" onPress={() => setShowModal(false)} borderColor={theme.tokens.colors.primary['500']}>
-                                        <ButtonText color={theme.tokens.colors.primary['500']}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
+                                   <Button colorScheme="primary" variant="outline" onPress={() => setShowModal(false)}>
+                                        <ButtonText>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                    </Button>
                                     <Button
-                                         bgColor={theme.tokens.colors.primary['500']}
+                                         colorScheme="primary"
                                          isLoading={loading}
                                          isLoadingText={getTermFromDictionary(language, 'saving', true)}
                                          onPress={() => {
@@ -226,7 +181,7 @@ const EditList = (props) => {
                                                    }
                                               });
                                          }}>
-                                         <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'save')}</ButtonText>
+                                        <ButtonText>{getTermFromDictionary(language, 'save')}</ButtonText>
                                     </Button>
                               </ButtonGroup>
                          </ModalFooter>
@@ -236,9 +191,15 @@ const EditList = (props) => {
      );
 };
 
+/**
+ * DeleteList component that provides a button to delete a list. When clicked, it opens a confirmation dialog asking the user to confirm the deletion. It also includes an option for the user to opt out of soft deletion. Upon confirmation, it calls the API to delete the list and refreshes the user's lists and profile.
+ * @param props
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 const DeleteList = (props) => {
       const { listId } = props;
-      const {textColor, colorMode, theme } = useTheme();
+      const {textColor, neutralPairs, neutrals } = useTheme();
       const { data: userState } = useUserState();
       const library = useLibrary();
       const language = useActiveLanguage();
@@ -253,36 +214,30 @@ const DeleteList = (props) => {
 
      return (
           <Center>
-               <Button bgColor="$error500" onPress={() => setIsOpen(!isOpen)} size="sm">
-                    <ButtonIcon color="$white" as={MaterialIcons} name="delete" mr="$1" />
-                    <ButtonText color="$white">Delete List</ButtonText>
+               <Button style={{ backgroundColor: neutralPairs.danger }} onPress={() => setIsOpen(!isOpen)} size="sm">
+                    <MaterialIcons name="delete" size={18} color={neutralPairs.white} className="mr-1" />
+                    <ButtonText style={{ color: neutralPairs.white }}>Delete List</ButtonText>
                </Button>
                <AlertDialog leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={onClose}>
                     <AlertDialogBackdrop />
-                    <AlertDialogContent bgColor={colorMode === 'light' ? '$warmGray50' : '$coolGray700'}>
+                    <AlertDialogContent>
                          <AlertDialogHeader>
-                              <Heading size="md" color={textColor}>
+                              <Heading>
                                    {getTermFromDictionary(language, 'delete_list')}
                               </Heading>
                               <AlertDialogCloseButton>
-                                   <Icon as={CloseIcon} color={textColor} />
+                                   <CloseIcon />
                               </AlertDialogCloseButton>
                          </AlertDialogHeader>
                          <AlertDialogBody>
-                              <Text color={textColor}>{user.hideSoftDeleteListUI ? getTermFromDictionary(language, 'delete_list_confirmation_no_restore') : getTermFromDictionary(language, 'delete_list_confirmation')}</Text>
+                              <Text>{user.hideSoftDeleteListUI ? getTermFromDictionary(language, 'delete_list_confirmation_no_restore') : getTermFromDictionary(language, 'delete_list_confirmation')}</Text>
                               {!user.hideSoftDeleteListUI && (
-                                   <FormControl pt="$3">
+                                   <FormControl className="pt-3">
                                         <Checkbox value="optOut" isChecked={optOutOfSoftDeletion} onChange={(isChecked) => setOptOutOfSoftDeletion(isChecked)} alignItems="center">
-                                             <CheckboxIndicator
-                                                  sx={{
-                                                       ':checked': {
-                                                            borderColor: theme.tokens.colors.primary['500'],
-                                                            backgroundColor: theme.tokens.colors.primary['500'],
-                                                       },
-                                                  }}>
-                                                  {optOutOfSoftDeletion && <Icon as={MaterialIcons} name="check" color={theme.tokens.colors.primary['500-text']} size="sm" />}
+                                             <CheckboxIndicator>
+                                                  <CheckboxIcon />
                                              </CheckboxIndicator>
-                                             <CheckboxLabel color={textColor}>{getTermFromDictionary(language, 'opt_out_soft_deletion')}</CheckboxLabel>
+                                             <CheckboxLabel>{getTermFromDictionary(language, 'opt_out_soft_deletion')}</CheckboxLabel>
                                         </Checkbox>
                                    </FormControl>
                               )}
@@ -290,10 +245,10 @@ const DeleteList = (props) => {
                          <AlertDialogFooter>
                               <ButtonGroup space="sm">
                                    <Button variant="link" onPress={onClose} ref={cancelRef}>
-                                        <ButtonText color={textColor}>{getTermFromDictionary(language, 'cancel')}</ButtonText>
+                                        <ButtonText style={{ color: textColor }}>{getTermFromDictionary(language, 'cancel')}</ButtonText>
                                    </Button>
                                    <Button
-                                        bgColor="$error500"
+                                        style={{ backgroundColor: neutralPairs.danger }}
                                         isLoading={loading}
                                         isLoadingText={getTermFromDictionary(language, 'deleting', true)}
                                         onPress={() => {
@@ -323,7 +278,7 @@ const DeleteList = (props) => {
                                                   }
                                              });
                                         }}>
-                                        <ButtonText color="$white">{getTermFromDictionary(language, 'delete')}</ButtonText>
+                                        <ButtonText style={{ color: neutralPairs.white }}>{getTermFromDictionary(language, 'delete')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </AlertDialogFooter>

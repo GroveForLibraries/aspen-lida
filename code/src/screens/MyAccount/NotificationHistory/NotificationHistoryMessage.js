@@ -1,11 +1,20 @@
 import React from 'react';
-import { useRoute, useNavigation } from '@react-navigation/native';
-import { Heading, Box, ScrollView, Text, VStack } from '@gluestack-ui/themed';
-import { useTheme } from '../../../themes/theme';
+import { useRoute } from '@react-navigation/native';
+import { useTheme } from '@/src/themes/theme';
+import { Box } from '@/components/ui/box';
+import { screenContentContainerStyle } from '@/src/components/ScreenContainer';
+import { ThemedHeading as Heading } from '@/src/components/themed/ThemedHeading';
+import { ThemedScrollView as ScrollView } from '@/src/components/themed/ThemedScrollView';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
+import { VStack } from '@/components/ui/vstack';
 
-
+/**
+ * NotificationHistoryMessageModal component that displays the details of a notification message, including title, content, and date sent. It retrieves the message data from the navigation route parameters and formats the date for display.
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const NotificationHistoryMessageModal = () => {
-     const { textColor } = useTheme();
+     const {  } = useTheme();
      const defaultMessage = {
           title: '',
           content: '',
@@ -29,13 +38,13 @@ export const NotificationHistoryMessageModal = () => {
      };
 
      return (
-          <ScrollView>
-               <Box p="$5">
+          <ScrollView contentContainerStyle={screenContentContainerStyle}>
+               <Box className="py-5">
                     <VStack space="md">
-                         <Heading size="lg" color={textColor}>{message.title}</Heading>
-                         <Text color={textColor}>{message.content}</Text>
+                         <Heading size="lg">{message.title}</Heading>
+                         <Text>{message.content}</Text>
                          {message.dateSent && (
-                              <Text size="sm" opacity={0.7} color={textColor}>
+                              <Text size="sm" style={{ opacity: 0.7 }}>
                                    {formatDate(message.dateSent)}
                               </Text>
                          )}
