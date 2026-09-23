@@ -1,63 +1,32 @@
-import { MaterialIcons } from '@expo/vector-icons';
-import {
-     Button,
-     ButtonGroup,
-     ButtonText,
-     ButtonIcon,
-     Center,
-     FormControl,
-     FormControlLabel,
-     CircleIcon,
-     FormControlLabelText,
-     Heading,
-     Icon,
-     Input,
-     InputField,
-     Modal,
-     ModalContent,
-     ModalHeader,
-     ModalBody,
-     ModalFooter,
-     Radio,
-     RadioGroup,
-     RadioLabel,
-     RadioIndicator,
-     RadioIcon,
-     HStack,
-     Textarea,
-     TextareaInput,
-     CloseIcon,
-     ModalCloseButton,
-     ModalBackdrop,
-     SelectTrigger,
-     SelectInput,
-     SelectIcon,
-     ChevronDownIcon,
-     SelectPortal,
-     SelectBackdrop,
-     SelectContent,
-     SelectDragIndicatorWrapper,
-     SelectDragIndicator,
-     SelectItem,
-     SelectScrollView,
-     Select,
-} from '@gluestack-ui/themed';
+import { ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/ThemedMaterialIcons';
 import React, { useState } from 'react';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { popAlert } from '@/src/components/feedback';
+import { useUserState, useListGroups, useUpdateUserProfile, useUpdateLists, useUpdateListGroups } from '@/src/hooks/useUserData';
+import { getTermFromDictionary } from '@/src/translations/TranslationService';
+import { createList, getLists, getListGroups } from '@/src/util/api/list';
+import { refreshProfile } from '@/src/util/api/user';
+import {logDebugMessage, logErrorMessage} from '@/src/util/logging';
+import { toArray } from '@/src/helpers/helpers';
+import { useActiveLanguage } from '@/src/hooks/useLanguageData';
+import { useTheme } from '@/src/themes/theme';
+import { useLibrary } from '@/src/hooks/useLibrarySystemData';
+import { ThemedCloseIcon as CloseIcon, ThemedFormControl as FormControl, ThemedInput as Input, ThemedInputField as InputField, ThemedFormControlLabelText as FormControlLabelText, ThemedFormControlLabel as FormControlLabel } from '@/src/components/themed/ThemedFormControls';
+import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../../components/themed/ThemedButton';
+import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
+import { Center } from '@/components/ui/center';
+import { ThemedHeading as Heading } from '@/src/components/themed/ThemedHeading';
+import { HStack } from '@/components/ui/hstack';
+import { ThemedModal as Modal, ThemedModalBackdrop as ModalBackdrop, ThemedModalBody as ModalBody, ThemedModalCloseButton as ModalCloseButton, ThemedModalContent as ModalContent, ThemedModalFooter as ModalFooter, ThemedModalHeader as ModalHeader } from '@/src/components/themed/ThemedModal';
+import { ThemedRadio as Radio, ThemedRadioGroup as RadioGroup, ThemedRadioIcon as RadioIcon, ThemedRadioIndicator as RadioIndicator, ThemedRadioLabel as RadioLabel } from '../../../components/themed/ThemedRadio';
+import { ThemedSelect as Select, ThemedSelectBackdrop as SelectBackdrop, ThemedSelectContent as SelectContent, ThemedSelectDragIndicator as SelectDragIndicator, ThemedSelectDragIndicatorWrapper as SelectDragIndicatorWrapper, ThemedSelectInput as SelectInput, ThemedSelectItem as SelectItem, ThemedSelectPortal as SelectPortal, ThemedSelectScrollView as SelectScrollView, ThemedSelectTrigger as SelectTrigger } from '../../../components/themed/ThemedSelect';
+import { ThemedTextarea as Textarea, ThemedTextareaInput as TextareaInput } from '@/src/components/themed/ThemedTextarea';
 
-import { popAlert } from '../../../components/feedback';
-
-import { useUserState, useListGroups, useUpdateUserProfile, useUpdateLists, useUpdateListGroups } from '../../../hooks/useUserData';
-import { getTermFromDictionary } from '../../../translations/TranslationService';
-import { createList, getLists, getListGroups } from '../../../util/api/list';
-import { refreshProfile } from '../../../util/api/user';
-import { Platform } from 'react-native';
-import {logDebugMessage, logErrorMessage} from "../../../util/logging";
-import { toArray } from '../../../helpers/helpers';
-import { useActiveLanguage } from '../../../hooks/useLanguageData';
-import { useTheme } from '../../../themes/theme';
-import { useLibrary } from '../../../hooks/useLibrarySystemData';
-
+/**
+ * CreateList component that allows users to create a new list. It displays a button that opens a modal where users can input the title, description, access level, and optionally add the list to a new or existing list group. The component handles API calls to create the list and provides feedback on the creation process, including refreshing the user's profile and updating the lists and list groups in the local state.
+ * @param props
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 const CreateList = (props) => {
       const { setLoading } = props;
       const { data: userState } = useUserState();
@@ -68,7 +37,7 @@ const CreateList = (props) => {
       const updateListGroups = useUpdateListGroups();
       const library = useLibrary();
       const language = useActiveLanguage();
-      const { textColor, theme, colorMode } = useTheme();
+      const { textColor, brand, neutrals } = useTheme();
       const [loading, setAdding] = React.useState(false);
       const [showModal, setShowModal] = useState(false);
 
@@ -80,7 +49,7 @@ const CreateList = (props) => {
      const [newGroupName, setNewGroupName] = React.useState('');
      const [nestedGroup, setNestedGroup] = React.useState('');
      const [existingGroupId, setExistingGroupId] = React.useState(user.lastListGroupAdded ? user.lastListGroupAdded : (listGroups?.groups[0] ? listGroups.groups[0].id : 0));
-     const insets = useSafeAreaInsets();
+     const borderColor = neutrals.border;
 
      let hasListGroups = false;
      if(user.numListGroups) {
@@ -102,41 +71,41 @@ const CreateList = (props) => {
 
      return (
           <Center>
-               <Button onPress={toggle} size="sm" bgColor={theme.tokens.colors.primary['500']}>
-                    <ButtonIcon color={theme.tokens.colors.primary['500-text']} as={MaterialIcons} name="add" mr="$1" />
-                    <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'create_new_list')}</ButtonText>
+               <Button onPress={toggle} size="sm" colorScheme="primary">
+                   <MaterialIcons name="add" size={18} color={brand.primary['500-text']} className="mr-1" />
+                   <ButtonText>{getTermFromDictionary(language, 'create_new_list')}</ButtonText>
                </Button>
-               <Modal isOpen={showModal} onClose={toggle} size="full" avoidKeyboard>
+               <Modal isOpen={showModal} onClose={toggle} size="full">
                     <ModalBackdrop />
-                    <ModalContent maxWidth="90%" bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
+                    <ModalContent className="max-w-[90%]">
                          <ModalHeader>
-                              <Heading size="md" color={textColor}>
+                              <Heading>
                                    {getTermFromDictionary(language, 'create_new_list')}
                               </Heading>
-                              <ModalCloseButton p="$3" onPress={toggle}>
-                                   <Icon as={CloseIcon} color={textColor} />
+                              <ModalCloseButton onPress={toggle}>
+                                   <CloseIcon />
                               </ModalCloseButton>
                          </ModalHeader>
                          <ModalBody>
-                              <FormControl pb="$5">
+                              <FormControl>
                                    <FormControlLabel>
-                                        <FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'title')}</FormControlLabelText>
+                                        <FormControlLabelText>{getTermFromDictionary(language, 'title')}</FormControlLabelText>
                                    </FormControlLabel>
-                                   <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
-                                        <InputField id="title" onChangeText={(text) => setTitle(text)} returnKeyType="next" defaultValue={title} color={textColor} />
+                                   <Input style={{ borderColor }}>
+                                        <InputField id="title" onChangeText={(text) => setTitle(text)} returnKeyType="next" defaultValue={title} />
                                    </Input>
                               </FormControl>
-                              <FormControl pb="$5">
+                              <FormControl>
                                    <FormControlLabel>
-                                        <FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'description')}</FormControlLabelText>
+                                        <FormControlLabelText>{getTermFromDictionary(language, 'description')}</FormControlLabelText>
                                    </FormControlLabel>
-                                   <Textarea id="description" onChangeText={(text) => setDescription(text)} defaultValue={description} returnKeyType="next" borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
-                                        <TextareaInput color={textColor} />
+                                   <Textarea id="description" onChangeText={(text) => setDescription(text)} defaultValue={description} returnKeyType="next">
+                                        <TextareaInput />
                                    </Textarea>
                               </FormControl>
-                              <FormControl pb="$5">
+                              <FormControl>
                                    <FormControlLabel>
-                                        <FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'access')}</FormControlLabelText>
+                                        <FormControlLabelText>{getTermFromDictionary(language, 'access')}</FormControlLabelText>
                                    </FormControlLabel>
                                    <RadioGroup
                                         name="access"
@@ -144,41 +113,40 @@ const CreateList = (props) => {
                                         onChange={(nextValue) => {
                                              setPublic(nextValue);
                                         }}>
-                                        <HStack direction="row" alignItems="center" space="md" w="75%" maxW="300px">
-                                             <Radio value="false" my="$1">
-                                                  <RadioIndicator mr="$2" borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
-                                                       <RadioIcon as={CircleIcon} color={colorMode === 'light' ? "$coolGray500" : "$warmGray300"} />
+                                       <HStack className="flex-row items-center w-[75%] max-w-75" space="md">
+                                            <Radio value="false" className="my-1">
+                                                 <RadioIndicator className="mr-2" style={{ borderColor }}>
+                                                      <RadioIcon as={MaterialIcons} name="circle" style={{ color: borderColor }} />
                                                   </RadioIndicator>
-                                                  <RadioLabel color={textColor}>{getTermFromDictionary(language, 'private')}</RadioLabel>
+                                                 <RadioLabel>{getTermFromDictionary(language, 'private')}</RadioLabel>
                                              </Radio>
-                                             <Radio value="true" my="$1">
-                                                  <RadioIndicator mr="$2" borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
-                                                       <RadioIcon as={CircleIcon} color={colorMode === 'light' ? "$coolGray500" : "$warmGray300"} />
+                                            <Radio value="true" className="my-1">
+                                                 <RadioIndicator className="mr-2" style={{ borderColor }}>
+                                                      <RadioIcon as={MaterialIcons} name="circle" style={{ color: borderColor }} />
                                                   </RadioIndicator>
-                                                  <RadioLabel color={textColor}>{getTermFromDictionary(language, 'public')}</RadioLabel>
+                                                 <RadioLabel>{getTermFromDictionary(language, 'public')}</RadioLabel>
                                              </Radio>
                                         </HStack>
                                    </RadioGroup>
                               </FormControl>
-                              <FormControl pb="$3">
+                              <FormControl className="pb-3">
                                    <FormControlLabel>
-                                        <FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'should_add_to_list_group')}</FormControlLabelText>
+                                        <FormControlLabelText>{getTermFromDictionary(language, 'should_add_to_list_group')}</FormControlLabelText>
                                    </FormControlLabel>
                                    <Select name="should_add_to_list_group" selectedValue={addToGroup} accessibilityLabel={getTermFromDictionary(language, 'should_add_to_list_group')} onValueChange={(itemValue) => setAddToGroup(itemValue)}>
-                                        <SelectTrigger variant="outline" size="md">
-                                             {addToGroup !== '' ? <SelectInput py={0} color={textColor} value={addToGroup === 'new' ? getTermFromDictionary(language, 'add_to_list_group_new') : addToGroup === 'existing' ? getTermFromDictionary(language, 'add_to_list_group_existing') : getTermFromDictionary(language, 'add_to_list_group_no')} /> : <SelectInput value={getTermFromDictionary(language, 'add_to_list_group_no')} color={textColor} />}
-                                             <SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
+                                        <SelectTrigger>
+                                             {addToGroup !== '' ? <SelectInput value={addToGroup === 'new' ? getTermFromDictionary(language, 'add_to_list_group_new') : addToGroup === 'existing' ? getTermFromDictionary(language, 'add_to_list_group_existing') : getTermFromDictionary(language, 'add_to_list_group_no')} /> : <SelectInput value={getTermFromDictionary(language, 'add_to_list_group_no')} />}
                                         </SelectTrigger>
                                         <SelectPortal>
                                              <SelectBackdrop />
-                                             <SelectContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"} pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}>
+                                             <SelectContent>
                                                   <SelectDragIndicatorWrapper>
                                                        <SelectDragIndicator />
                                                   </SelectDragIndicatorWrapper>
                                                   <SelectScrollView>
-                                                       <SelectItem label={getTermFromDictionary(language, 'add_to_list_group_no')} value="no" key={1} bgColor={addToGroup === 'no' ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: addToGroup === 'no' ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />
-                                                       <SelectItem label={getTermFromDictionary(language, 'add_to_list_group_new')} value="new" key={2} bgColor={addToGroup === 'new' ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: addToGroup === 'new' ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />
-                                                       {hasListGroups && <SelectItem label={getTermFromDictionary(language, 'add_to_list_group_existing')} value="existing" key={3} bgColor={addToGroup === 'existing' ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: addToGroup === 'existing' ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />}
+                                                       <SelectItem label={getTermFromDictionary(language, 'add_to_list_group_no')} value="no" key={1} selectedValue={addToGroup} />
+                                                       <SelectItem label={getTermFromDictionary(language, 'add_to_list_group_new')} value="new" key={2} selectedValue={addToGroup} />
+                                                       {hasListGroups && <SelectItem label={getTermFromDictionary(language, 'add_to_list_group_existing')} value="existing" key={3} selectedValue={addToGroup} />}
                                                   </SelectScrollView>
                                              </SelectContent>
                                         </SelectPortal>
@@ -186,42 +154,41 @@ const CreateList = (props) => {
                               </FormControl>
                               {addToGroup === 'new' && (
                                    <>
-                                        <FormControl pb="$2">
+                                        <FormControl className="pb-2">
                                              <FormControlLabel>
-                                                  <FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'new_list_group_name')}</FormControlLabelText>
+                                                  <FormControlLabelText>{getTermFromDictionary(language, 'new_list_group_name')}</FormControlLabelText>
                                              </FormControlLabel>
-                                             <Input borderColor={colorMode === 'light' ? "$coolGray500" : "$warmGray300"}>
-                                                  <InputField id="newGroupName" onChangeText={(text) => setNewGroupName(text)} defaultValue={newGroupName} color={textColor} />
+                                             <Input style={{ borderColor }}>
+                                                  <InputField id="newGroupName" onChangeText={(text) => setNewGroupName(text)} defaultValue={newGroupName} />
                                              </Input>
                                         </FormControl>
                                         {hasListGroups && (
-                                             <FormControl pb="$2">
+                                             <FormControl className="pb-2">
                                                   <FormControlLabel>
-                                                       <FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'should_nest_list_group')}</FormControlLabelText>
+                                                       <FormControlLabelText>{getTermFromDictionary(language, 'should_nest_list_group')}</FormControlLabelText>
                                                   </FormControlLabel>
                                                   <Select name="should_nest_list_group" selectedValue={nestedGroup} accessibilityLabel={getTermFromDictionary(language, 'should_nest_list_group')} onValueChange={(itemValue) => setNestedGroup(itemValue)}>
-                                                       <SelectTrigger variant="outline" size="md">
+                                                       <SelectTrigger>
                                                    {nestedGroup !== 'no' && nestedGroup !== '' ? (
                                                         toArray(listGroups.groups).map((group) => {
                                                              if (group.id === nestedGroup) {
-                                                                  return <SelectInput py={0} value={group.title} color={textColor} />;
+                                                                  return <SelectInput value={group.title} />;
                                                              }
                                                         })
                                                    ) : (
-                                                        <SelectInput py={0} value={getTermFromDictionary(language, 'nest_within_group_no')} color={textColor} />
+                                                        <SelectInput value={getTermFromDictionary(language, 'nest_within_group_no')} />
                                                    )}
-                                                            <SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
                                                        </SelectTrigger>
                                                        <SelectPortal>
                                                             <SelectBackdrop />
-                                                            <SelectContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"} pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}>
+                                                            <SelectContent>
                                                                  <SelectDragIndicatorWrapper>
                                                                       <SelectDragIndicator />
                                                                  </SelectDragIndicatorWrapper>
                                                                   <SelectScrollView>
-                                                                       <SelectItem label={getTermFromDictionary(language, 'nest_within_group_no')} value="no" key={1} bgColor={nestedGroup === 'no' ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: nestedGroup === 'no' ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />
+                                                                       <SelectItem label={getTermFromDictionary(language, 'nest_within_group_no')} value="no" key={1} selectedValue={nestedGroup} />
                                                                        {toArray(listGroups.groups).map((item, index) => {
-                                                                            return <SelectItem key={index} value={item.id} label={item.title} bgColor={nestedGroup === item.id ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: nestedGroup === item.id ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />;
+                                                                            return <SelectItem key={index} value={item.id} label={item.title} selectedValue={nestedGroup} />;
                                                                        })}
                                                                   </SelectScrollView>
                                                             </SelectContent>
@@ -232,9 +199,9 @@ const CreateList = (props) => {
                                    </>
                               )}
                               {addToGroup === 'existing' && hasListGroups && (
-                                   <FormControl pb="$5">
+                                   <FormControl>
                                         <FormControlLabel>
-                                             <FormControlLabelText color={textColor}>{getTermFromDictionary(language, 'choose_existing_list_group')}</FormControlLabelText>
+                                             <FormControlLabelText>{getTermFromDictionary(language, 'choose_existing_list_group')}</FormControlLabelText>
                                         </FormControlLabel>
                                         <Select
                                              selectedValue={existingGroupId}
@@ -244,27 +211,26 @@ const CreateList = (props) => {
                                                   setNestedGroup(itemValue);
                                                   logDebugMessage(itemValue);
                                              }}>
-                                             <SelectTrigger variant="outline" size="md">
+                                             <SelectTrigger>
                                                    {existingGroupId && existingGroupId !== -1 ? (
                                                         toArray(listGroups.groups).map((group) => {
                                                              if (group.id === existingGroupId) {
-                                                                  return <SelectInput py={0} value={group.title} color={textColor} />;
+                                                                  return <SelectInput value={group.title} />;
                                                              }
                                                         })
                                                    ) : (
-                                                        <SelectInput py={0} value={listGroups.groups[0].id} color={textColor} />
+                                                        <SelectInput value={listGroups.groups[0].id} />
                                                    )}
-                                                  <SelectIcon mr="$3" as={ChevronDownIcon} color={textColor} />
                                              </SelectTrigger>
                                              <SelectPortal>
                                                   <SelectBackdrop />
-                                                  <SelectContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"} pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}>
+                                                  <SelectContent>
                                                         <SelectDragIndicatorWrapper>
                                                              <SelectDragIndicator />
                                                         </SelectDragIndicatorWrapper>
                                                          <SelectScrollView>
                                                               {toArray(listGroups.groups).map((item, index) => {
-                                                                   return <SelectItem key={index} value={item.id} label={item.title} bgColor={existingGroupId === item.id ? theme.tokens.colors.tertiary['300'] : ''} sx={{ _text: { color: existingGroupId === item.id ? theme.tokens.colors.tertiary['500-text'] : textColor } }} />;
+                                                                   return <SelectItem key={index} value={item.id} label={item.title} selectedValue={existingGroupId} />;
                                                               })}
                                                          </SelectScrollView>
                                                    </SelectContent>
@@ -275,11 +241,11 @@ const CreateList = (props) => {
                          </ModalBody>
                          <ModalFooter>
                               <ButtonGroup>
-                                   <Button variant="outline" onPress={toggle} borderColor={colorMode === 'light' ? "$coolGray700" : "$warmGray100"}>
-                                        <ButtonText color={colorMode === 'light' ? "$coolGray700" : "$warmGray100"}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
+                                   <Button variant="outline" onPress={toggle} style={{ borderColor }}>
+                                        <ButtonText style={{ color: textColor }}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                    </Button>
                                     <Button
-                                         bgColor={theme.tokens.colors.primary['500']}
+                                         colorScheme="primary"
                                          isLoading={loading}
                                          isLoadingText={getTermFromDictionary(language, 'creating_list', true)}
                                          onPress={async () => {
@@ -311,13 +277,14 @@ const CreateList = (props) => {
                                                    });
                                               } catch (error) {
                                                    logErrorMessage("Failed to create list: ", error);
+                                                   // TODO(translation): Replace hardcoded alert title/body with TranslationService-backed keys.
                                                    popAlert("Error", "Something went wrong while creating the list.", "danger");
                                               } finally {
                                                    setAdding(false);
                                                    setLoading(false);
                                               }
                                          }}>
-                                         <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'create_list')}</ButtonText>
+                                        <ButtonText>{getTermFromDictionary(language, 'create_list')}</ButtonText>
                                     </Button>
                               </ButtonGroup>
                          </ModalFooter>

@@ -2,6 +2,12 @@ import { DisplayEventResult } from './DisplayEventResult';
 import { DisplayGroupedWorkResult } from './DisplayGroupedWorkResult';
 import { DisplayListResult } from './DisplayListResult';
 
+/**
+ *
+ * @param props
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const DisplayResult = (props) => {
      const item = props.data;
      let currentSource = item.type ?? 'unknown';

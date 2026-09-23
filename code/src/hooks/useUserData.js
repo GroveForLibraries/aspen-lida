@@ -10,7 +10,7 @@ import {
      loadSavedEvents, saveSavedEvents,
      loadCards, saveCards,
      loadNotificationSettings, saveNotificationSettings,
-     loadAppPreferences, saveAppPreferences,
+     saveAppPreferences,
      loadDebugMessages, saveDebugMessages,
      loadNotificationHistory, saveNotificationHistory,
      loadInbox, saveInbox,

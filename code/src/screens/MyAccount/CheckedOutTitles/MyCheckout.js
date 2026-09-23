@@ -1,17 +1,11 @@
-import { MaterialIcons } from '@expo/vector-icons';
+import { ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/ThemedMaterialIcons';
 import { Image } from 'expo-image';
-import {
-     Actionsheet,
-     ActionsheetContent,
-     ActionsheetItem,
-     ActionsheetItemText, ActionsheetBackdrop, HStack, Icon, Pressable, VStack, ActionsheetIcon } from '@gluestack-ui/themed';
 import React, { useState } from 'react';
-import { Platform } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-// custom components and helper files
-
-import { useUserState } from '../../../hooks/useUserData';
+import { ThemedActionsheet as Actionsheet, ThemedActionsheetBackdrop as ActionsheetBackdrop, ThemedActionsheetItem as ActionsheetItem, ThemedActionsheetContent as ActionsheetContent, ThemedActionsheetItemText as ActionsheetItemText } from '@/src/components/themed/ThemedActionsheet';
+import { HStack } from '@/components/ui/hstack';
+import { Pressable } from '@/components/ui/pressable';
+import { VStack } from '@/components/ui/vstack';
+import { useUserState } from '@/src/hooks/useUserData';
 import {
      getAuthor,
      getCheckedOutTo,
@@ -24,23 +18,29 @@ import {
      willAutoRenew,
      getCollectionName,
      CheckoutAccessLabel
-} from '../../../helpers/item';
-import { navigate, navigateStack } from '../../../helpers/RootNavigator';
-import { getTermFromDictionary } from '../../../translations/TranslationService';
-import { renewCheckout, returnCheckout, viewOnlineItem, viewOverDriveItem } from '../../../util/api/user';
-import { stripHTML, formatDiscoveryVersion } from '../../../helpers/helpers';
-import { useActiveLanguage } from '../../../hooks/useLanguageData';
-import { useTheme } from '../../../themes/theme';
-import { useLibrary } from '../../../hooks/useLibrarySystemData';
+} from '@/src/helpers/item';
+import { navigate, navigateStack } from '@/src/helpers/RootNavigator';
+import { getTermFromDictionary } from '@/src/translations/TranslationService';
+import { renewCheckout, returnCheckout, viewOnlineItem, viewOverDriveItem } from '@/src/util/api/user';
+import { stripHTML, formatDiscoveryVersion } from '@/src/helpers/helpers';
+import { useActiveLanguage } from '@/src/hooks/useLanguageData';
+import { useTheme } from '@/src/themes/theme';
+import { useLibrary } from '@/src/hooks/useLibrarySystemData';
 
+/**
+ * MyCheckout component that displays information about a checked-out item and provides actions for renewing, returning, or accessing the item. It uses various hooks to manage state, theme, and library data, and it handles user interactions with the checkout item.
+ * @param props
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const MyCheckout = (props) => {
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const library = useLibrary();
      const language = useActiveLanguage();
      const version = formatDiscoveryVersion(library.discoveryVersion);
-     const { colorMode, textColor } = useTheme();
-     const insets = useSafeAreaInsets();
+     const { textColor, neutrals } = useTheme();
+     const borderColor = neutrals.border;
 
      const [access, setAccess] = useState(false);
      const [returning, setReturn] = useState(false);
@@ -120,15 +120,13 @@ export const MyCheckout = (props) => {
 
 
      return (
-          <Pressable onPress={toggle} borderBottomWidth="$1" borderBottomColor={colorMode === 'light' ? "$coolGray200" : "$coolGray500"} pl="$4" pr="$5" py="$2">
-               <HStack space="sm" w="75%">
+         <Pressable onPress={toggle} style={{ borderBottomWidth: 1, borderBottomColor: borderColor }} className="py-2">
+              <HStack space="sm" className="w-[75%]">
                     <Image
                          alt={checkout.title}
                          source={url}
-                         style={{
-                              width: 100,
-                              height: 150,
-                              borderRadius: "$sm" }}
+                         style={{ width: 100.0, height: 150.0 }}
+                         className="rounded-lg"
                          placeholder={blurhash}
                          transition={1000}
                          contentFit="cover"
@@ -147,12 +145,9 @@ export const MyCheckout = (props) => {
                </HStack>
                <Actionsheet isOpen={isOpen} onClose={toggle} size="full">
                     <ActionsheetBackdrop />
-                    <ActionsheetContent
-                         bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}
-                         pb={Platform.OS === 'android' ? insets.bottom + 16 : '$4'}
-                    >
-                         <ActionsheetItem h={60} px="$4">
-                              <ActionsheetItemText bold color={textColor}>{checkout.title}</ActionsheetItemText>
+                    <ActionsheetContent>
+                         <ActionsheetItem className="h-15 px-4">
+                              <ActionsheetItemText className="font-bold">{checkout.title}</ActionsheetItemText>
                          </ActionsheetItem>
                          {checkout.groupedWorkId ? (
                               <ActionsheetItem
@@ -161,15 +156,13 @@ export const MyCheckout = (props) => {
                                         toggle();
                                    }}
                                    >
-                                   <ActionsheetIcon>
-                                        <Icon as={MaterialIcons} name="search" mr="$1" size="md" color={textColor}/>
-                                   </ActionsheetIcon>
-                                   <ActionsheetItemText color={textColor}>{getTermFromDictionary(language, 'view_item_details')}</ActionsheetItemText>
+                                   <MaterialIcons name="search" size={18} className="mr-1" />
+                                   <ActionsheetItemText>{getTermFromDictionary(language, 'view_item_details')}</ActionsheetItemText>
                               </ActionsheetItem>
                          ): null}
                          {renewMessage ? (
                               <ActionsheetItem
-                                   maxwidth="$full"
+                                   className="w-full"
                                    isTruncated
                                    isDisabled={canRenew}
                                    isLoading={renewing}
@@ -203,10 +196,8 @@ export const MyCheckout = (props) => {
                                         });
                                    }}
                                    >
-                                   <ActionsheetIcon>
-                                        <Icon as={MaterialIcons} name="autorenew" mr="$1" size="md" color={textColor}/>
-                                   </ActionsheetIcon>
-                                   <ActionsheetItemText color={textColor}>{stripHTML(renewMessage)}</ActionsheetItemText>
+                                   <MaterialIcons name="autorenew" size={18} className="mr-1" />
+                                   <ActionsheetItemText>{stripHTML(renewMessage)}</ActionsheetItemText>
                               </ActionsheetItem>
                          ) : null}
                          {checkout.source === 'overdrive' ? (
@@ -221,18 +212,14 @@ export const MyCheckout = (props) => {
                                         });
                                    }}
                                    >
-                                   <ActionsheetIcon>
-                                        <Icon as={MaterialIcons} name="book" mr="$1" size="md" color={textColor} />
-                                   </ActionsheetIcon>
+                                   <MaterialIcons name="book" size={18} className="mr-1" />
                                    <CheckoutAccessLabel checkout={checkout} libbyReaderName={libbyReaderName} baseUrl={library.baseUrl} language={language} color={textColor}></CheckoutAccessLabel>
                               </ActionsheetItem>
                          ) : null}
                          {checkout.source === 'palace_project' ? (
                               <ActionsheetItem onPress={() => handleOpenPalaceProjectInstructions()}>
-                                   <ActionsheetIcon>
-                                        <Icon as={MaterialIcons} name="info" color="trueGray.400" mr="1" size="6" />
-                                   </ActionsheetIcon>
-                                   <ActionsheetItemText color={textColor}>{getTermFromDictionary(language, 'access_instructions')}</ActionsheetItemText>
+                                   <MaterialIcons name="info" size={18} className="mr-1" />
+                                   <ActionsheetItemText>{getTermFromDictionary(language, 'access_instructions')}</ActionsheetItemText>
                               </ActionsheetItem>
                          ) : null}
                          {checkout.accessOnlineUrl != null ? (
@@ -248,9 +235,7 @@ export const MyCheckout = (props) => {
                                              });
                                         }}
                                         >
-                                        <ActionsheetIcon>
-                                             <Icon as={MaterialIcons} name="book" mr="$1" size="md"  color={textColor}/>
-                                        </ActionsheetIcon>
+                                        <MaterialIcons name="book" size={18} className="mr-1" />
                                         <CheckoutAccessLabel checkout={checkout} libbyReaderName={libbyReaderName} baseUrl={library.baseUrl} language={language} color={textColor}></CheckoutAccessLabel>
                                    </ActionsheetItem>
                                    <ActionsheetItem
@@ -265,11 +250,9 @@ export const MyCheckout = (props) => {
                                              });
                                         }}
                                         >
-                                        <ActionsheetIcon>
-                                             <Icon as={MaterialIcons} name="logout" mr="$1" size="md"  color={textColor} />
-                                        </ActionsheetIcon>
+                                        <MaterialIcons name="logout" size={18} className="mr-1" />
                                         <CheckoutAccessLabel checkout={checkout} libbyReaderName={libbyReaderName} baseUrl={library.baseUrl} language={language} color={textColor}></CheckoutAccessLabel>
-                                        <ActionsheetItemText  color={textColor}>{getTermFromDictionary(language, 'checkout_return_now')}</ActionsheetItemText>
+                                        <ActionsheetItemText>{getTermFromDictionary(language, 'checkout_return_now')}</ActionsheetItemText>
                                    </ActionsheetItem>
                               </>
                          ) : null}
@@ -287,10 +270,8 @@ export const MyCheckout = (props) => {
                                              });
                                         }}
                                         >
-                                        <ActionsheetIcon>
-                                             <Icon as={MaterialIcons} name="logout" mr="$1" size="md"  color={textColor}/>
-                                        </ActionsheetIcon>
-                                        <ActionsheetItemText  color={textColor}>{getTermFromDictionary(language, 'checkout_return_now')}</ActionsheetItemText>
+                                        <MaterialIcons name="logout" size={18} className="mr-1" />
+                                        <ActionsheetItemText>{getTermFromDictionary(language, 'checkout_return_now')}</ActionsheetItemText>
                                    </ActionsheetItem>
                               </>
                          ) : null}

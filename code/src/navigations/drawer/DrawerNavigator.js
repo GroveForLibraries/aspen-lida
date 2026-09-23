@@ -1,3 +1,4 @@
+import { useRoute } from '@react-navigation/native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import React from 'react';
 import { Dimensions } from 'react-native';
@@ -7,6 +8,11 @@ import { BackgroundCacheRefresher } from '../../components/BackgroundCacheRefres
 
 const Drawer = createDrawerNavigator();
 
+/**
+ * AccountDrawer component that sets up a drawer navigator with a custom drawer content and a tab navigator as the main screen.
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 const AccountDrawer = ({ route }) => {
      const startupCache = route?.params?.startupCache ?? null;
 

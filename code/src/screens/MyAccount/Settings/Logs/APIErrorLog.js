@@ -1,10 +1,18 @@
 import React from 'react';
-import { Accordion, AccordionItem, AccordionHeader, AccordionTrigger, AccordionTitleText, AccordionIcon, AccordionContent, AccordionContentText, Box, Button, ButtonText, FlatList, Heading, HStack, Spinner, Text, VStack, ChevronUpIcon, ChevronDownIcon } from '@gluestack-ui/themed';
-import { clearApiErrorLogs, getApiErrorLogsPage } from '../../../../util/db';
-
-import { useActiveLanguage } from '../../../../hooks/useLanguageData';
-import { getTermFromDictionary } from '../../../../translations/TranslationService';
-import { useTheme } from '../../../../themes/theme';
+import { FlatList } from 'react-native';
+import { clearApiErrorLogs, getApiErrorLogsPage } from '@/src/util/db';
+import { useActiveLanguage } from '@/src/hooks/useLanguageData';
+import { getTermFromDictionary } from '@/src/translations/TranslationService';
+import { resolveUiColorMap, useTheme } from '@/src/themes/theme';
+import { ThemedAccordion as Accordion, ThemedAccordionContent as AccordionContent, ThemedAccordionHeader as AccordionHeader, ThemedAccordionItem as AccordionItem, ThemedAccordionTrigger as AccordionTrigger, ThemedAccordionTitleText as AccordionTitleText, ThemedAccordionContentText as AccordionContentText, ThemedAccordionIcon as AccordionIcon } from '@/src/components/themed/ThemedAccordion';
+import { Box } from '@/components/ui/box';
+import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../../../components/themed/ThemedButton';
+import { ThemedHeading as Heading } from '@/src/components/themed/ThemedHeading';
+import { HStack } from '@/components/ui/hstack';
+import { ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/ThemedMaterialIcons';
+import { Spinner } from '@/components/ui/spinner';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
+import { VStack } from '@/components/ui/vstack';
 
 /* move this to the helpers.js */
 function formatDate(ms) {
@@ -15,7 +23,16 @@ function formatDate(ms) {
      }
 }
 
-export const APIErrorLog = ({ theme: themeProp, colorMode: colorModeProp, textColor: textColorProp } = {}) => {
+/**
+ * APIErrorLog component that displays a list of API error logs. It fetches the logs from the database, allows pagination, and provides an option to clear the logs. Each log entry can be expanded to view the response body if available.
+ * @param param0
+ * @param param0.neutralPairs
+ * @param param0.colorMode
+ * @param param0.textColor
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
+export const APIErrorLog = ({ neutralPairs: uiColorsProp, colorMode: colorModeProp, textColor: textColorProp } = {}) => {
      const [loading, setLoading] = React.useState(false);
      const [page, setPage] = React.useState(1);
      const [rows, setRows] = React.useState([]);
@@ -28,9 +45,12 @@ export const APIErrorLog = ({ theme: themeProp, colorMode: colorModeProp, textCo
      const language = useActiveLanguage();
 
      const themeCtx = useTheme() ?? {};
-     const theme = themeProp ?? themeCtx.theme ?? {};
+     const neutralPairs = uiColorsProp ?? themeCtx.neutralPairs ?? {};
      const colorMode = colorModeProp ?? themeCtx.colorMode ?? 'light';
      const textColor = textColorProp ?? themeCtx.textColor ?? '#111827';
+     const neutrals = React.useMemo(() => resolveUiColorMap(neutralPairs, colorMode), [neutralPairs, colorMode]);
+     const panelBg = neutrals.surface;
+     const borderColor = neutrals.border;
 
      const loadPage = React.useCallback(async (nextPage = 1) => {
           setLoading(true);
@@ -67,21 +87,21 @@ export const APIErrorLog = ({ theme: themeProp, colorMode: colorModeProp, textCo
      };
 
      const renderEntry = ({ item }) => (
-          <Box borderBottomWidth="$1" borderColor={colorMode === 'light' ? "$coolGray200" : "$warmGray600"} px="$3" py="$3">
+          <Box className="px-4 py-3" style={{ borderBottomWidth: 1, borderColor }}>
                <VStack space="xs">
-                    <Text size="xs" color={textColor}>
+                    <Text size="xs">
                          {formatDate(item.created_at)}
                     </Text>
-                    <Text bold size="sm" color={textColor}>
+                    <Text bold size="sm">
                          {(item.method ?? 'UNKNOWN') + ' ' + (item.endpoint ?? '-')}
                     </Text>
-                    <Text size="xs" color={textColor}>
+                    <Text size="xs">
                          {'status=' + (item.status ?? 'n/a') + '  problem=' + (item.problem ?? 'n/a')}
                     </Text>
-                    <Text color={textColor}>{item.requestParams}</Text>
+                    <Text>{item.requestParams}</Text>
                     {item.message ? (
                          <>
-                              <Text size="xs" color={textColor}>
+                              <Text size="xs">
                                    {item.message ?? ''}
                               </Text>
                          </>
@@ -89,27 +109,23 @@ export const APIErrorLog = ({ theme: themeProp, colorMode: colorModeProp, textCo
 
                     {item.response_body ? (
                          <Accordion>
-                              <AccordionItem value="response_body" bgColor={colorMode === 'light' ? "$coolGray100" : "$coolGray700"}>
-                                   <AccordionHeader bgColor={colorMode === 'light' ? "$coolGray100" : "$coolGray700"}>
+                             <AccordionItem value="response_body" style={{ backgroundColor: panelBg }}>
+                                  <AccordionHeader style={{ backgroundColor: panelBg }}>
                                         <AccordionTrigger>
                                              {({ isExpanded }) => {
                                                   return (
                                                        <>
-                                                            <AccordionTitleText color={textColor}>Response</AccordionTitleText>
-                                                            {isExpanded ? <AccordionIcon as={ChevronUpIcon} ml="$3" color={textColor} /> : <AccordionIcon as={ChevronDownIcon} ml="$3" color={textColor} />}
+                                                            <AccordionTitleText style={{ color: textColor }}>Response</AccordionTitleText>
+                                                            {isExpanded ? <AccordionIcon as={MaterialIcons} name="expand-less" className="ml-3" style={{ color: neutrals.actionableIndicator }} /> : <AccordionIcon as={MaterialIcons} name="expand-more" className="ml-3" style={{ color: neutrals.actionableIndicator }} />}
                                                        </>
                                                   );
                                              }}
                                         </AccordionTrigger>
                                    </AccordionHeader>
-                                   <AccordionContent bgColor={colorMode === 'light' ? "$coolGray100" : "$coolGray700"}>
+                                   <AccordionContent style={{ backgroundColor: panelBg }}>
                                         <AccordionContentText>
                                              <Text
-                                                  style={{
-                                                       fontFamily: 'Courier New, monospace',
-                                                       fontSize: 12,
-                                                       whiteSpace: 'pre-wrap',
-                                                       color: textColor }}>
+                                                  style={{ fontFamily: 'Courier New, monospace', whiteSpace: 'pre-wrap' }} size="xs">
                                                   {(() => {
                                                        try {
                                                             const parsed = JSON.parse(item.response_body);
@@ -129,19 +145,19 @@ export const APIErrorLog = ({ theme: themeProp, colorMode: colorModeProp, textCo
      );
 
      return (
-          <Box flex={1}>
-               <Box px="$3" py="$3" borderBottomWidth="$1" borderColor="$borderLight200">
-                    <Heading size="sm" color={textColor}>
+          <Box className="flex-1">
+               <Box className="px-4 py-3" style={{ borderBottomWidth: 1, borderColor }}>
+                   <Heading size="sm">
                          {getTermFromDictionary(language, 'api_error_log')}
                     </Heading>
-                    <Text size="xs" color={textColor}>
+                    <Text size="xs">
                          {getTermFromDictionary(language, 'total') + ': ' + meta.total}
                     </Text>
                </Box>
 
                {loading && rows.length === 0 ? (
-                    <Box flex={1} alignItems="center" justifyContent="center">
-                         <Spinner />
+                    <Box className="flex-1 items-center justify-center">
+                         <Spinner color={textColor} />
                     </Box>
                ) : (
                     <FlatList
@@ -149,28 +165,28 @@ export const APIErrorLog = ({ theme: themeProp, colorMode: colorModeProp, textCo
                          keyExtractor={(item) => String(item.id)}
                          renderItem={renderEntry}
                          ListEmptyComponent={
-                              <Box px="$3" py="$6" alignItems="center">
+                              <Box className="px-4 py-6 items-center">
                                    <Text>{getTermFromDictionary(language, 'api_error_log_empty')}</Text>
                               </Box>
                          }
                     />
                )}
 
-               <HStack px="$3" py="$3" justifyContent="space-between" alignItems="center" borderTopWidth="$1" borderColor="$borderLight200">
-                    <Button bgColor={theme['tokens']['colors']['secondary']['500']} onPress={() => loadPage(page - 1)} isDisabled={loading || !meta.hasPrevious}>
-                         <ButtonText color={theme['tokens']['colors']['secondary']['500-text']}>{getTermFromDictionary(language, 'previous')}</ButtonText>
+               <HStack className="px-4 py-3" style={{ justifyContent: 'space-between', alignItems: 'center', borderTopWidth: 1, borderColor }}>
+                    <Button colorScheme="secondary" onPress={() => loadPage(page - 1)} isDisabled={loading || !meta.hasPrevious}>
+                        <ButtonText>{getTermFromDictionary(language, 'previous')}</ButtonText>
                     </Button>
 
-                    <Text size="xs" color={textColor}>{`Page ${page} / ${meta.totalPages}`}</Text>
+                    <Text size="xs">{`Page ${page} / ${meta.totalPages}`}</Text>
 
-                    <Button bgColor={theme['tokens']['colors']['secondary']['500']} onPress={() => loadPage(page + 1)} isDisabled={loading || !meta.hasMore}>
-                         <ButtonText color={theme['tokens']['colors']['secondary']['500-text']}>{getTermFromDictionary(language, 'next')}</ButtonText>
+                    <Button colorScheme="secondary" onPress={() => loadPage(page + 1)} isDisabled={loading || !meta.hasMore}>
+                        <ButtonText>{getTermFromDictionary(language, 'next')}</ButtonText>
                     </Button>
                </HStack>
 
-               <Box px="$3" pb="$3">
-                    <Button variant="outline" borderColor={theme['tokens']['colors']['tertiary']['500']} onPress={onClear} isDisabled={loading}>
-                         <ButtonText color={theme['tokens']['colors']['tertiary']['500']}>{getTermFromDictionary(language, 'clear_api_error_log')}</ButtonText>
+               <Box className="px-4 pb-3">
+                    <Button variant="outline" colorScheme="tertiary" onPress={onClear} isDisabled={loading}>
+                        <ButtonText>{getTermFromDictionary(language, 'clear_api_error_log')}</ButtonText>
                     </Button>
                </Box>
           </Box>

@@ -361,6 +361,15 @@ export function isEmpty(value) {
 }
 
 /**
+ * Returns true when a value is exactly `undefined`.
+ * @param value
+ * @returns {boolean}
+ */
+export function isUndefined(value) {
+     return value === undefined;
+}
+
+/**
  * Returns the size of an array, string, array-like object, or plain object.
  * @param value
  * @returns {number}

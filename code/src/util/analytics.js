@@ -1,6 +1,11 @@
 import { createApiClient } from './api/apiFactory';
 import { GLOBALS } from './globals';
 
+/**
+ * Tracks app launches by sending a POST request to the server. This function is useful for analytics purposes, allowing the server to record when the app is launched. It uses a default timeout defined in GLOBALS and can accept an optional URL parameter to specify the API endpoint.
+ * @param url
+ * @returns {Promise<boolean>}
+ */
 export async function trackAppLaunches(url = null) {
      try {
           const client = createApiClient({
@@ -15,6 +20,11 @@ export async function trackAppLaunches(url = null) {
      }
 }
 
+/**
+ * Tracks app resumes by sending a POST request to the server. This function is useful for analytics purposes, allowing the server to record when the app is resumed from a background state. It uses a default timeout defined in GLOBALS and can accept an optional URL parameter to specify the API endpoint.
+ * @param url
+ * @returns {Promise<boolean>}
+ */
 export async function trackAppResume(url = null) {
      try {
           const client = createApiClient({
