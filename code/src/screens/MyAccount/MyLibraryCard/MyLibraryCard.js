@@ -14,6 +14,7 @@ import { HStack } from '@/components/ui/hstack';
 import { Image } from 'expo-image';
 import { ThemedModal as Modal, ThemedModalBackdrop as ModalBackdrop, ThemedModalBody as ModalBody, ThemedModalContent as ModalContent } from '@/src/components/themed/ThemedModal';
 import { ThemedText as Text } from '@/src/components/themed/ThemedText';
+import { ThemedMaterialCommunityIcons as MaterialCommunityIcons } from '@/src/components/themed/ThemedMaterialIcons';
 import { VStack } from '@/components/ui/vstack';
 import { PermissionsPrompt } from '@/src/components/PermissionsPrompt';
 import { useLibrary } from '@/src/hooks/useLibrarySystemData';
