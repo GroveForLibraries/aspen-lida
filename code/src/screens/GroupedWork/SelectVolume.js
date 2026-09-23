@@ -4,7 +4,6 @@ import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { getVolumes } from '../../util/api/item';
 import { loadingSpinner } from '../../components/loadingSpinner';
 import { loadError } from '../../components/loadError';
-import _ from 'lodash';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { ThemedFormControl as FormControl, ThemedFormControlLabelText as FormControlLabelText, ThemedFormControlLabel as FormControlLabel } from '../../components/themed/ThemedFormControls';
 import { ThemedMaterialIcons as MaterialIcons } from '../../components/themed/ThemedMaterialIcons';
@@ -26,6 +25,7 @@ export const SelectVolume = (props) => {
           queryFn: () => getVolumes(id, library.baseUrl),
           enabled: !!shouldLoad,
      });
+     const volumeOptions = Object.values(data ?? {});
 
      return (
           <>
@@ -74,7 +74,7 @@ export const SelectVolume = (props) => {
                                                   <SelectDragIndicatorWrapper>
                                                        <SelectDragIndicator />
                                                   </SelectDragIndicatorWrapper>
-                                                  {_.map(data, function (item, index, array) {
+                                                   {volumeOptions.map((item, index) => {
                                                        return <SelectItem label={item.label} value={item.volumeId} key={index} />;
                                                   })}
                                              </SelectContent>

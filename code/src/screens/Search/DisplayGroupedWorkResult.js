@@ -1,6 +1,6 @@
 import { useRoute } from '@react-navigation/native';
 import { Image } from 'expo-image';
-import _ from 'lodash';
+import { isArray, isEmpty, isObject, map } from '../../helpers/helpers';
 import React from 'react';
 import { getCleanTitle } from '../../helpers/item';
 import { navigate } from '../../helpers/RootNavigator';
@@ -50,7 +50,7 @@ export const DisplayGroupedWorkResult = (props) => {
           author = item.author_display;
      }
 
-     if (_.isEmpty(formats)) {
+     if (isEmpty(formats)) {
           if (item.format) {
                formats = item.format;
           }
@@ -68,7 +68,7 @@ export const DisplayGroupedWorkResult = (props) => {
      };
 
      function getFormat(n) {
-          if (_.isArray(n) || _.isObject(n)) {
+          if (isArray(n) || isObject(n)) {
                return (
                     <Badge key={n.key} colorScheme="secondary" variant="outline">
                          <BadgeText colorScheme="secondary" className="text-xs">
@@ -131,7 +131,7 @@ export const DisplayGroupedWorkResult = (props) => {
                               </Text>
                          ) : null}
                          <HStack space="xs" className="mt-4 flex-row flex-wrap">
-                              {_.map(formats, getFormat)}
+                              {map(formats, getFormat)}
                          </HStack>
                     </VStack>
                </HStack>

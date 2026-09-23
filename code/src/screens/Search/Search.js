@@ -1,11 +1,12 @@
 import { useNavigation } from '@react-navigation/native';
 import _ from 'lodash';
+import { Box, Button, ButtonText, Center, FlatList, FormControl, Input, InputField, Text } from '@gluestack-ui/themed';
 import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
-import { formatDiscoveryVersion } from '../../helpers/helpers';
+import { formatDiscoveryVersion, sortBy } from '../../helpers/helpers';
 import { getDefaultFacets } from '../../util/api/search';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 import { Box } from '@/components/ui/box';
@@ -26,7 +27,7 @@ export const SearchHome = () => {
      const language = useActiveLanguage();
      const library = useLibrary();
      const discoveryVersion = formatDiscoveryVersion(library.discoveryVersion) ?? '22.10.00';
-     const quickSearchNum = _.size(library.quickSearches);
+     const quickSearches = Array.isArray(library.quickSearches) ? library.quickSearches : Object.values(library.quickSearches ?? {});
 
      React.useLayoutEffect(() => {
           navigation.setOptions({
@@ -61,14 +62,14 @@ export const SearchHome = () => {
                               <InputField autoCapitalize="none" onChangeText={(term) => setSearchTerm(term)} placeholder={getTermFromDictionary(language, 'search')} clearButtonMode="always" onSubmitEditing={search} value={searchTerm} />
                          </Input>
                     </FormControl>
-                    {quickSearchNum > 0 ? (
+                    {quickSearches.length > 0 ? (
                          <Box>
                               <Center>
                                    <Text bold className="mt-2 mb-[2px]" size="xl">
                                         {getTermFromDictionary(language, 'quick_searches')}
                                    </Text>
                               </Center>
-                              <FlatList data={_.sortBy(library.quickSearches, ['weight', 'label'])} keyExtractor={(item, index) => index.toString()} renderItem={({ item }) => <QuickSearch data={item} />} />
+                               <FlatList data={sortBy(quickSearches, ['weight', 'label'])} keyExtractor={(item, index) => index.toString()} renderItem={({ item }) => <QuickSearch data={item} />} />
                          </Box>
                     ) : null}
                </Box>

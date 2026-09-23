@@ -3,9 +3,8 @@ import * as SecureStore from 'expo-secure-store';
 import React from 'react';
 import { Image } from 'expo-image';
 import { getTermFromDictionary, ensureTranslationsLibraryHydrated, setTranslationsLibrary } from '../../translations/TranslationService';
-import { buildThemeForLibrary, runExclusiveThemeInit, THEME_STALE_MS, useTheme } from '../../themes/theme';
+import { buildThemeForLibrary, useTheme, runExclusiveThemeInit } from '../../themes/theme';
 import {
-     isStoredThemeIdMatch,
      loadAllLanguageData,
      loadAllLibraryBranchData,
      loadAllLibrarySystemData,
@@ -14,9 +13,15 @@ import {
      loadLocation,
      loadThemeState,
      saveThemeState,
+     setCurrentUserId,
+     setCurrentLocationId,
+     setCurrentLibraryId,
+     findCachedUserIdForUsername,
+     backfillLegacyUserId,
+     backfillLegacyBrowseCategoryScope,
 } from '../../util/db';
-import { isPlainObject } from '../../helpers/helpers';
-import { GLOBALS, LIBRARY, isBrandedApp } from '../../util/globals';
+import { isPlainObject, parseStoredNumber } from '../../helpers/helpers';
+import { GLOBALS, LIBRARY } from '../../util/globals';
 import { logDebugMessage, logErrorMessage } from '../../util/logging';
 import { prehydrateLibrarySystemSnapshotCache } from '../../hooks/useLibrarySystemData';
 import { prehydrateLibraryBranchSnapshotCache, invalidateSelfCheckSnapshot } from '../../hooks/useLibraryBranchData';
@@ -76,13 +81,33 @@ function resolveSelfCheckEnabled(result = {}) {
  * @returns {Promise<{canBypassLoading: false|*, hasUsableUserCache: boolean, hasUsableLibraryBranchCache: boolean, hasUsableLibrarySystemCache: boolean, hasUsableLanguageCache: false|*, shouldRefreshUserInBackground: boolean, shouldRefreshLibraryBranchInBackground: boolean, shouldRefreshLibrarySystemInBackground, shouldRefreshLanguageInBackground: *|boolean}>}
  */
 export async function evaluateStartupCache() {
-     const [cachedUserState, cachedLibraryBranchState, cachedLibrarySystemState, cachedLanguageState, loginUserKey] = await Promise.all([
+     // Resolve the current user/location/library identity before loading any cache.
+     // locationId/libraryId are already persisted as numbers; the logged-in
+     // user is only known by username at this point.
+     const [_translationsHydrated] = await Promise.all([
+          ensureTranslationsLibraryHydrated(),
+     ]);
+
+     // Resolve currentUserId/currentLocationId from persisted storage before loading
+     // any cache below - loadAllUserData()/loadAllLibraryBranchData() return null
+     // if these aren't set yet, since SQLite rows are keyed by them.
+     const loginUserKey = await SecureStore.getItemAsync('userKey');
+     const resolvedUserId = await findCachedUserIdForUsername(loginUserKey ?? '');
+     if (resolvedUserId != null) {
+          setCurrentUserId(resolvedUserId);
+          await backfillLegacyUserId(resolvedUserId);
+     }
+
+     const persistedLocationId = parseStoredNumber(await SecureStore.getItemAsync('locationId'));
+     if (persistedLocationId != null) {
+          setCurrentLocationId(persistedLocationId);
+     }
+
+     const [cachedUserState, cachedLibraryBranchState, cachedLibrarySystemState, cachedLanguageState] = await Promise.all([
           loadAllUserData(),
           loadAllLibraryBranchData(),
           loadAllLibrarySystemData(),
           loadAllLanguageData(),
-          ensureTranslationsLibraryHydrated(),
-          SecureStore.getItemAsync('userKey'),
      ]);
 
      const cachedUser = cachedUserState?.user ?? null;
@@ -107,15 +132,11 @@ export async function evaluateStartupCache() {
           setTranslationsLibrary(cachedLanguageDictionary);
      }
 
-     const normalizedLoginKey = String(loginUserKey ?? '').toLowerCase();
-     const normalizedCatUsername = String(cachedUser?.cat_username ?? '').toLowerCase();
-     const normalizedBarcode = String(cachedUser?.ils_barcode ?? '').toLowerCase();
-     const matchesLoggedInUser = !normalizedLoginKey || normalizedLoginKey === normalizedCatUsername || normalizedLoginKey === normalizedBarcode;
-
-     const hasUsableUserCache = !!cachedUser && matchesLoggedInUser;
+     const hasUsableUserCache = !!cachedUser;
      const hasCachedLocation =
           !!cachedLibraryBranchState?.location &&
           !!cachedLibraryBranchState.location.locationId;
+     const hasCachedLibrary = !!cachedLibrarySystemState?.library && !!cachedLibrarySystemState.library.libraryId;
      const hasCachedSelfCheckSettings =
           isPlainObject(cachedLibraryBranchState?.selfCheckSettings) &&
           Object.keys(cachedLibraryBranchState.selfCheckSettings).length > 0;
@@ -123,30 +144,46 @@ export async function evaluateStartupCache() {
           !!cachedLibraryBranchState &&
           (typeof cachedLibraryBranchState.enableSelfCheck === 'boolean' || hasCachedSelfCheckSettings);
      const hasUsableLibraryBranchCache = !!cachedLibraryBranchState && hasCachedLocation;
-     const hasUsableLibrarySystemCache = !!cachedLibrarySystemState && !!cachedLibrarySystemState.library;
+     const hasUsableLibrarySystemCache = !!cachedLibrarySystemState && hasCachedLibrary;
      const hasUsableLanguageCache =
           cachedLanguageList.length > 0 &&
           isPlainObject(cachedLanguageDictionary);
 
      const branchUpdatedAt = cachedLibraryBranchState?.updatedAt ?? cachedLibraryBranchState?.updated_at ?? 0;
+     const libraryUpdatedAt = cachedLibrarySystemState?.updatedAt ?? cachedLibrarySystemState?.updated_at ?? 0;
      const userCacheStale = hasUsableUserCache && isCacheStale(cachedUserState?.updatedAt, USER_DATA_STALE_MS);
      const libraryBranchCacheStale = hasUsableLibraryBranchCache && isCacheStale(branchUpdatedAt, LIBRARY_BRANCH_DATA_STALE_MS);
-     const librarySystemMetadataStale = hasUsableLibrarySystemCache && isCacheStale(cachedLibrarySystemState?.updatedAt, LIBRARY_SYSTEM_METADATA_STALE_MS);
-     const librarySystemMenuStale = hasUsableLibrarySystemCache && isCacheStale(cachedLibrarySystemState?.updatedAt, LIBRARY_SYSTEM_MENU_STALE_MS);
-     const languageCacheStale = hasUsableLanguageCache && isCacheStale(languageUpdatedAt, LANGUAGE_DATA_STALE_MS);
+     const librarySystemMetadataStale = hasUsableLibrarySystemCache && isCacheStale(libraryUpdatedAt, LIBRARY_SYSTEM_METADATA_STALE_MS);
+     const librarySystemMenuStale = hasUsableLibrarySystemCache && isCacheStale(libraryUpdatedAt, LIBRARY_SYSTEM_MENU_STALE_MS);
+     const languageCacheStale = !hasUsableLanguageCache || isCacheStale(languageUpdatedAt, LANGUAGE_DATA_STALE_MS);
+
+     if (hasUsableUserCache) {
+          setCurrentUserId(cachedUser.id);
+          await backfillLegacyUserId(cachedUser.id);
+     }
+
+     if (hasUsableLibrarySystemCache) {
+          setCurrentLibraryId(cachedLibrarySystemState.library.libraryId);
+     }
+
+     if (hasUsableLibraryBranchCache) {
+          setCurrentLocationId(cachedLibraryBranchState.location.locationId);
+          if (cachedLibraryBranchState.location.locationId != null && cachedUser?.id != null) {
+               await backfillLegacyBrowseCategoryScope(cachedUser.id, cachedLibraryBranchState.location.locationId);
+          }
+     }
 
      const canBypassLoading =
           hasUsableUserCache &&
           hasUsableLibraryBranchCache &&
-          hasUsableLibrarySystemCache &&
-          hasUsableLanguageCache;
+          hasUsableLibrarySystemCache;
      logDebugMessage("Can bypass loading? " + canBypassLoading);
 
       try {
            const persistedLibraryUrl = await loadLibraryUrl();
            const libraryUrl = LIBRARY.url || persistedLibraryUrl;
 
-           if (libraryUrl && cachedLibraryBranchState?.location?.locationId) {
+           if (libraryUrl && cachedLibraryBranchState?.location?.locationId && cachedLibrarySystemState?.library?.libraryId) {
                 const configuredLocationId = await SecureStore.getItemAsync('locationId');
                 const selfCheckLocationId = configuredLocationId ?? cachedLibraryBranchState.location.locationId;
 
@@ -296,51 +333,33 @@ export const SplashScreen = ({ shouldInitializeTheme = false, forceRefreshTheme 
                          logDebugMessage(`Splash theme init: loaded state mode=${mode} hasColors=${Boolean(currentThemeState?.themeColors?.primary && currentThemeState?.themeColors?.secondary && currentThemeState?.themeColors?.tertiary)}`);
                          await updateColorMode(mode);
 
-                         const hasStoredTheme = Boolean(currentThemeState?.themeColors?.primary && currentThemeState?.themeColors?.secondary && currentThemeState?.themeColors?.tertiary);
-                         // Branded apps pick their themeId from a per-location catalog, not the static
-                         // app-config value, so there's no single expected id to compare against - instead,
-                         // the stored theme only counts as "matching" if it was fetched for the SAME location
-                         // that's currently active, so switching locations (e.g. at login) always refetches.
-                         const hasMatchingThemeId = isBrandedApp()
-                              ? currentThemeState?.themeId != null &&
-                                (currentLocationId == null || currentThemeState?.locationId === currentLocationId)
-                              : await isStoredThemeIdMatch(Constants.expoConfig.extra.themeId ?? 1);
-                         const themeAgeMs = currentThemeState?.updatedAt ? Date.now() - currentThemeState.updatedAt : Number.POSITIVE_INFINITY;
-                         const isThemeStale = themeAgeMs > THEME_STALE_MS;
-                         logDebugMessage(`Splash theme init: validation hasStoredTheme=${hasStoredTheme} hasMatchingThemeId=${hasMatchingThemeId} expectedThemeId=${Constants.expoConfig.extra.themeId ?? 1}`);
+                    const persistedLibraryUrl = await loadLibraryUrl();
+                    const themeUrl = LIBRARY.url || persistedLibraryUrl || GLOBALS.url || Constants.expoConfig.extra.apiUrl;
 
-                         const shouldFetchFromApi = forceRefreshTheme || !hasStoredTheme || !hasMatchingThemeId || isThemeStale;
-                         logDebugMessage(`Splash theme init: shouldFetchFromApi=${shouldFetchFromApi} isThemeStale=${isThemeStale} themeAgeMs=${themeAgeMs}`);
-
-                         if (!shouldFetchFromApi && hasStoredTheme && hasMatchingThemeId) {
-                              logDebugMessage('Splash theme init: applying cached theme from SQLite');
+                    if (!themeUrl) {
+                         logDebugMessage('Splash theme init: no URL available yet, applying cached theme if present and leaving defaults otherwise');
+                         if (currentThemeState?.themeColors?.primary && currentThemeState?.themeColors?.secondary && currentThemeState?.themeColors?.tertiary) {
                               await updateTheme({
                                    tokens: {
                                         colors: currentThemeState.themeColors,
                                    },
-                               });
-                         } else {
-                              const persistedLibraryUrl = await loadLibraryUrl();
-                              const themeUrl = LIBRARY.url || persistedLibraryUrl || GLOBALS.url || Constants.expoConfig.extra.apiUrl;
-                              if (!themeUrl) {
-                                   logDebugMessage('Splash theme init: no URL available yet, skipping fetch and leaving defaults until library context is ready');
-                                   return;
-                              }
-
-                              logDebugMessage(`Splash theme init: fetching theme from API url=${themeUrl}`);
-                              const builtTheme = await buildThemeForLibrary(themeUrl, currentLocationId);
-                              await saveThemeState({
-                                   themeId: builtTheme.themeId,
-                                   locationId: builtTheme.locationId,
-                                   colorMode: mode,
-                                   textColor: mode === 'dark' ? 'textLight50' : 'textLight950',
-                                   themeColors: builtTheme.themeColors,
-                                   header: builtTheme.header,
-                                });
-                              logDebugMessage(`Splash theme init: saved fetched theme themeId=${builtTheme.themeId}`);
-                              await updateTheme(builtTheme.theme, builtTheme.themeId, builtTheme.locationId, builtTheme.header);
+                              }, currentThemeState.themeId, currentThemeState.locationId, currentThemeState.header);
                          }
+                         return;
+                    }
+
+                    logDebugMessage(`Splash theme init: fetching theme from API url=${themeUrl} forceRefresh=${forceRefreshTheme}`);
+                    const builtTheme = await buildThemeForLibrary(themeUrl, currentLocationId);
+                    await saveThemeState({
+                         themeId: builtTheme.themeId,
+                         locationId: builtTheme.locationId,
+                         colorMode: mode,
+                         textColor: mode === 'dark' ? 'textLight50' : 'textLight950',
+                         themeColors: builtTheme.themeColors,
+                         header: builtTheme.header,
                     });
+                    logDebugMessage(`Splash theme init: saved fetched theme themeId=${builtTheme.themeId}`);
+                    await updateTheme(builtTheme.theme, builtTheme.themeId, builtTheme.locationId, builtTheme.header);
                     logDebugMessage('Splash theme init: complete');
                } catch (error) {
                     logErrorMessage('Splash theme initialization failed');

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import _ from 'lodash';
+import { filter, isEmpty, isNumber, isObject } from '../../helpers/helpers';
 import React, { useState } from 'react';
 import { loadError } from '../../components/loadError';
 import { loadingSpinner } from '../../components/loadingSpinner';
@@ -39,6 +39,9 @@ const SelectVolumeHold = (props) => {
      const updateUserProfile = useUpdateUserProfile();
      const library = useLibrary();
      const language = useActiveLanguage();
+     const availableLocations = Array.isArray(locations) ? locations : [];
+     const availableAccounts = Object.values(accounts ?? {});
+     const volumeOptions = Object.values(data ?? {});
 
      const isPlacingHold = action.includes('hold');
 
@@ -47,7 +50,7 @@ const SelectVolumeHold = (props) => {
      if (volumeInfo.majorityOfItemsHaveVolumes) {
           typeOfHold = 'volume';
      }
-     if (_.isEmpty(volumeInfo.hasItemsWithoutVolumes) || !volumeInfo.hasItemsWithoutVolumes === false) {
+     if (isEmpty(volumeInfo.hasItemsWithoutVolumes) || !volumeInfo.hasItemsWithoutVolumes === false) {
           typeOfHold = 'volume';
           promptForHoldType = false;
      }
@@ -63,22 +66,22 @@ const SelectVolumeHold = (props) => {
      const [activeAccount, setActiveAccount] = React.useState(user.id);
 
      let userPickupLocationId = user.pickupLocationId ?? user.homeLocationId;
-     if (_.isNumber(user.pickupLocationId)) {
-          userPickupLocationId = _.toString(user.pickupLocationId);
+     if (isNumber(user.pickupLocationId)) {
+          userPickupLocationId = String(user.pickupLocationId);
      }
 
      let pickupLocation = '';
-     if (_.size(locations) > 1) {
-          const userPickupLocation = _.filter(locations, { locationId: userPickupLocationId });
-          if (!_.isUndefined(userPickupLocation && !_.isEmpty(userPickupLocation))) {
+     if (availableLocations.length > 1) {
+          const userPickupLocation = filter(availableLocations, { locationId: userPickupLocationId });
+          if (userPickupLocation.length > 0) {
                pickupLocation = userPickupLocation[0];
-               if (_.isObject(pickupLocation)) {
+               if (isObject(pickupLocation)) {
                     pickupLocation = pickupLocation.code;
                }
           }
      } else {
-          pickupLocation = locations[0];
-          if (_.isObject(pickupLocation)) {
+          pickupLocation = availableLocations[0];
+          if (isObject(pickupLocation)) {
                pickupLocation = pickupLocation.code;
           }
      }
@@ -148,7 +151,7 @@ const SelectVolumeHold = (props) => {
                                                                       <SelectDragIndicator />
                                                                  </SelectDragIndicatorWrapper>
                                                                  <SelectScrollView>
-                                                                      {_.map(data, function (item, index, array) {
+                                                                      {volumeOptions.map((item, index) => {
                                                                            return <SelectItem label={item.label} value={item.volumeId} key={index} />;
                                                                       })}
                                                                  </SelectScrollView>
@@ -157,7 +160,7 @@ const SelectVolumeHold = (props) => {
                                                   </Select>
                                              </FormControl>
                                         ) : null}
-                                        {_.size(locations) > 1 ? (
+                                        {availableLocations.length > 1 ? (
                                              <FormControl className="mb-4">
                                                   <FormControlLabel>
                                                        <FormControlLabelText>{getTermFromDictionary(language, 'select_pickup_location')}</FormControlLabelText>
@@ -175,7 +178,7 @@ const SelectVolumeHold = (props) => {
                                                                       <SelectDragIndicator />
                                                                  </SelectDragIndicatorWrapper>
                                                                  <SelectScrollView>
-                                                                      {locations.map((location, index) => {
+                                                                      {availableLocations.map((location, index) => {
                                                                            return <SelectItem label={location.name} value={location.code} key={index} />;
                                                                       })}
                                                                  </SelectScrollView>
@@ -184,7 +187,7 @@ const SelectVolumeHold = (props) => {
                                                   </Select>
                                              </FormControl>
                                         ) : null}
-                                        {_.size(accounts) > 0 ? (
+                                        {availableAccounts.length > 0 ? (
                                              <FormControl className="mb-4">
                                                   <FormControlLabel>
                                                        <FormControlLabelText>{isPlacingHold ? getTermFromDictionary(language, 'linked_place_hold_for_account') : getTermFromDictionary(language, 'linked_checkout_to_account')}</FormControlLabelText>
@@ -203,7 +206,7 @@ const SelectVolumeHold = (props) => {
                                                                  </SelectDragIndicatorWrapper>
                                                                  <SelectScrollView>
                                                                       <SelectItem label={user.displayName} value={user.id} />
-                                                                      {accounts.map((item, index) => {
+                                                                      {availableAccounts.map((item, index) => {
                                                                            return <SelectItem label={item.displayName} value={item.id} key={index} />;
                                                                       })}
                                                                  </SelectScrollView>

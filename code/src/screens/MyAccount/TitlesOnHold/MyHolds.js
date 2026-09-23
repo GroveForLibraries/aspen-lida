@@ -1,6 +1,6 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useIsFetching, useQuery, useQueryClient } from '@tanstack/react-query';
-import _ from 'lodash';
+import { find, isArray, isEmpty, isObject, set, size } from '../../../helpers/helpers';
 import React from 'react';
 import { SectionList } from 'react-native';
 import { ThemedAlert as Alert, ThemedAlertIcon as AlertIcon, ThemedAlertText as AlertText } from '@/src/components/themed/ThemedAlert';
@@ -45,8 +45,6 @@ export const MyHolds = () => {
      const updateSortSettings = useUpdateSortSettings();
      const updateUserHoldPendingSortMethod = (v) => updateSortSettings({ userHoldPendingSortMethod: v });
      const updateUserHoldReadySortMethod = (v) => updateSortSettings({ userHoldReadySortMethod: v });
-     const { data: locations } = useLocations();
-     const updatePickupLocations = useUpdateLocations();
      const library = useLibrary();
      const { holds, updateHolds } = React.useContext(HoldsContext);
      const language = useActiveLanguage();
@@ -129,7 +127,7 @@ export const MyHolds = () => {
      const toggleHoldSource = async (value) => {
           setHoldSource(value);
           //setLoading(true);
-          if (!_.isNull(value)) {
+          if (value !== null) {
                if (value === 'ils') {
                     navigation.setOptions({ title: getTermFromDictionary(language, 'titles_on_hold_for_ils') });
                } else if (value === 'overdrive') {
@@ -152,70 +150,61 @@ export const MyHolds = () => {
      useFocusEffect(
           React.useCallback(() => {
                const update = async () => {
-                    await getPickupLocations(library.baseUrl).then((result) => {
-                         if(result.ok) {
-                              const pickupLocations = formatPickupLocations(result.data.result);
-                              if (locations !== pickupLocations.locations) {
-                                   updatePickupLocations(pickupLocations.locations);
-                              }
-                         }
-                    });
-
                     let tmp = sortBy;
                     let term;
 
                     term = getTermFromDictionary(language, 'sort_by_title');
 
                     if (!term.includes('%1%')) {
-                         tmp = _.set(tmp, 'title', term);
+                         tmp = set(tmp, 'title', term);
                          setSortBy(tmp);
                     }
 
                     term = getTermFromDictionary(language, 'sort_by_author');
                     if (!term.includes('%1%')) {
-                         tmp = _.set(tmp, 'author', term);
+                         tmp = set(tmp, 'author', term);
                          setSortBy(tmp);
                     }
 
                     term = getTermFromDictionary(language, 'sort_by_format');
                     if (!term.includes('%1%')) {
-                         tmp = _.set(tmp, 'format', term);
+                         tmp = set(tmp, 'format', term);
                          setSortBy(tmp);
                     }
 
                     term = getTermFromDictionary(language, 'sort_by_status');
                     if (!term.includes('%1%')) {
-                         tmp = _.set(tmp, 'status', term);
+                         tmp = set(tmp, 'status', term);
                          setSortBy(tmp);
                     }
 
                     term = getTermFromDictionary(language, 'sort_by_date_placed');
                     if (!term.includes('%1%')) {
-                         tmp = _.set(tmp, 'date_placed', term);
+                         tmp = set(tmp, 'date_placed', term);
                          setSortBy(tmp);
                     }
 
                     term = getTermFromDictionary(language, 'sort_by_position');
                     if (!term.includes('%1%')) {
-                         tmp = _.set(tmp, 'position', term);
+                         tmp = set(tmp, 'position', term);
                          setSortBy(tmp);
                     }
 
                     term = getTermFromDictionary(language, 'sort_by_pickup_location');
                     if (!term.includes('%1%')) {
-                         tmp = _.set(tmp, 'pickup_location', term);
+                         tmp = set(tmp, 'pickup_location', term);
                          setSortBy(tmp);
                     }
 
                     term = getTermFromDictionary(language, 'sort_by_library_account');
                     if (!term.includes('%1%')) {
-                         tmp = _.set(tmp, 'library_account', term);
+                         tmp = set(tmp, 'library_account', term);
                          setSortBy(tmp);
                     }
 
                     term = getTermFromDictionary(language, 'sort_by_expiration');
                     if (!term.includes('%1%')) {
-                         tmp = _.set(tmp, 'expiration', term);
+                         tmp = set(tmp, 'expiration', term);
                          setSortBy(tmp);
                     }
 
@@ -617,16 +606,16 @@ export const MyHolds = () => {
      };
 
      const displaySectionFooter = (title) => {
-          const sectionData = _.find(filteredSections, { title: title });
+          const sectionData = find(filteredSections, { title: title });
           const sectionItems = sectionData?.data ?? [];
           if (title === 'Pending') {
-               if (_.isEmpty(sectionItems)) {
+               if (isEmpty(sectionItems)) {
                     return noHolds(title);
                } else {
                     return <Box className="mb-75" />;
                }
           } else if (title === 'Ready') {
-               if (_.isEmpty(sectionItems)) {
+               if (isEmpty(sectionItems)) {
                     return noHolds(title);
                }
           }
@@ -634,8 +623,8 @@ export const MyHolds = () => {
      };
 
      const showSystemMessage = () => {
-          if (_.isArray(systemMessages)) {
-               return systemMessages.map((obj, index) => {
+          if (isArray(systemMessages)) {
+               return systemMessages.map((obj, index, collection) => {
                     if (obj.showOn === '0' || obj.showOn === '1' || obj.showOn === '3') {
                          return <DisplaySystemMessage key={`system-msg-${obj.id || index}`} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
                     }
@@ -644,7 +633,7 @@ export const MyHolds = () => {
           return null;
      };
 
-     const showLoading = isLoading || (_.isEmpty(holds) && isFetchingHolds);
+     const showLoading = isLoading || (isEmpty(holds) && isFetchingHolds);
 
      return (
           <>
@@ -663,7 +652,7 @@ export const MyHolds = () => {
                                    _text: {
                                         textAlign: 'left',
                                    },
-                                   paddingBottom: _.size(systemMessages) >= 2 ? 300 : 30,
+                                   paddingBottom: size(systemMessages) >= 2 ? 300 : 30,
                               }}
                               name="Holds"
                               value={values}
@@ -671,7 +660,7 @@ export const MyHolds = () => {
                               onChange={(newValues) => {
                                    saveGroupValue(newValues);
                               }}>
-                              {_.isObject(holds) ? (
+                              {isObject(holds) ? (
                                    <SectionList
                                         className="w-full"
                                         sections={filteredSections}

@@ -1,11 +1,11 @@
-import moment from 'moment';
+import { getCurrentDate } from '../helpers/helpers';
 
 /**
  * Has the last updated time as well as an array per language of all translations
- * @type {{lastUpdated: *|moment.Moment}}
+ * @type {{lastUpdated: Date}}
  */
 export let translationsLibrary = {
-     lastUpdated: moment(),
+     lastUpdated: getCurrentDate(),
 };
 
 /**

@@ -1,5 +1,5 @@
 import { ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/ThemedMaterialIcons';
-import _ from 'lodash';
+import { map } from '../../../helpers/helpers';
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { ThemedScrollView as ScrollView } from '@/src/components/themed/ThemedScrollView';
@@ -58,7 +58,7 @@ export const SearchSourceScreen = () => {
           <ScreenContainer className="pt-5">
                <ScrollView>
                     <Box>
-                         {_.map(sources, function (source, index, array) {
+                         {map(sources, function (source, index, array) {
                               if (index === 'events' || index === 'local') {
                                    return (
                                        <Pressable key={index} className="p-[2px] py-2" onPress={() => updateSource(index)}>

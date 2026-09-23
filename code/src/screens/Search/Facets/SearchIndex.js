@@ -1,5 +1,5 @@
+import { map } from '../../../helpers/helpers';
 import { ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/ThemedMaterialIcons';
-import _ from 'lodash';
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { ThemedScrollView as ScrollView } from '@/src/components/themed/ThemedScrollView';
@@ -38,7 +38,7 @@ export const SearchIndexScreen = () => {
           <ScreenContainer className="pt-5">
                <ScrollView>
                     <Box>
-                         {_.map(indexes, function (obj, index, array) {
+                         {map(indexes, function (obj, index, array) {
                               return (
                                    <Pressable key={index} className="p-[2px] py-2" onPress={() => updateIndex(index)}>
                                         {currentIndex === index ? (

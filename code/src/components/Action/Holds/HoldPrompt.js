@@ -1,5 +1,4 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import _ from 'lodash';
 import React from 'react';
 import { useWindowDimensions } from 'react-native';
 import RenderHtml from 'react-native-render-html';
@@ -47,6 +46,8 @@ export const HoldPrompt = (props) => {
      const updateUserProfile = useUpdateUserProfile();
      const library = useLibrary();
      const { neutralPairs, neutrals, brand, colorMode, textColor } = useTheme();
+     const safeAccounts = Array.isArray(accounts) ? accounts : [];
+     const safeLocations = Array.isArray(locations) ? locations : [];
 
      const {
           language,
@@ -98,9 +99,9 @@ export const HoldPrompt = (props) => {
      const holdNotificationInfo = user.holdNotificationInfo ?? [];
      const preferences = holdNotificationInfo?.preferences?.opac_hold_notify?.value;
 
-     const defaultEmailNotification = promptForHoldNotifications && preferences ? _.includes(preferences, 'email') : false;
-     const defaultPhoneNotification = promptForHoldNotifications && preferences ? _.includes(preferences, 'phone') : false;
-     const defaultSMSNotification = promptForHoldNotifications && preferences ? _.includes(preferences, 'sms') : false;
+     const defaultEmailNotification = promptForHoldNotifications && preferences ? preferences.includes('email') : false;
+     const defaultPhoneNotification = promptForHoldNotifications && preferences ? preferences.includes('phone') : false;
+     const defaultSMSNotification = promptForHoldNotifications && preferences ? preferences.includes('sms') : false;
 
      // Notification State Hooks
      const [emailNotification, setEmailNotification] = React.useState(defaultEmailNotification);
@@ -118,22 +119,22 @@ export const HoldPrompt = (props) => {
 
      // Location Setup & Location State Hooks
      let userPickupLocationId = user.pickupLocationId ?? user.homeLocationId;
-     if (_.isNumber(userPickupLocationId)) {
-          userPickupLocationId = _.toString(userPickupLocationId);
+     if (isNumber(userPickupLocationId)) {
+          userPickupLocationId = String(userPickupLocationId);
      }
 
      let defaultPickupLocation = '';
-     if (_.size(locations) > 1 || !preferredPickupLocationIsValid) {
-          const userPickupLocation = _.filter(locations, { locationId: userPickupLocationId });
-          if (!_.isUndefined(userPickupLocation) && !_.isEmpty(userPickupLocation)) {
+     if (safeLocations.length > 1 || !preferredPickupLocationIsValid) {
+          const userPickupLocation = filter(safeLocations, { locationId: userPickupLocationId });
+          if (userPickupLocation.length > 0) {
                defaultPickupLocation = userPickupLocation[0];
-               if (_.isObject(defaultPickupLocation)) {
+               if (isObject(defaultPickupLocation)) {
                     defaultPickupLocation = defaultPickupLocation.code;
                }
           }
      } else {
-          defaultPickupLocation = locations[0];
-          if (_.isObject(defaultPickupLocation)) {
+          defaultPickupLocation = safeLocations[0];
+          if (isObject(defaultPickupLocation)) {
                defaultPickupLocation = defaultPickupLocation.code;
           }
      }
@@ -147,7 +148,7 @@ export const HoldPrompt = (props) => {
      const { status, data, error, isFetching } = useQuery({
           queryKey: ['copies', id, variationId, language, library.baseUrl],
           queryFn: () => getCopies(id, language, variationId, library.baseUrl),
-          enabled: (holdTypeForFormat === 'item' || holdTypeForFormat === 'either') && _.isEmpty(volumeId) });
+          enabled: (holdTypeForFormat === 'item' || holdTypeForFormat === 'either') && isEmpty(volumeId) });
 
      // Effect Hooks
      React.useEffect(() => {
@@ -175,7 +176,7 @@ export const HoldPrompt = (props) => {
      let promptForHoldType = false;
      let derivedTypeOfHold = typeOfHold;
 
-     if (!_.isEmpty(volumeId)){
+     if (!isEmpty(volumeId)){
           logDebugMessage("Placing a hold on a single volume");
           derivedTypeOfHold = 'volume';
           promptForHoldType = false;
@@ -187,7 +188,7 @@ export const HoldPrompt = (props) => {
                derivedTypeOfHold = 'volume';
                promptForHoldType = true;
           }
-          if (_.isEmpty(volumeInfo.hasItemsWithoutVolumes)) {
+          if (isEmpty(volumeInfo.hasItemsWithoutVolumes)) {
                derivedTypeOfHold = 'volume';
                promptForHoldType = false;
           }
@@ -233,7 +234,7 @@ export const HoldPrompt = (props) => {
      const updateActiveAccount = (newId) => {
           setActiveAccount(newId);
           if (newId !== user.id) {
-               let newAccount = _.filter(accounts, ['id', newId]);
+                let newAccount = filter(safeAccounts, ['id', newId]);
                if (newAccount[0]) {
                     newAccount = newAccount[0];
                     if (newAccount) {
@@ -392,7 +393,7 @@ export const HoldPrompt = (props) => {
                                                                  confirmationId: result.confirmationId ?? null,
                                                                  recordId: id ?? null,
                                                             };
-                                                            tmp = _.merge(obj, tmp);
+                                                            tmp = merge(obj, tmp);
                                                             setHoldConfirmationResponse(tmp);
                                                        }
 
@@ -407,7 +408,7 @@ export const HoldPrompt = (props) => {
                                                                  items: result.items ?? [],
                                                             };
 
-                                                            tmp = _.merge(obj, tmp);
+                                                            tmp = merge(obj, tmp);
                                                             setHoldSelectItemResponse(tmp);
                                                        }
 
@@ -492,7 +493,7 @@ export const HoldPrompt = (props) => {
                                                             <SelectDragIndicator />
                                                        </SelectDragIndicatorWrapper>
                                                        <SelectScrollView>
-                                                            {locations.map((availableLocations, index) => {
+                                                            {safeLocations.map((availableLocations, index) => {
                                                                  if (availableLocations.code === location) {
                                                                     return <SelectItem label={availableLocations.name} value={availableLocations.code} key={index} style={{ backgroundColor: brand.tertiary[300] }} textStyle={{ color: brand.tertiary['500-text'] }} />;
                                                                  }
@@ -520,7 +521,7 @@ export const HoldPrompt = (props) => {
                                         </Checkbox>
                                    </FormControl>
                               ) : null}
-                              {_.isArray(accounts) && _.size(accounts) > 0 ? (
+                              {safeAccounts.length > 0 ? (
                                    <FormControl>
                                         <FormControlLabel>
                                              <FormControlLabelText>{isPlacingHold ? getTermFromDictionary(language, 'linked_place_hold_for_account') : getTermFromDictionary(language, 'linked_checkout_to_account')}</FormControlLabelText>
@@ -532,7 +533,7 @@ export const HoldPrompt = (props) => {
                                                             if (activeAccount === user.id) {
                                                                  return user.displayName;
                                                             }
-                                                            const found = accounts.find((item) => activeAccount === item.id);
+                                                             const found = safeAccounts.find((item) => activeAccount === item.id);
                                                             return found ? found.displayName : '';
                                                        })()}
                                                        placeholder={getTermFromDictionary(language, 'select_an_account')}
@@ -611,7 +612,7 @@ export const HoldPrompt = (props) => {
                                                                       confirmationId: result.confirmationId ?? null,
                                                                       recordId: id ?? null,
                                                                  };
-                                                                 tmp = _.merge(obj, tmp);
+                                                                 tmp = merge(obj, tmp);
                                                                  setHoldConfirmationResponse(tmp);
                                                             }
 
@@ -626,7 +627,7 @@ export const HoldPrompt = (props) => {
                                                                       items: result.items ?? [],
                                                                  };
 
-                                                                 tmp = _.merge(obj, tmp);
+                                                                 tmp = merge(obj, tmp);
                                                                  setHoldSelectItemResponse(tmp);
                                                             }
 

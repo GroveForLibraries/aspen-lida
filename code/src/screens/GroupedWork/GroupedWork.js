@@ -1,8 +1,8 @@
 import { ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/ThemedMaterialIcons';
 import { useRoute } from '@react-navigation/native';
-import { useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
-import _ from 'lodash';
+
 import React from 'react';
 import {loadError} from '../../components/loadError';
 import { LoadingSpinner } from '../../components/loadingSpinner';
@@ -12,11 +12,11 @@ import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useUserState, useCards, useSublocations, useUpdateAccounts, useUpdateCards, useUpdateLocations, useUpdateSublocations, useUpdatePickupLocationPrefs } from '../../hooks/useUserData';
 import { startSearch } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
-import { getFirstRecord, getVariations } from '../../util/api/item';
+import { getVariations } from '../../util/api/item';
 import { getLinkedAccounts, passUserToDiscovery } from '../../util/api/user';
 import { formatLinkedAccounts } from '../../util/api/userHelper';
 import { getGroupedWork } from '../../util/api/work';
-import { decodeHTML } from '../../helpers/helpers';
+import { decodeHTML, isEmpty } from '../../helpers/helpers';
 import { getPickupLocations, getPickupSublocations } from '../../util/api/user';
 import { formatPickupLocations } from '../../util/api/userHelper';
 import AddToList from '../Search/AddToList';
@@ -58,12 +58,13 @@ export const GroupedWorkScreen = () => {
      const userLanguage = useActiveLanguage();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
      const { neutrals } = useTheme();
+     const safeSystemMessages = Array.isArray(systemMessages) ? systemMessages : [];
 
      const { status, data, error, isFetching } = useQuery(['groupedWork', id, userLanguage, library.baseUrl], () => getGroupedWork(route.params.id, userLanguage, library.baseUrl));
 
      React.useEffect(() => {
           let isSubscribed = true;
-          if (!_.isUndefined(data) && !_.isEmpty(data)) {
+          if (data !== undefined && !isEmpty(data)) {
                const update = async () => {
                     if (isSubscribed) {
                          updateGroupedWork(data);
@@ -105,10 +106,10 @@ export const GroupedWorkScreen = () => {
      }, [data]);
 
      const showSystemMessage = () => {
-          if (_.isArray(systemMessages)) {
-              return systemMessages.map((obj, index) => {
+          if (safeSystemMessages.length > 0) {
+               return safeSystemMessages.map((obj, index, collection) => {
                     if (obj.showOn === '0') {
-                         return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
+                         return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={safeSystemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
                     }
                     return null;
                });
@@ -126,7 +127,7 @@ export const GroupedWorkScreen = () => {
                ) : (
                     <ScrollView>
                          <Box style={{ height: 150, width: '100%', backgroundColor: neutrals.canvas, zIndex: -1, position: 'absolute', left: 0, top: 0 }} />
-                         {_.size(systemMessages) > 0 ? <Box className="p-2">{showSystemMessage()}</Box> : null}
+                         {safeSystemMessages.length > 0 ? <Box className="p-2">{showSystemMessage()}</Box> : null}
                          <DisplayGroupedWork data={data.results} initialFormat={data.format} updateFormat={data.format} />
                     </ScrollView>
                )}
@@ -148,23 +149,14 @@ const DisplayGroupedWork = (payload) => {
      const library = useLibrary();
      const language = useActiveLanguage();
 
-     const formats = Object.keys(groupedWork.formats);
+     const formats = Object.keys(groupedWork.formats ?? {});
+     const firstFormat = formats[0];
 
-     useQueries({
-          queries: formats.map((format) => {
-               return {
-                    queryKey: ['recordId', groupedWork.id, format, language, library.baseUrl],
-                    queryFn: () => getFirstRecord(id, format, language, library.baseUrl, groupedWork.formats[format]) };
-          }) });
-
-     useQueries({
-          queries: formats.map((format) => {
-               return {
-                    queryKey: ['variation', groupedWork.id, format, language, library.baseUrl],
-                    queryFn: () => getVariations(id, format, language, library.baseUrl, groupedWork.formats[format]) };
-          }) });
-
-     const key = 'large_' + groupedWork.id;
+     useQuery({
+          queryKey: ['variation', id, firstFormat, language, library.baseUrl],
+          queryFn: () => getVariations(id, firstFormat, language, library.baseUrl, groupedWork.formats[firstFormat]),
+          enabled: !!id && !!firstFormat && !!groupedWork?.formats?.[firstFormat]
+     });
 
      return (
           <Box className="py-[10px] w-full">
@@ -317,13 +309,14 @@ const Formats = ({ formats }) => {
                          {getTermFromDictionary(language, 'format')}:
                     </Text>
                     <ButtonGroup className="flex-row flex-wrap">
-                         {_.compact(_.map(_.keys(formats), function (item, index) {
-                              const formatData = formats[item];
+                         {Object.entries(formats)
+                              .map(([item, formatData], index) => {
                               if (!formatData || !formatData.label || formatData.label.trim() === '' || item.trim() === '') {
                                    return null;
                               }
                               return <Format key={index} format={item} data={formatData} isSelected={format} updateFormat={updateFormat} />;
-                         }))}
+                         })
+                              .filter(Boolean)}
                     </ButtonGroup>
                </>
           );

@@ -1,6 +1,5 @@
 import { useRoute } from '@react-navigation/native';
 import { useQuery } from '@tanstack/react-query';
-import _ from 'lodash';
 import React from 'react';
 import { loadError } from '../../components/loadError';
 import { loadingSpinner } from '../../components/loadingSpinner';
@@ -58,7 +57,7 @@ export const SearchResultsForSavedSearch = () => {
 
      const systemMessagesForScreen = React.useMemo(
           () =>
-               _.isArray(systemMessages)
+               Array.isArray(systemMessages)
                     ? systemMessages.filter((message) => message.showOn === '0')
                     : [],
           [systemMessages]
@@ -97,7 +96,7 @@ export const SearchResultsForSavedSearch = () => {
      };
 
      const showSystemMessage = () => {
-          if (_.isArray(systemMessages)) {
+          if (Array.isArray(systemMessages)) {
                return systemMessages.map((obj, index, collection) => {
                     if (obj.showOn === '0') {
                          return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} />;
@@ -110,7 +109,7 @@ export const SearchResultsForSavedSearch = () => {
      const NoResults = () => {
           return (
                <>
-                    {_.size(systemMessagesForScreen) > 0 ? <Box className="p-2">{showSystemMessage()}</Box> : null}
+                    {systemMessagesForScreen.length > 0 ? <Box className="p-2">{showSystemMessage()}</Box> : null}
                     <Center className="flex-1">
                         <Heading className="pt-5">{getTermFromDictionary(language, 'no_results')}</Heading>
                     </Center>
@@ -120,7 +119,7 @@ export const SearchResultsForSavedSearch = () => {
 
      return (
           <ScreenContainer safeArea style={{ flex: 1 }}>
-               {_.size(systemMessagesForScreen) > 0 ? <Box className="p-2">{showSystemMessage()}</Box> : null}
+               {systemMessagesForScreen.length > 0 ? <Box className="p-2">{showSystemMessage()}</Box> : null}
                {status === 'loading' || isFetching ? (
                     // TODO(translation): Replace hardcoded loading message with TranslationService-backed key.
                     loadingSpinner('Fetching results...')

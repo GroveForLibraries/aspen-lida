@@ -1,6 +1,6 @@
 import React from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import _ from 'lodash';
+import { isObject } from '../../../helpers/helpers';
 import { Box } from '@/components/ui/box';
 import { FlatList } from '@/components/ui/flat-list';
 import { HStack } from '@/components/ui/hstack';
@@ -38,7 +38,7 @@ export const Settings_NotificationOptions = () => {
      const isNotificationsEnabled = Boolean(expoToken);
 
      const getPreferences = React.useCallback(async () => {
-          if (!expoToken || !_.isObject(notificationSettings)) return;
+          if (!expoToken || !isObject(notificationSettings)) return;
 
           setLoading(true);
           try {
@@ -87,7 +87,7 @@ export const Settings_NotificationOptions = () => {
                          />
                     </HStack>
                     {/* Show options whenever an expoToken is present and settings object exists */}
-                    {isNotificationsEnabled && _.isObject(notificationSettings) ? (
+                    {isNotificationsEnabled && isObject(notificationSettings) ? (
                          <VStack space="md" className="flex-1">
                               <EnableAllNotifications
                                    setLoading={setLoading}

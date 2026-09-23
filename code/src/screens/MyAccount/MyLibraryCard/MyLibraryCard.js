@@ -1,5 +1,4 @@
-import { ThemedMaterialCommunityIcons as MaterialCommunityIcons } from '@/src/components/themed/ThemedMaterialIcons';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect } from '@react-navigation/native';
 import * as Brightness from 'expo-brightness';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import React from 'react';
@@ -28,13 +27,9 @@ import { useActiveLanguage } from '@/src/hooks/useLanguageData';
 import { useTheme } from '@/src/themes/theme';
 import { useTranslationWithValues } from '@/src/hooks/useTranslationWithValues';
 
-/**
- * MyLibraryCard component that displays the user's library cards in a carousel format. It manages screen brightness, orientation, and permissions for displaying the cards. It also provides functionality to view barcodes and manage alternate library cards.
- * @returns {React.JSX.Element}
- * @constructor
- */
+let lastLibraryCardBlurRunAt = 0;
+// Guard against duplicate blur handlers firing across stacked/multiple instances.
 export const MyLibraryCard = () => {
-     const navigation = useNavigation();
      const [shouldRequestPermissions, setShouldRequestPermissions] = React.useState(false);
      const [previousBrightness, setPreviousBrightness] = React.useState();
      const [brightnessMode, setBrightnessMode] = React.useState(1);
@@ -46,13 +41,19 @@ export const MyLibraryCard = () => {
      const progressValue = useSharedValue(0);
      const carouselRef = React.useRef();
      const hasOpenModalRef = React.useRef(false);
+     const hasSentBlurUpdateRef = React.useRef(false);
+     const previousBrightnessRef = React.useRef();
+     const brightnessModeRef = React.useRef(1);
+     const isLandscapeRef = React.useRef(false);
+     const autoRotateRef = React.useRef(0);
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
-     const { data: cards } = useCards();
+     const { data: cards = [] } = useCards();
      const updateUserProfile = useUpdateUserProfile();
      const library = useLibrary();
      const language = useActiveLanguage();
      let autoRotate = library.generalSettings?.autoRotateCard ?? 0;
+     autoRotateRef.current = autoRotate;
 
 
      const updateStatus = async () => {
@@ -63,45 +64,55 @@ export const MyLibraryCard = () => {
           }
      };
 
-     React.useEffect(() => {
-          const brightenScreen = navigation.addListener('focus', async () => {
-               const { status } = await Brightness.getPermissionsAsync();
-               if (status === 'undetermined') {
-                    if (user.shouldAskBrightness !== undefined && (user.shouldAskBrightness === 1 || user.shouldAskBrightness === '1')) {
-                         setShouldRequestPermissions(true);
-                    }
-               } else {
-                    if (status === 'granted') {
-                         await Brightness.getBrightnessAsync().then((level) => {
-                              logDebugMessage('Storing previous screen brightness for later: ' + level);
-                              setPreviousBrightness(level);
-                         });
-                         await Brightness.getSystemBrightnessModeAsync().then((mode) => {
-                              logDebugMessage('Storing system brightness mode for later: ' + mode);
-                              setBrightnessMode(mode);
-                         });
+     useFocusEffect(
+          React.useCallback(() => {
+               hasSentBlurUpdateRef.current = false;
+
+               const applyFocusState = async () => {
+                    const { status } = await Brightness.getPermissionsAsync();
+                    if (status === 'undetermined') {
+                         if (user.shouldAskBrightness !== undefined && (user.shouldAskBrightness === 1 || user.shouldAskBrightness === '1')) {
+                              setShouldRequestPermissions(true);
+                         }
+                    } else if (status === 'granted') {
+                         const level = await Brightness.getBrightnessAsync();
+                         logDebugMessage('Storing previous screen brightness for later: ' + level);
+                         setPreviousBrightness(level);
+                         previousBrightnessRef.current = level;
+
+                         const mode = await Brightness.getSystemBrightnessModeAsync();
+                         logDebugMessage('Storing system brightness mode for later: ' + mode);
+                         setBrightnessMode(mode);
+                         brightnessModeRef.current = mode;
+
                          logDebugMessage('Updating screen brightness');
-                         Brightness.setSystemBrightnessAsync(1);
+                         try {
+                              await Brightness.setSystemBrightnessAsync(1);
+                         } catch (error) {
+                              logDebugMessage('Unable to set system brightness: ' + error);
+                         }
                          await updateScreenBrightnessStatus(false, library.baseUrl, language);
                          setShouldRequestPermissions(false);
                     } else {
-                         // we were denied permissions
-                         await updateScreenBrightnessStatus(false, library.baseUrl, language);
                          setShouldRequestPermissions(false);
                          logDebugMessage('Unable to update screen brightness');
                     }
                }
           });
           const updateOrientation = navigation.addListener('focus', async () => {
-               if (autoRotate === '1' || autoRotate === 1) {
-                    await ScreenOrientation.unlockAsync();
-                    await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE_LEFT);
-                    setIsLandscape(true);
-               } else {
-                    const result = await ScreenOrientation.getOrientationAsync();
-                    const isCurrentlyLandscape = result === ScreenOrientation.Orientation.LANDSCAPE_LEFT ||
-                                                 result === ScreenOrientation.Orientation.LANDSCAPE_RIGHT;
-                    setIsLandscape(isCurrentlyLandscape);
+               try {
+                    if (autoRotate === '1' || autoRotate === 1) {
+                         await ScreenOrientation.unlockAsync();
+                         await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE_LEFT);
+                         setIsLandscape(true);
+                    } else {
+                         const result = await ScreenOrientation.getOrientationAsync();
+                         const isCurrentlyLandscape = result === ScreenOrientation.Orientation.LANDSCAPE_LEFT ||
+                                                      result === ScreenOrientation.Orientation.LANDSCAPE_RIGHT;
+                         setIsLandscape(isCurrentlyLandscape);
+                    }
+               } catch (error) {
+                    logDebugMessage('Unable to update screen orientation: ' + error);
                }
           });
           const changeOrientation = ScreenOrientation.addOrientationChangeListener(({ orientationInfo, orientationLock }) => {
@@ -111,46 +122,65 @@ export const MyLibraryCard = () => {
                     case ScreenOrientation.Orientation.LANDSCAPE:
                          logDebugMessage('Screen orientation changed to landscape');
                          setIsLandscape(true);
-                         break;
-                    default:
-                         logDebugMessage('Screen orientation changed to portrait');
-                         setIsLandscape(false);
-                         break;
-               }
-          });
-          return () => {
-               brightenScreen();
-               updateOrientation();
-               changeOrientation.remove();
-          };
-     }, [navigation, autoRotate, library.baseUrl, language, user, library.barcodeStyle]);
+                         isLandscapeRef.current = true;
+                    } else {
+                         const result = await ScreenOrientation.getOrientationAsync();
+                         const isCurrentlyLandscape = result === ScreenOrientation.Orientation.LANDSCAPE_LEFT ||
+                              result === ScreenOrientation.Orientation.LANDSCAPE_RIGHT;
+                         setIsLandscape(isCurrentlyLandscape);
+                         isLandscapeRef.current = isCurrentlyLandscape;
+                    }
+               };
+
+               applyFocusState();
+
+               const orientationSub = ScreenOrientation.addOrientationChangeListener(({ orientationInfo }) => {
+                    switch (orientationInfo.orientation) {
+                         case ScreenOrientation.Orientation.LANDSCAPE_LEFT:
+                         case ScreenOrientation.Orientation.LANDSCAPE_RIGHT:
+                         case ScreenOrientation.Orientation.LANDSCAPE:
+                              logDebugMessage('Screen orientation changed to landscape');
+                              setIsLandscape(true);
+                              isLandscapeRef.current = true;
+                              break;
+                         default:
+                              logDebugMessage('Screen orientation changed to portrait');
+                              setIsLandscape(false);
+                              isLandscapeRef.current = false;
+                              break;
+                    }
+               });
 
      React.useEffect(() => {
           navigation.addListener('blur', () => {
                (async () => {
-                    const { status } = await Brightness.getPermissionsAsync();
-                    if (status === 'granted' && previousBrightness) {
-                         logDebugMessage('Restoring previous screen brightness');
-                         Brightness.setSystemBrightnessAsync(previousBrightness);
-                         logDebugMessage('Restoring system brightness');
-                         Brightness.restoreSystemBrightnessAsync();
-                         await updateScreenBrightnessStatus(false, library.baseUrl, language);
-                    }
-                    if (status === 'granted' && brightnessMode) {
-                         logDebugMessage('Restoring brightness mode');
-                         let mode = 'BrightnessMode.MANUAL';
-                         if (brightnessMode === 1) {
-                              mode = 'BrightnessMode.AUTOMATIC';
+                    try {
+                         const { status } = await Brightness.getPermissionsAsync();
+                         if (status === 'granted' && previousBrightness) {
+                              logDebugMessage('Restoring previous screen brightness');
+                              await Brightness.setSystemBrightnessAsync(previousBrightness);
+                              logDebugMessage('Restoring system brightness');
+                              await Brightness.restoreSystemBrightnessAsync();
+                              await updateScreenBrightnessStatus(false, library.baseUrl, language);
                          }
-                         Brightness.setSystemBrightnessModeAsync(brightnessMode);
-                         await updateScreenBrightnessStatus(false, library.baseUrl, language);
-                    }
-                    // Only force rotation back to portrait if autoRotate was enabled.
-                    if (isLandscape && (autoRotate === '1' || autoRotate === 1)) {
-                         await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
-                         await ScreenOrientation.unlockAsync();
-                    } else if (isLandscape) {
-                         await ScreenOrientation.unlockAsync();
+                         if (status === 'granted' && brightnessMode) {
+                              logDebugMessage('Restoring brightness mode');
+                              let mode = 'BrightnessMode.MANUAL';
+                              if (brightnessMode === 1) {
+                                   mode = 'BrightnessMode.AUTOMATIC';
+                              }
+                              await Brightness.setSystemBrightnessModeAsync(brightnessMode);
+                              await updateScreenBrightnessStatus(false, library.baseUrl, language);
+                         }
+                         // Only force rotation back to portrait if autoRotate was enabled.
+                         if (isLandscape && (autoRotate === '1' || autoRotate === 1)) {
+                              await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+                              await ScreenOrientation.unlockAsync();
+                         } else if (isLandscape) {
+                              await ScreenOrientation.unlockAsync();
+                         }
+                    } catch (error) {
+                         logDebugMessage('Unable to restore brightness/orientation on blur: ' + error);
                     }
                })();
           });
@@ -182,11 +212,18 @@ export const MyLibraryCard = () => {
 
      const closeBarcodeModal = async () => {
           setShowBarcodeModal(false);
-          setSelectedCard(null);
           if (hasOpenModalRef) {
                hasOpenModalRef.current = false;
           }
-          await ScreenOrientation.unlockAsync();
+          try {
+               await ScreenOrientation.unlockAsync();
+          } catch (error) {
+               logDebugMessage('Unable to unlock screen orientation: ' + error);
+          }
+          // Defer clearing the card until after the modal's close transition
+          // finishes, instead of unmounting it in the same tick as isOpen
+          // flips to false.
+          setTimeout(() => setSelectedCard(null), 300);
      };
 
      const { textColor, brand, neutrals } = useTheme();
@@ -359,11 +396,23 @@ const CreateLibraryCard = (data) => {
           icon = library.logoApp;
      }
 
-     const handleBarcodeError = () => {
-          barcodeStyle = 'INVALID';
+     // Reset whenever the underlying barcode data changes, so a fresh
+     // attempt is made once (for example) library settings finish loading
+     // with the real barcode format instead of getting stuck on a stale
+     // failure from an earlier render.
+     const [barcodeError, setBarcodeError] = React.useState(null);
+     React.useEffect(() => {
+          setBarcodeError(null);
+     }, [barcodeValue, barcodeStyle]);
+
+     const handleBarcodeError = (error) => {
+          logErrorMessage(`Failed to render library card barcode (format: "${barcodeStyle}"):`, error);
+          setBarcodeError(error);
      };
 
-     if (barcodeValue === 'UNKNOWN' || barcodeValue === null || barcodeStyle === null || barcodeValue === '' || barcodeStyle === '' || barcodeStyle === 'INVALID' || barcodeStyle === 'none') {
+     if (barcodeValue === 'UNKNOWN' || barcodeValue === null || barcodeValue === ''
+          || barcodeStyle === null || barcodeStyle === '' || barcodeStyle === 'undefined' || barcodeStyle === 'null'
+          || barcodeStyle === 'INVALID' || barcodeStyle === 'none' || barcodeError != null) {
           return (
                <VStack className="max-w-[90%] px-8 py-5 rounded-xl">
                     <Center>
@@ -424,6 +473,7 @@ const CreateLibraryCard = (data) => {
                          <VStack alignItems="center" space="sm">
                               <Box className="p-3 rounded-lg" style={{ backgroundColor: barcodeBg }}>
                                    <Barcode
+                                        key={`${barcodeValue}-${barcodeStyle}`}
                                         value={barcodeValue}
                                         format={barcodeStyle}
                                         background={barcodeBg}
@@ -582,9 +632,19 @@ const BarcodeModal = ({ card, showModal, closeModal, language }) => {
           barcodeValue = card.cat_username;
      }
 
-     const handleBarcodeError = () => {
-          barcodeStyle = 'INVALID';
+     const [barcodeError, setBarcodeError] = React.useState(null);
+     React.useEffect(() => {
+          setBarcodeError(null);
+     }, [barcodeValue, barcodeStyle]);
+
+     const handleBarcodeError = (error) => {
+          logErrorMessage(`Failed to render library card barcode in modal (format: "${barcodeStyle}"):`, error);
+          setBarcodeError(error);
      };
+
+     const isBarcodeUnusable = barcodeValue === 'UNKNOWN' || barcodeValue === null || barcodeValue === ''
+          || barcodeStyle === null || barcodeStyle === '' || barcodeStyle === 'undefined' || barcodeStyle === 'null'
+          || barcodeStyle === 'INVALID' || barcodeStyle === 'none' || barcodeError != null;
 
      React.useEffect(() => {
           const subscription = Dimensions.addEventListener('change', ({ window }) => {
@@ -628,12 +688,20 @@ const BarcodeModal = ({ card, showModal, closeModal, language }) => {
 
      const rotateToLandscape = async () => {
           setManuallyRotated(true);
-          await ScreenOrientation.unlockAsync();
-          await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE_LEFT);
+          try {
+               await ScreenOrientation.unlockAsync();
+               await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE_LEFT);
+          } catch (error) {
+               logDebugMessage('Unable to rotate to landscape: ' + error);
+          }
      };
 
      const rotateToPortrait = async () => {
-          await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+          try {
+               await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+          } catch (error) {
+               logDebugMessage('Unable to rotate to portrait: ' + error);
+          }
           setManuallyRotated(false);
      };
 
@@ -656,15 +724,17 @@ const BarcodeModal = ({ card, showModal, closeModal, language }) => {
                     <ModalContent>
                          <ModalBody className="m-5 p-4" style={{ backgroundColor: modalBg }}>
                               {/* Always render barcode to measure it, but hide if showing warning. */}
-                              <Box style={{ opacity: showRotateWarning ? 0 : 1, position: showRotateWarning ? 'absolute' : 'relative' }}>
+                              {!isBarcodeUnusable && (
+                                   <Box style={{ opacity: showRotateWarning ? 0 : 1, position: showRotateWarning ? 'absolute' : 'relative' }}>
                                    <Center className="p-2">
                                         <Box
                                              style={{ backgroundColor: barcodeBg, padding: 12, borderRadius: 8 }}
                                              onLayout={onBarcodeLayout}>
                                              <Barcode
-                                                  value={barcodeValue}
-                                                  format={barcodeStyle}
-                                                  onError={handleBarcodeError}
+                                                       key={`${barcodeValue}-${barcodeStyle}`}
+                                                       value={barcodeValue}
+                                                       format={barcodeStyle}
+                                                       onError={handleBarcodeError}
                                                   background={barcodeBg}
                                              />
                                         </Box>

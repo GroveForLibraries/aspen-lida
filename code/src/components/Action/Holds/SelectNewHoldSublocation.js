@@ -1,10 +1,9 @@
 import React from 'react';
-import _ from 'lodash';
-import { getTermFromDictionary } from '@/src/translations/TranslationService';
-import { logDebugMessage, logErrorMessage } from '@/src/util/logging';
-import { ThemedFormControl as FormControl, ThemedFormControlLabelText as FormControlLabelText, ThemedFormControlLabel as FormControlLabel } from '../../themed/ThemedFormControls';
-import { ThemedSelect as Select, ThemedSelectBackdrop as SelectBackdrop, ThemedSelectContent as SelectContent, ThemedSelectDragIndicator as SelectDragIndicator, ThemedSelectDragIndicatorWrapper as SelectDragIndicatorWrapper, ThemedSelectInput as SelectInput, ThemedSelectItem as SelectItem, ThemedSelectPortal as SelectPortal, ThemedSelectScrollView as SelectScrollView, ThemedSelectTrigger as SelectTrigger } from '../../themed/ThemedSelect';
 import { ThemedText as Text } from '@/src/components/themed/ThemedText';
+import { ThemedSelect as Select, ThemedSelectBackdrop as SelectBackdrop, ThemedSelectContent as SelectContent, ThemedSelectDragIndicator as SelectDragIndicator, ThemedSelectDragIndicatorWrapper as SelectDragIndicatorWrapper, ThemedSelectInput as SelectInput, ThemedSelectItem as SelectItem, ThemedSelectPortal as SelectPortal, ThemedSelectScrollView as SelectScrollView, ThemedSelectTrigger as SelectTrigger } from '../../themed/ThemedSelect';
+import { ThemedFormControl as FormControl, ThemedFormControlLabelText as FormControlLabelText, ThemedFormControlLabel as FormControlLabel } from '../../themed/ThemedFormControls';
+import { logDebugMessage, logErrorMessage } from '@/src/util/logging';
+import { getTermFromDictionary } from '@/src/translations/TranslationService';
 
 /**
  * SelectNewHoldSublocation component for selecting a new hold sublocation for a library hold request.
@@ -17,7 +16,7 @@ export const SelectNewHoldSublocation = (props) => {
 
      if (sublocations !== undefined) {
           try {
-               if (_.isObject(sublocations)) {
+               if (isObject(sublocations)) {
                     const objectSize = Object.keys(sublocations).length;
                     const validSublocations = [];
 

@@ -1,6 +1,5 @@
 import { useFocusEffect } from '@react-navigation/native';
-import _ from 'lodash';
-import moment from 'moment/moment';
+import { find, formatDateUs, formatFacetDateTime, parseToDate, split, trimEnd, trimStart } from '../../../helpers/helpers';
 import React from 'react';
 import { ThemedScrollView as ScrollView } from '@/src/components/themed/ThemedScrollView';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
@@ -24,7 +23,7 @@ export const Facet_Date = (props) => {
      const { data, category, updater } = props;
      const language = useActiveLanguage();
 
-     const [loading, setLoading] = React.useState(false);
+     const {theme, textColor, colorMode } = useTheme();
 
      const { colorMode } = useTheme();
 
@@ -38,22 +37,26 @@ export const Facet_Date = (props) => {
 
      useFocusEffect(
           React.useCallback(() => {
-               if (_.find(data, ['isApplied', true])) {
-                    const appliedFilterObj = _.find(data, ['isApplied', true]);
+               if (find(data, ['isApplied', true])) {
+                    const appliedFilterObj = find(data, ['isApplied', true]);
                     let value = appliedFilterObj['value'];
-                    value = _.trimStart(value, '[');
-                    value = _.trimEnd(value, ']');
-                    const arr = _.split(value, ' TO ');
+                    value = trimStart(value, '[');
+                    value = trimEnd(value, ']');
+                    const arr = split(value, ' TO ');
                     if (arr[0] !== '*') {
-                         const tmp = moment(arr[0]);
-                         setFrom(tmp);
-                         setFromFacet(tmp);
+                         const tmp = parseToDate(arr[0]);
+                         if (tmp) {
+                              setFrom(tmp);
+                              setFromFacet(arr[0]);
+                         }
                     }
 
                     if (arr[1] !== '*') {
-                         const tmp = moment(arr[1]);
-                         setTo(tmp);
-                         setToFacet(tmp);
+                         const tmp = parseToDate(arr[1]);
+                         if (tmp) {
+                              setTo(tmp);
+                              setToFacet(arr[1]);
+                         }
                     }
                }
           }, [data])
@@ -65,10 +68,9 @@ export const Facet_Date = (props) => {
 
      const onSelectFromDate = (date) => {
           toggleFromDatePicker();
-          setLoading(true);
           setFrom(date);
-          let tmp = moment(date).format('YYYY-MM-DDTHH:mm:ss');
-          tmp = _.toString(tmp) + 'Z';
+          let tmp = formatFacetDateTime(date);
+          tmp = String(tmp) + 'Z';
           setFromFacet(tmp);
           const facet = '[' + tmp + '+TO+' + toFacet + ']';
           addAppliedFilter(category, facet, false);
@@ -82,10 +84,9 @@ export const Facet_Date = (props) => {
 
      const onSelectToDate = (date) => {
           toggleToDatePicker();
-          setLoading(true);
           setTo(date);
-          let tmp = moment(date).format('YYYY-MM-DDTHH:mm:ss');
-          tmp = _.toString(tmp) + 'Z';
+          let tmp = formatFacetDateTime(date);
+          tmp = String(tmp) + 'Z';
           setToFacet(tmp);
           const facet = '[' + fromFacet + '+TO+' + tmp + ']';
           addAppliedFilter(category, facet, false);
@@ -99,11 +100,11 @@ export const Facet_Date = (props) => {
                     <FormControl className="mb-2">
                          <HStack space="sm" className="items-center justify-center">
                               <Button colorScheme="primary" variant="outline" onPress={() => toggleFromDatePicker()}>
-                                   <ButtonText>{moment(fromValue).format('MM/DD/YYYY')}</ButtonText>
+                                   <ButtonText>{formatDateUs(fromValue)}</ButtonText>
                               </Button>
                               <Text>to</Text>
                               <Button colorScheme="primary" variant="outline" onPress={() => toggleToDatePicker()}>
-                                   <ButtonText>{toFacet === '*' ? 'MM/DD/YYYY' : moment(toValue).format('MM/DD/YYYY')}</ButtonText>
+                                   <ButtonText>{toFacet === '*' ? 'MM/DD/YYYY' : formatDateUs(toValue)}</ButtonText>
                               </Button>
                          </HStack>
                     </FormControl>

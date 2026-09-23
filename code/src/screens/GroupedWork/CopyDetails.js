@@ -3,7 +3,7 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import { FlatList } from 'react-native';
 import { ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/ThemedMaterialIcons';
 import {getItemDetails} from '../../util/api/item';
-import _ from 'lodash';
+import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 import {getTermFromDictionary} from '../../translations/TranslationService';
 import { logDebugMessage, getErrorMessage } from '../../util/logging';
@@ -42,19 +42,17 @@ const ShowItemDetails = (props) => {
      let copies = copyDetails;
 
      if (discoveryVersion <= '22.12.01') {
-          let copies = [];
-          if (copyDetails) {
-               _.map(copyDetails, function(copy, index, array) {
-                    copy = {
+          copies = Array.isArray(copyDetails)
+               ? copyDetails.map((copy, index) => {
+                    return {
                          id: index,
                          totalCopies: copy.totalCopies,
                          availableCopies: copy.availableCopies,
                          shelfLocation: copy.shelfLocation,
                          callNumber: copy.callNumber,
                     };
-                    copies = _.concat(copies, copy);
-               });
-          }
+               })
+               : [];
      }
 
      if (discoveryVersion <= '22.09.01') {

@@ -1,4 +1,32 @@
 import _ from 'lodash';
+import {
+     Button,
+     ButtonText,
+     ButtonGroup,
+     CheckIcon,
+     FormControl,
+     FormControlLabel,
+     FormControlLabelText,
+     Heading,
+     Modal,
+     ModalBackdrop,
+     ModalContent,
+     ModalHeader,
+     ModalBody,
+     ModalFooter,
+     ModalCloseButton,
+     Select,
+     SelectTrigger,
+     SelectInput,
+     SelectPortal,
+     SelectBackdrop,
+     SelectContent,
+     SelectDragIndicatorWrapper,
+     SelectDragIndicator,
+     SelectItem,
+     Icon,
+     ChevronDownIcon
+} from '@gluestack-ui/themed';
 import React, { useState } from 'react';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useUserState, useAccounts, useLocations, useUpdateUserProfile } from '../../hooks/useUserData';
@@ -31,6 +59,8 @@ const SelectPickupLocation = (props) => {
      const { data: locations } = useLocations();
      const updateUserProfile = useUpdateUserProfile();
      const library = useLibrary();
+     const availableLocations = Array.isArray(locations) ? locations : [];
+     const availableAccounts = Object.values(accounts ?? {});
 
      const isPlacingHold = action.includes('hold');
 
@@ -47,7 +77,7 @@ const SelectPickupLocation = (props) => {
                typeOfHold = 'volume';
           }
 
-          if (_.isEmpty(volumeInfo.hasItemsWithoutVolumes) || !volumeInfo.hasItemsWithoutVolumes === false) {
+          if (isEmpty(volumeInfo.hasItemsWithoutVolumes) || !volumeInfo.hasItemsWithoutVolumes === false) {
                typeOfHold = 'volume';
                promptForHoldType = false;
           }
@@ -56,22 +86,22 @@ const SelectPickupLocation = (props) => {
      const [holdType, setHoldType] = React.useState(typeOfHold);
 
      let userPickupLocationId = user.pickupLocationId ?? user.homeLocationId;
-     if (_.isNumber(user.pickupLocationId)) {
-          userPickupLocationId = _.toString(user.pickupLocationId);
+     if (isNumber(user.pickupLocationId)) {
+          userPickupLocationId = String(user.pickupLocationId);
      }
 
      let pickupLocation = '';
-     if (_.size(locations) > 1) {
-          const userPickupLocation = _.filter(locations, { locationId: userPickupLocationId });
-          if (!_.isUndefined(userPickupLocation && !_.isEmpty(userPickupLocation))) {
+     if (availableLocations.length > 1) {
+          const userPickupLocation = filter(availableLocations, { locationId: userPickupLocationId });
+          if (userPickupLocation.length > 0) {
                pickupLocation = userPickupLocation[0];
-               if (_.isObject(pickupLocation)) {
+               if (isObject(pickupLocation)) {
                     pickupLocation = pickupLocation.code;
                }
           }
      } else {
-          pickupLocation = locations[0];
-          if (_.isObject(pickupLocation)) {
+          pickupLocation = availableLocations[0];
+          if (isObject(pickupLocation)) {
                pickupLocation = pickupLocation.code;
           }
      }
@@ -79,11 +109,6 @@ const SelectPickupLocation = (props) => {
      const [location, setLocation] = React.useState(pickupLocation);
 
      const [activeAccount, setActiveAccount] = React.useState(user.id);
-
-     let availableAccounts = [];
-     if (_.size(accounts) > 0) {
-          availableAccounts = Object.values(accounts);
-     }
 
      return (
           <>
@@ -103,7 +128,7 @@ const SelectPickupLocation = (props) => {
                          </ModalHeader>
                          <ModalBody>
                               {shouldDisplayVolumes ? <SelectVolume language={language} id={id} holdType={holdType} setHoldType={setHoldType} volume={volume} setVolume={setVolume} promptForHoldType={promptForHoldType} /> : null}
-                              {_.size(accounts) > 1 ? (
+                              {availableAccounts.length > 1 ? (
                                    <FormControl className="mb-4">
                                         <FormControlLabel>
                                              <FormControlLabelText>{isPlacingHold ? getTermFromDictionary(language, 'linked_place_hold_for_account') : getTermFromDictionary(language, 'linked_checkout_to_account')}</FormControlLabelText>
@@ -145,7 +170,7 @@ const SelectPickupLocation = (props) => {
                                                   <SelectDragIndicatorWrapper>
                                                        <SelectDragIndicator />
                                                   </SelectDragIndicatorWrapper>
-                                                  {locations.map((location, index) => {
+                                                  {availableLocations.map((location, index) => {
                                                        return <SelectItem label={location.name} value={location.code} key={index} />;
                                                   })}
                                              </SelectContent>

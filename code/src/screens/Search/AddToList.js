@@ -1,6 +1,6 @@
 import { ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/ThemedMaterialIcons';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
-import _ from 'lodash';
+import { isEmpty, map } from '../../helpers/helpers';
 import React, { useState } from 'react';
 import { useUserState, useLists, useListGroups } from '../../hooks/useUserData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
@@ -131,7 +131,7 @@ const AddToList = (props) => {
                     <ModalContent>
                          {isLoading ? (
                               <LoadingSpinner />
-                         ) : screen === 'add-new' && !_.isEmpty(lists) ? (
+                         ) : screen === 'add-new' && !isEmpty(lists) ? (
                               <>
                                    <ModalHeader>
                                         <Heading>
@@ -165,7 +165,7 @@ const AddToList = (props) => {
                                                                            <SelectDragIndicator />
                                                                       </SelectDragIndicatorWrapper>
                                                                       <SelectScrollView>
-                                                                           {_.map(lists, function (item, index) {
+                                                                           {map(lists, function (item, index) {
                                                                                 return <SelectItem key={index} value={item.id} label={item.title} selectedValue={listId} />;
                                                                            })}
                                                                       </SelectScrollView>
@@ -195,7 +195,7 @@ const AddToList = (props) => {
                                                   onPress={closeModal}>
                                                   <ButtonText style={{ color: cancelColor }}>{getTermFromDictionary(language, 'cancel')}</ButtonText>
                                              </Button>
-                                             {!_.isEmpty(lists) ? (
+                                             {!isEmpty(lists) ? (
                                                   <Button
                                                        colorScheme="primary"
                                                        isLoading={loading}

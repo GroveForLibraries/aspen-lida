@@ -72,6 +72,8 @@ export const MyList = ({ route }) => {
      const panelBg = neutrals.surfaceMuted;
      const borderColor = neutrals.border;
      const dangerColor = neutralPairs.danger;
+     const skipNextFetchRef = React.useRef(false);
+     const browserBackgroundColor = colorMode === 'light' ? '#ffffff' : '#111827';
      const t = React.useCallback((key, ellipsis = false, forcedLanguage) => {
           const lang = forcedLanguage || language;
           return getTermFromDictionaryHelper(lang, key, ellipsis, dictionary);
@@ -122,10 +124,6 @@ export const MyList = ({ route }) => {
           try {
                const data = await getListTitles(id, library.baseUrl, targetPage, pageSize, pageSize, targetSort);
                setListData(data);
-               let tmp = t('page_of_page');
-               tmp = tmp.replace('%1%', data.curPage ?? targetPage);
-               tmp = tmp.replace('%2%', data.totalPages ?? 1);
-               setPaginationLabel(tmp);
           } catch (error) {
                logDebugMessage('Error fetching user list titles for list ' + id);
                logErrorMessage(error);
@@ -133,9 +131,20 @@ export const MyList = ({ route }) => {
           } finally {
                setIsLoading(false);
           }
-     }, [id, library.baseUrl, pageSize, t]);
+     }, [id, library.baseUrl, pageSize]);
 
      React.useEffect(() => {
+          let tmp = t('page_of_page');
+          tmp = tmp.replace('%1%', listData.curPage ?? page);
+          tmp = tmp.replace('%2%', listData.totalPages ?? 1);
+          setPaginationLabel(tmp);
+     }, [listData.curPage, listData.totalPages, page, t]);
+
+     React.useEffect(() => {
+          if (skipNextFetchRef.current) {
+               skipNextFetchRef.current = false;
+               return;
+          }
           loadListDetails(page, sort);
      }, [page, sort, loadListDetails]);
 
@@ -202,6 +211,8 @@ export const MyList = ({ route }) => {
      React.useEffect(() => {
           if (!hasAppliedDefaultSort.current && listData?.sort && listData.sort !== sort) {
                hasAppliedDefaultSort.current = true;
+               // Avoid a duplicate network request; first response is already sorted this way.
+               skipNextFetchRef.current = true;
                setSort(listData.sort);
           }
      }, [listData?.sort, sort]);
@@ -217,15 +228,8 @@ export const MyList = ({ route }) => {
 
                const startTime = item.start_date.date;
                const endTime = item.end_date.date;
-               const normalizeDateTime = (value) => {
-                    if (!value || typeof value !== 'string') return null;
-                    const normalized = value.includes('T') ? value : value.replace(' ', 'T');
-                    const parsed = new Date(normalized);
-                    return Number.isNaN(parsed.getTime()) ? null : parsed;
-               };
-
-               const startDate = normalizeDateTime(startTime);
-               const endDate = normalizeDateTime(endTime);
+               const startDate = parseEventDateTime(startTime);
+               const endDate = parseEventDateTime(endTime);
                const displayDay = startDate ? dayFormatter.format(startDate) : '';
                const displayStartTime = startDate ? timeFormatter.format(startDate) : '';
                const displayEndTime = endDate ? timeFormatter.format(endDate) : '';

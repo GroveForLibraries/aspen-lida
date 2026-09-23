@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import { filter, isEmpty, isNumber, isObject } from '../../helpers/helpers';
 import React from 'react';
 import { HoldsContext } from '../../context/initialContext';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
@@ -38,6 +38,8 @@ const SelectLinkedAccount = (props) => {
      const library = useLibrary();
      const { updateHolds } = React.useContext(HoldsContext);
      const language = useActiveLanguage();
+     const availableLocations = Array.isArray(locations) ? locations : [];
+     const availableAccounts = Object.values(accounts ?? {});
 
      let shouldDisplayVolumes = false;
      let typeOfHold = 'default';
@@ -52,7 +54,7 @@ const SelectLinkedAccount = (props) => {
                typeOfHold = 'volume';
           }
 
-          if (_.isEmpty(volumeInfo.hasItemsWithoutVolumes) || !volumeInfo.hasItemsWithoutVolumes === false) {
+          if (isEmpty(volumeInfo.hasItemsWithoutVolumes) || !volumeInfo.hasItemsWithoutVolumes === false) {
                typeOfHold = 'volume';
                promptForHoldType = false;
           }
@@ -62,22 +64,22 @@ const SelectLinkedAccount = (props) => {
      const [volume, setVolume] = React.useState(null);
 
      let userPickupLocationId = user.pickupLocationId ?? user.homeLocationId;
-     if (_.isNumber(user.pickupLocationId)) {
-          userPickupLocationId = _.toString(user.pickupLocationId);
+     if (isNumber(user.pickupLocationId)) {
+          userPickupLocationId = String(user.pickupLocationId);
      }
 
      let pickupLocation = '';
-     if (_.size(locations) > 1) {
-          const userPickupLocation = _.filter(locations, { locationId: userPickupLocationId });
-          if (!_.isUndefined(userPickupLocation && !_.isEmpty(userPickupLocation))) {
+     if (availableLocations.length > 1) {
+          const userPickupLocation = filter(availableLocations, { locationId: userPickupLocationId });
+          if (userPickupLocation.length > 0) {
                pickupLocation = userPickupLocation[0];
-               if (_.isObject(pickupLocation)) {
+               if (isObject(pickupLocation)) {
                     pickupLocation = pickupLocation.code;
                }
           }
      } else {
-          pickupLocation = locations[0];
-          if (_.isObject(pickupLocation)) {
+          pickupLocation = availableLocations[0];
+          if (isObject(pickupLocation)) {
                pickupLocation = pickupLocation.code;
           }
      }
@@ -85,10 +87,6 @@ const SelectLinkedAccount = (props) => {
      const [location, setLocation] = React.useState(pickupLocation);
 
      const [activeAccount, setActiveAccount] = React.useState(user.id);
-     let availableAccounts = [];
-     if (_.size(accounts) > 0) {
-          availableAccounts = Object.values(accounts);
-     }
 
      return (
           <Center>
@@ -108,7 +106,7 @@ const SelectLinkedAccount = (props) => {
                          </ModalHeader>
                          <ModalBody>
                               {shouldDisplayVolumes ? <SelectVolume language={language} id={id} holdType={holdType} setHoldType={setHoldType} volume={volume} setVolume={setVolume} promptForHoldType={promptForHoldType} /> : null}
-                              {_.size(locations) > 1 && !isEContent ? (
+                              {availableLocations.length > 1 && !isEContent ? (
                                    <FormControl className="mb-4">
                                         <FormControlLabel>
                                              <FormControlLabelText>{getTermFromDictionary(language, 'select_pickup_location')}</FormControlLabelText>
@@ -126,7 +124,7 @@ const SelectLinkedAccount = (props) => {
                                                             <SelectDragIndicator />
                                                        </SelectDragIndicatorWrapper>
                                                        <SelectScrollView>
-                                                            {locations.map((location, index) => {
+                                                            {availableLocations.map((location, index) => {
                                                                  return <SelectItem label={location.name} value={location.code} key={index} />;
                                                             })}
                                                        </SelectScrollView>

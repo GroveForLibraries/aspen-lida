@@ -1,5 +1,5 @@
+import { find } from '../../../helpers/helpers';
 import { ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/ThemedMaterialIcons';
-import _ from 'lodash';
 import React from 'react';
 import { ThemedScrollView as ScrollView } from '@/src/components/themed/ThemedScrollView';
 import Stars from 'react-native-stars';
@@ -49,8 +49,8 @@ export const Facet_Rating = ({ data, category, updater }) => {
      React.useEffect(() => {
           setIsLoading(false);
           let initialValue = '';
-          if (_.find(data, ['isApplied', true])) {
-               const appliedFilterObj = _.find(data, ['isApplied', true]);
+          if (find(data, ['isApplied', true])) {
+               const appliedFilterObj = find(data, ['isApplied', true]);
                initialValue = appliedFilterObj['value'];
           }
           setValue(initialValue);
@@ -58,8 +58,8 @@ export const Facet_Rating = ({ data, category, updater }) => {
 
      const getRatingCount = (star) => {
           let results = 0;
-          if (_.find(data, ['value', star])) {
-               results = _.find(data, ['value', star]);
+          if (find(data, ['value', star])) {
+               results = find(data, ['value', star]);
                results = results['count'];
           }
           return results;

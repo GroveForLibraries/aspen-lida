@@ -416,5 +416,199 @@ export function useTheme() {
      };
 }
 
-/** Theme cache staleness threshold, in milliseconds (12 hours). */
+export function UseColorMode(props) {
+     const { showText } = props;
+     const { colorMode, theme } = useThemeForDisplay();
+     const location = useLibraryLocation();
+     const themes = useAvailableThemes(location?.locationId);
+     const updateTextColor = useUpdateThemeTextColor();
+     const currentMode = colorMode === 'dark' ? 'wb-sunny' : 'nightlight-round';
+     const currentColorMode = colorMode === 'dark' ? 'Dark' : 'Light';
+     const currentModeB = colorMode === 'dark' ? 'nightlight-round' : 'wb-sunny';
+     const iconColor = colorMode === 'dark' ? "$warmGray50" : "$coolGray700";
+     const updateColorMode = useUpdateThemeColorMode();
+
+     // If Aspen LiDA Themes are present and 2 or more exist, then display ThemeSwitcher
+     if (Array.isArray(themes) && themes.length > 1) {
+          return <ThemeSwitcher showText={showText} />;
+     }
+
+     // if Aspen LiDA Themes are present, but only 1 exists, we display nothing.
+     if (Array.isArray(themes) && themes.length === 1) {
+          return null;
+     }
+
+     const switchColorMode = async () => {
+          let newColorMode;
+          if (colorMode === 'light') {
+               newColorMode = 'dark';
+          }else{
+               newColorMode = 'light';
+          }
+
+          logDebugMessage("Switching color mode to: " + newColorMode);
+          await updateColorMode(newColorMode);
+          await updateTextColor(newColorMode === 'light' ? '#1c1917' : '#f3f4f6');
+     };
+
+     if (showText) {
+          return (
+               <HStack alignItems="center">
+                    <Button onPress={switchColorMode} borderRadius="$full" size="sm" bg="transparent">
+                         <ButtonIcon as={MaterialIcons} name={currentModeB} size="sm" color={theme.tokens.colors.primary['500']} />
+                         <ButtonText fontSize="$sm" color={iconColor}> {currentColorMode}</ButtonText>
+                    </Button>
+               </HStack>
+          );
+     }
+
+     return (
+          <Box alignItems="center">
+               <Button onPress={switchColorMode} borderRadius="$full" size="sm" bg="transparent">
+                    <ButtonIcon as={MaterialIcons} name={currentMode} size="sm" color={theme.tokens.colors.primary['500']} />
+               </Button>
+          </Box>
+     );
+}
+
+/**
+ * Lets the user switch between the themes available at their location (from the locally
+ * stored theme catalog), applying the selected theme's colors and baseMode immediately.
+ * Mirrors LanguageSwitcher's menu + switching-overlay pattern.
+ * @param showText whether to show the active theme's name next to the trigger icon, mirroring UseColorMode's prop
+ */
+export const ThemeSwitcher = ({ showText = true } = {}) => {
+     const { theme, themeId, colorMode, textColor } = useTheme();
+     const location = useLibraryLocation();
+     const themes = useAvailableThemes(location?.locationId);
+     const updateThemeColors = useUpdateThemeColors();
+     const updateColorMode = useUpdateThemeColorMode();
+
+     const [isThemeMenuOpen, setIsThemeMenuOpen] = React.useState(false);
+     const [isSwitchingTheme, setIsSwitchingTheme] = React.useState(false);
+
+     const buttonRef = React.useRef(null);
+     const [buttonY, setButtonY] = React.useState(0);
+
+     const measureButton = React.useCallback(() => {
+          if (buttonRef.current) {
+               buttonRef.current.measureInWindow((x, y, width, height) => {
+                    setButtonY(y + height + 8); // 8 for small padding below button
+               });
+          }
+     }, []);
+
+     const selectedThemeKey = React.useMemo(() => {
+          if (themeId != null && themes.some((t) => t.id === themeId)) {
+               return new Set([String(themeId)]);
+          }
+          if (Array.isArray(themes) && themes.length > 0) {
+               return new Set([String(themes[0].id)]);
+          }
+          return new Set();
+     }, [themeId, themes]);
+     const activeTheme = themes.find((entry) => entry.id === themeId);
+     const activeThemeName = activeTheme?.name ?? '';
+
+     const changeTheme = async (themeEntry) => {
+          if (isSwitchingTheme) return;
+          setIsSwitchingTheme(true);
+          try {
+               logDebugMessage('Switching theme to ' + themeEntry?.id);
+               const builtTheme = buildThemeConfigFromCatalogEntry(themeEntry);
+               await updateThemeColors(builtTheme.themeColors, builtTheme.themeId, location?.locationId, builtTheme.header);
+               if (builtTheme.baseMode === 'dark' || builtTheme.baseMode === 'light') {
+                    await updateColorMode(builtTheme.baseMode);
+               }
+          } catch (error) {
+               logDebugMessage('Theme switch failed');
+               logDebugMessage(error);
+          } finally {
+               setIsSwitchingTheme(false);
+          }
+     };
+
+     if (!Array.isArray(themes) || themes.length === 0) {
+          return null;
+     }
+
+     return (
+          <>
+               {isThemeMenuOpen && (
+                    <Modal transparent animationType="fade" visible={isThemeMenuOpen}>
+                         <View
+                              style={{
+                                   flex: 1,
+                              }}
+                              onTouchEnd={() => setIsThemeMenuOpen(false)}>
+                              <Box flex={1} justifyContent="flex-end" alignItems="flex-start" pb="$12" pl="$10">
+                                   <Box bgColor={colorMode === 'light' ? '$warmGray50' : '$coolGray700'} borderRadius="$md" p="$1" height={themes.length > 4 ? '150px' : undefined} width="200">
+                                        <ScrollView nestedScrollEnabled={true} scrollEnabled={true}>
+                                             {themes.map((themeEntry) => {
+                                                  const isActive = themeEntry.id === themeId;
+                                                  return (
+                                                       <Box
+                                                            key={themeEntry.id}
+                                                            px="$4"
+                                                            py="$3"
+                                                            onTouchEnd={() => {
+                                                                 setIsThemeMenuOpen(false);
+                                                                 changeTheme(themeEntry);
+                                                            }}>
+                                                            <HStack space="md">
+                                                                 <Text color={textColor}>{themeEntry.name}</Text>
+                                                                 {isActive ? <Icon as={MaterialIcons} name="check" size="md" color={textColor} /> : null}
+                                                            </HStack>
+                                                       </Box>
+                                                  );
+                                             })}
+                                        </ScrollView>
+                                   </Box>
+                              </Box>
+                         </View>
+                    </Modal>
+               )}
+               <Box alignItems="center">
+                    <Button
+                         ref={buttonRef}
+                         size="sm"
+                         borderRadius="$full"
+                         isDisabled={isSwitchingTheme}
+                         onPress={() => {
+                              measureButton();
+                              setIsThemeMenuOpen(true);
+                         }}
+                         bg="transparent">
+                         <ButtonIcon as={MaterialIcons} name="palette" color={theme['tokens']['colors']['primary']['500']} />
+                         {showText ? <ButtonText color={theme['tokens']['colors']['primary']['500']}> {activeThemeName}</ButtonText> : null}
+                    </Button>
+               </Box>
+               <Modal transparent animationType="fade" visible={isSwitchingTheme}>
+                    <View style={[themeSwitcherStyles.overlay, colorMode === 'dark' ? themeSwitcherStyles.overlayDark : themeSwitcherStyles.overlayLight]}>
+                         <Box bg={colorMode === 'dark' ? '$coolGray800' : '$warmGray50'} borderRadius="$xl" px="$6" py="$5" alignItems="center" justifyContent="center">
+                              <Spinner size="large" color={theme['tokens']['colors']['primary']['500']} />
+                              <Text mt="$3" color={textColor}>
+                                   Switching theme...
+                              </Text>
+                         </Box>
+                    </View>
+               </Modal>
+          </>
+     );
+};
+
+const themeSwitcherStyles = StyleSheet.create({
+     overlay: {
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+     },
+     overlayLight: {
+          backgroundColor: 'rgba(15, 23, 42, 0.35)',
+     },
+     overlayDark: {
+          backgroundColor: 'rgba(0, 0, 0, 0.6)',
+     },
+});
+
 export const THEME_STALE_MS = 12 * 60 * 60 * 1000;

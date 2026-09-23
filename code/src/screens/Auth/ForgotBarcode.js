@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import React from 'react';
 import { Platform } from 'react-native';
 import { getTermFromDictionary, getTranslation, getTranslationWithValuesText } from '../../translations/TranslationService';
@@ -53,7 +52,7 @@ export const ForgotBarcode = (props) => {
                setButtonLabel(await getTranslationWithValuesText('forgot_barcode_link', usernameLabel, language, libraryUrl, true));
                setModalTitle(await getTranslationWithValuesText('forgot_barcode_title', usernameLabel, language, libraryUrl, true));
                await getTranslation('Phone Number', language, libraryUrl).then((result) => {
-                    let term = _.toString(result);
+                    let term = String(result ?? '');
                     if (!term.includes('%')) {
                          setModalButtonLabel(term);
                     }

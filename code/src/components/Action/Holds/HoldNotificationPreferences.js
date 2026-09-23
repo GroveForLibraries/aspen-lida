@@ -1,11 +1,12 @@
 import React from 'react';
-import _ from 'lodash';
-import { getTermFromDictionary } from '@/src/translations/TranslationService';
-import { useTranslationWithValues } from '@/src/hooks/useTranslationWithValues';
-import { ThemedFormControl as FormControl, ThemedInput as Input, ThemedInputField as InputField, ThemedFormControlLabelText as FormControlLabelText, ThemedFormControlHelper as FormControlHelper, ThemedFormControlHelperText as FormControlHelperText, ThemedFormControlLabel as FormControlLabel } from '../../themed/ThemedFormControls';
-import { ThemedCheckbox as Checkbox, ThemedCheckboxIcon as CheckboxIcon, ThemedCheckboxIndicator as CheckboxIndicator, ThemedCheckboxLabel as CheckboxLabel } from '../../themed/ThemedCheckbox';
-import { ThemedSelect as Select, ThemedSelectBackdrop as SelectBackdrop, ThemedSelectContent as SelectContent, ThemedSelectDragIndicator as SelectDragIndicator, ThemedSelectDragIndicatorWrapper as SelectDragIndicatorWrapper, ThemedSelectInput as SelectInput, ThemedSelectItem as SelectItem, ThemedSelectPortal as SelectPortal, ThemedSelectScrollView as SelectScrollView, ThemedSelectTrigger as SelectTrigger } from '../../themed/ThemedSelect';
+import { Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { getTermFromDictionary } from '../../../translations/TranslationService';
+import { useTranslationWithValues } from '../../../hooks/useTranslationWithValues';
 import { ThemedText as Text } from '@/src/components/themed/ThemedText';
+import { ThemedSelect as Select, ThemedSelectBackdrop as SelectBackdrop, ThemedSelectContent as SelectContent, ThemedSelectDragIndicator as SelectDragIndicator, ThemedSelectDragIndicatorWrapper as SelectDragIndicatorWrapper, ThemedSelectInput as SelectInput, ThemedSelectItem as SelectItem, ThemedSelectPortal as SelectPortal, ThemedSelectScrollView as SelectScrollView, ThemedSelectTrigger as SelectTrigger } from '../../themed/ThemedSelect';
+import { ThemedCheckbox as Checkbox, ThemedCheckboxIcon as CheckboxIcon, ThemedCheckboxIndicator as CheckboxIndicator, ThemedCheckboxLabel as CheckboxLabel } from '../../themed/ThemedCheckbox';
+import { ThemedFormControl as FormControl, ThemedInput as Input, ThemedInputField as InputField, ThemedFormControlLabelText as FormControlLabelText, ThemedFormControlHelper as FormControlHelper, ThemedFormControlHelperText as FormControlHelperText, ThemedFormControlLabel as FormControlLabel } from '../../themed/ThemedFormControls';
 
 /**
  * HoldNotificationPreferences component for displaying notification preferences for holds.
@@ -17,7 +18,7 @@ export const HoldNotificationPreferences = (props) => {
      const { textColor, brand, user, language, emailNotification, setEmailNotification, phoneNotification, setPhoneNotification, smsNotification, setSMSNotification, smsCarrier, setSMSCarrier, smsNumber, setSMSNumber, phoneNumber, setPhoneNumber } = props;
 
      const holdNotificationInfo = user.holdNotificationInfo;
-     const smsCarriers = holdNotificationInfo.smsCarriers;
+     const smsCarriers = Object.values(holdNotificationInfo.smsCarriers ?? {});
 
      const { text: emailNotificationLabel } = useTranslationWithValues(
           'hold_email_notification',
@@ -72,7 +73,7 @@ export const HoldNotificationPreferences = (props) => {
                          </FormControl>
                     </>
                ) : null}
-               {!_.isEmpty(smsCarriers) ? (
+                {smsCarriers.length > 0 ? (
                     <>
                          <FormControl className="mb-1">
                               <Checkbox
@@ -99,7 +100,7 @@ export const HoldNotificationPreferences = (props) => {
                                         <Select name="smsCarrier" selectedValue={smsCarrier} accessibilityLabel={getTermFromDictionary(language, 'hold_sms_select_carrier')} onValueChange={(itemValue) => setSMSCarrier(itemValue)}>
                                              <SelectTrigger>
                                                   {smsCarrier && smsCarrier !== -1 ? (
-                                                       _.map(smsCarriers, function (carrier, selectedIndex, array) {
+                                                       smsCarriers.map((carrier, selectedIndex) => {
                                                             if (selectedIndex === smsCarrier) {
                                                                  // TODO(translation): Replace hardcoded placeholder with TranslationService-backed key.
                                                                  return <SelectInput placeholder="Select a Carrier" value={carrier} />;
@@ -117,7 +118,7 @@ export const HoldNotificationPreferences = (props) => {
                                                             <SelectDragIndicator />
                                                        </SelectDragIndicatorWrapper>
                                                        <SelectScrollView>
-                                                            {_.map(smsCarriers, function (carrier, index, array) {
+                                                            {smsCarriers.map((carrier, index) => {
                                                                  if (index === smsCarrier) {
                                                                       return <SelectItem key={index} label={carrier} value={index} style={{ backgroundColor: brand.tertiary[300] }} textStyle={{ color: brand.tertiary['500-text'] }} />;
                                                                  }

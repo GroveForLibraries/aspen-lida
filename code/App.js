@@ -19,7 +19,7 @@ import { buildThemeForLibrary, runExclusiveThemeInit, THEME_STALE_MS, useThemeFo
 import { ToastRegistrar } from '@/src/components/feedback';
 import { logDebugMessage, logErrorMessage } from './src/util/logging.js';
 import { initDatabase } from './src/util/db';
-import { loadLibraryUrl, loadThemeState, saveThemeState, isStoredThemeIdMatch } from './src/util/db';
+import { loadLibraryUrl, loadThemeState, saveThemeState } from './src/util/db';
 import { GLOBALS } from './src/util/globals';
 
 logDebugMessage("1 Enabling Screens, react-native-screens");
@@ -164,30 +164,31 @@ export default function AppContainer() {
                          const mode = current?.colorMode === 'dark' ? 'dark' : 'light';
                          const hasStoredTheme = Boolean(current?.themeColors?.primary && current?.themeColors?.secondary && current?.themeColors?.tertiary);
                          const hasMatchingThemeId = await isStoredThemeIdMatch(GLOBALS.themeId ?? 1);
-                         const themeAgeMs = current?.updatedAt ? Date.now() - current.updatedAt : Number.POSITIVE_INFINITY;
-                         const isThemeStale = themeAgeMs > THEME_STALE_MS;
+                         const persistedLibraryUrl = await loadLibraryUrl();
+                         const themeUrl = persistedLibraryUrl || GLOBALS.url || Constants.expoConfig.extra.apiUrl;
 
-                         if (!hasStoredTheme || !hasMatchingThemeId || isThemeStale) {
-                              const persistedLibraryUrl = await loadLibraryUrl();
-                              const themeUrl = persistedLibraryUrl || GLOBALS.url || Constants.expoConfig.extra.apiUrl;
-                              logDebugMessage(`4 Building theme for current themeId using url=${themeUrl ?? 'none'} stale=${isThemeStale} ageMs=${themeAgeMs}`);
-                              if (!themeUrl) {
-                                   logDebugMessage('4 Skipping startup theme fetch because no library URL is available yet');
-                              } else {
-                                   const builtTheme = await buildThemeForLibrary(themeUrl);
-                                  await saveThemeState({
-                                       themeId: builtTheme.themeId,
-                                       colorMode: mode,
-                                       themeColors: builtTheme.themeColors,
-                                  });
-                             }
-                         } else if (!current?.colorMode) {
-                              await saveThemeState({
-                                   ...current,
-                                   colorMode: mode,
-                              });
-                         }
-                    });
+                    if (!themeUrl) {
+                         logDebugMessage('4 Skipping startup theme fetch because no library URL is available yet');
+                    } else {
+                         logDebugMessage(`4 Building theme for current launch using url=${themeUrl}`);
+                         const builtTheme = await buildThemeForLibrary(themeUrl);
+                         await saveThemeState({
+                              themeId: builtTheme.themeId,
+                              locationId: builtTheme.locationId,
+                              colorMode: mode,
+                              textColor,
+                              themeColors: builtTheme.themeColors,
+                              header: builtTheme.header,
+                         });
+                    }
+
+                    if (!themeUrl && (!current?.textColor || !current?.colorMode)) {
+                         await saveThemeState({
+                              ...current,
+                              colorMode: mode,
+                              textColor,
+                         });
+                    }
                } catch (e) {
                     logErrorMessage('4 Could not load or build theme ' + e);
                } finally {

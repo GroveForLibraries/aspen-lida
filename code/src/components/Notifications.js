@@ -1,8 +1,7 @@
 import Constants from 'expo-constants';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
-import _ from 'lodash';
-import React from 'react';
+import React, {useContext} from 'react';
 import { Platform } from 'react-native';
 import { ThemedAlert as Alert, ThemedAlertIcon as AlertIcon, ThemedAlertText as AlertText } from './themed/ThemedAlert';
 import { ThemedButton as Button, ThemedButtonIcon as ButtonIcon } from './themed/ThemedButton';
@@ -15,7 +14,6 @@ import { getTermFromDictionary } from '../translations/TranslationService';
 import { dismissSystemMessage } from '../util/api/system';
 import { normalizeDisplayText, stripHTML } from '../helpers/helpers';
 import { logDebugMessage, logErrorMessage } from '../util/logging.js';
-import { useTheme } from '../themes/theme';
 
 /**
  * Registers the device for push notifications and returns the Expo push token.
@@ -186,7 +184,7 @@ export const DisplayMessage = (props) => {
 async function hideSystemMessage(allSystemMessages, currentMessageId, isDismissible, url) {
      let messages = allSystemMessages;
      // remove it from the array to hide it for the session
-     messages = _.reject(messages, { id: currentMessageId });
+     messages = messages.filter((item) => item.id !== currentMessageId);
 
      if (isDismissible === 1 || isDismissible === '1') {
           // send request to dismiss it with Discovery

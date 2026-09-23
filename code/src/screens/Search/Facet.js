@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import { concat, filter, forEach, isEqual, map, size } from '../../helpers/helpers';
 import { ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/ThemedMaterialIcons';
 import React from 'react';
 import { ThemedScrollView as ScrollView } from '@/src/components/themed/ThemedScrollView';
@@ -52,13 +52,13 @@ export const Facet = ({ route, navigation }) => {
 
      const preselectValues = () => {
           let newValues = [];
-          const cluster = _.filter(SearchGlobal.pendingFilters, ['field', category]);
-          _.map(cluster, function (item) {
+          const cluster = filter(SearchGlobal.pendingFilters, ['field', category]);
+          map(cluster, function (item) {
                const facets = item['facets'];
-               if (_.size(facets) > 0) {
-                    _.forEach(facets, function (value) {
+               if (size(facets) > 0) {
+                    forEach(facets, function (value) {
                          if (multiSelect) {
-                              newValues = _.concat(newValues, value);
+                              newValues = concat(newValues, value);
                          } else {
                               newValues = value;
                          }
@@ -73,10 +73,10 @@ export const Facet = ({ route, navigation }) => {
           _isMounted.current = true;
 
           const initData = async () => {
-               const data = _.filter(SearchGlobal.availableFacets, ['field', category]);
+               const data = filter(SearchGlobal.availableFacets, ['field', category]);
                if (data[0]) {
                     setFacets(data[0]['facets']);
-                    setNumFacets(_.size(data[0]['facets']));
+                    setNumFacets(size(data[0]['facets']));
                }
 
                preselectValues();
@@ -93,7 +93,7 @@ export const Facet = ({ route, navigation }) => {
      const hasPendingChanges = React.useCallback(() => {
           const normalizedValues = Array.isArray(values) ? [...values].sort() : values;
           const normalizedDefaults = Array.isArray(valuesDefault) ? [...valuesDefault].sort() : valuesDefault;
-          const hasLocalPendingChanges = !_.isEqual(normalizedValues, normalizedDefaults);
+          const hasLocalPendingChanges = !isEqual(normalizedValues, normalizedDefaults);
           return SearchGlobal.hasPendingChanges || hasLocalPendingChanges;
      }, [values, valuesDefault]);
 
@@ -148,7 +148,7 @@ export const Facet = ({ route, navigation }) => {
                     setIsLoading(false);
                } else {
                     setFacets(result['facets']);
-                    setNumFacets(_.size(result['facets']));
+                    setNumFacets(size(result['facets']));
                     setIsLoading(false);
                }
           });
@@ -224,7 +224,7 @@ export const Facet = ({ route, navigation }) => {
                const prevSelections = values;
                addAppliedFilter(group, newValues, multiSelect);
                if (multiSelect) {
-                    const difference = _.difference(prevSelections, newValues);
+                    const difference = difference(prevSelections, newValues);
                     if (difference) {
                          removeAppliedFilter(group, difference);
                     }
@@ -234,7 +234,7 @@ export const Facet = ({ route, navigation }) => {
 
      const discardChanges = () => {
           SearchGlobal.hasPendingChanges = true;
-          const difference = _.difference(values, valuesDefault);
+          const difference = difference(values, valuesDefault);
           if (difference) {
                removeAppliedFilter(category, difference);
           }

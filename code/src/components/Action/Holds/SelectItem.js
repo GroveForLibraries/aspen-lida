@@ -1,10 +1,9 @@
 import React from 'react';
-import _ from 'lodash';
-import { getTermFromDictionary } from '@/src/translations/TranslationService';
 import { ThemedFormControl as FormControl, ThemedFormControlLabelText as FormControlLabelText, ThemedFormControlLabel as FormControlLabel } from '../../themed/ThemedFormControls';
 import { ThemedMaterialIcons as MaterialIcons } from '../../themed/ThemedMaterialIcons';
 import { ThemedRadio as Radio, ThemedRadioGroup as RadioGroup, ThemedRadioIcon as RadioIcon, ThemedRadioIndicator as RadioIndicator, ThemedRadioLabel as RadioLabel } from '../../themed/ThemedRadio';
 import { ThemedSelect as Select, ThemedSelectBackdrop as SelectBackdrop, ThemedSelectContent as SelectContent, ThemedSelectDragIndicator as SelectDragIndicator, ThemedSelectDragIndicatorWrapper as SelectDragIndicatorWrapper, ThemedSelectInput as SelectInput, ThemedSelectItem as SelectItem, ThemedSelectPortal as SelectPortal, ThemedSelectScrollView as SelectScrollView, ThemedSelectTrigger as SelectTrigger } from '../../themed/ThemedSelect';
+import { getTermFromDictionary } from '@/src/translations/TranslationService';
 
 /**
  * SelectItemHold component for selecting a hold type and item for a library hold request.
@@ -63,7 +62,7 @@ export const SelectItemHold = (props) => {
                          </FormControlLabel>
                          <Select name="itemForHold" selectedValue={defaultItem} minWidth={200} accessibilityLabel={getTermFromDictionary(language, 'select_item')} className="mt-1 mb-2" onValueChange={(itemValue) => setItem(itemValue)}>
                               <SelectTrigger>
-                                   {_.map(Object.keys(copies), function (item, index, array) {
+                                   {Object.keys(copies).map((item) => {
                                         let copy = copies[item];
                                         if (copy.id === defaultItem) {
                                              setItem(defaultItem);
@@ -78,7 +77,7 @@ export const SelectItemHold = (props) => {
                                              <SelectDragIndicator />
                                         </SelectDragIndicatorWrapper>
                                         <SelectScrollView>
-                                             {_.map(Object.keys(copies), function (item, index, array) {
+                                             {Object.keys(copies).map((item) => {
                                                   let copy = copies[item];
                                                   if (copy.id === defaultItem) {
                                                        return <SelectItem label={copy.location} value={copy.id} key={copy.id} style={{ backgroundColor: brand.tertiary[300] }} textStyle={{ color: brand.tertiary['500-text'] }} />;

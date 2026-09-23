@@ -4,7 +4,6 @@ import { useAccounts } from '../../hooks/useUserData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { StartCheckOutSession } from '../../screens/SCO/StartCheckOutSession';
 import { SelfCheckOut } from '../../screens/SCO/SelfCheckOut';
-import _ from 'lodash';
 import SelfCheckScanner from '../../screens/SCO/SelfCheckScanner';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 import TitleWithLogo from '../../components/TitleWithLogo'
@@ -22,9 +21,10 @@ const SelfCheckOutStackNavigator = () => {
      const language = useActiveLanguage();
      const { data: accounts } = useAccounts();
      useTheme();
+     const availableAccounts = Object.values(accounts ?? {});
 
      let defaultRoute = 'SelfCheckOut';
-     if (_.size(accounts) >= 1) {
+     if (availableAccounts.length >= 1) {
           defaultRoute = 'StartCheckOutSession';
      }
      return (

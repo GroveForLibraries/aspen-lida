@@ -58,10 +58,8 @@ export const Settings_PickupLocations = () => {
 	const language = useActiveLanguage();
 	const { data: userState } = useUserState();
     const user = userState?.user ?? {};
-    const { data: locationsData } = useLocations();
-	const { data: sublocationsData } = useSublocations();
-    const locations = Array.isArray(locationsData) ? locationsData : [];
-	const sublocations = Array.isArray(sublocationsData) ? sublocationsData : [];
+    const { data: locations } = useLocations();
+	const { data: sublocations } = useSublocations();
 	const updateLocations = useUpdateLocations();
 	const updateSublocations = useUpdateSublocations();
     const updateUserProfile = useUpdateUserProfile();

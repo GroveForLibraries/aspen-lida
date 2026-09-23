@@ -1,5 +1,5 @@
+import { filter, isEmpty, isObject } from '../../../helpers/helpers';
 import { ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/ThemedMaterialIcons';
-import _ from 'lodash';
 import React from 'react';
 import { HStack } from '@/components/ui/hstack';
 import { Pressable } from '@/components/ui/pressable';
@@ -27,9 +27,9 @@ export const Facet_RadioGroup = ({ title, data, category, updater, applied }) =>
 
      React.useEffect(() => {
           const facets = data;
-          if (_.isObject(facets)) {
-               const facet = _.filter(facets, 'isApplied');
-               if (!_.isEmpty(facet)) {
+          if (isObject(facets)) {
+               const facet = filter(facets, 'isApplied');
+               if (!isEmpty(facet)) {
                     setValue(facet[0]['value'] ?? '');
                }
           }

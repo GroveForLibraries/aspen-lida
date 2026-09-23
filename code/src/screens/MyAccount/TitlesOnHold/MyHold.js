@@ -1,6 +1,28 @@
 import { ThemedMaterialCommunityIcons as MaterialCommunityIcons, ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/ThemedMaterialIcons';
 import { Image } from 'expo-image';
 import _ from 'lodash';
+import {
+     Actionsheet,
+     ActionsheetItem,
+     ActionsheetBackdrop,
+     ActionsheetContent,
+     ActionsheetItemText,
+     ActionsheetDragIndicatorWrapper,
+     ActionsheetDragIndicator,
+     Box,
+     Button,
+     ButtonText,
+     Center,
+     Checkbox,
+     CheckboxIndicator,
+     CheckboxIcon,
+     CheckIcon,
+     HStack,
+     Icon,
+     Pressable,
+     ActionsheetIcon,
+     VStack
+} from '@gluestack-ui/themed';
 import React from 'react';
 import { ThemedActionsheet as Actionsheet, ThemedActionsheetBackdrop as ActionsheetBackdrop, ThemedActionsheetDragIndicator as ActionsheetDragIndicator, ThemedActionsheetDragIndicatorWrapper as ActionsheetDragIndicatorWrapper, ThemedActionsheetItem as ActionsheetItem, ThemedActionsheetContent as ActionsheetContent, ThemedActionsheetItemText as ActionsheetItemText } from '@/src/components/themed/ThemedActionsheet';
 import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../../components/themed/ThemedButton';
@@ -17,8 +39,8 @@ import { navigateStack } from '@/src/helpers/RootNavigator';
 import { getTermFromDictionary } from '@/src/translations/TranslationService';
 import { cancelHold, cancelHolds, freezeHold, freezeHolds, thawHold, thawHolds } from '@/src/util/api/user';
 import { formatPickupLocations } from '@/src/util/api/userHelper';
-import { formatDiscoveryVersion } from '@/src/helpers/helpers';
 import { checkoutItem, getPickupLocations } from '@/src/util/api/user';
+import { formatDiscoveryVersion, isArray, map } from '../../../helpers/helpers';
 import { SelectPickupLocation } from './SelectPickupLocation';
 import { SelectThawDate } from './SelectThawDate.js';
 import { useQueryClient } from '@tanstack/react-query';
@@ -37,7 +59,6 @@ const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 export const MyHold = (props) => {
      const hold = props.data;
      const resetGroup = props.resetGroup;
-     const [pickupLocations, setPickupLocations] = React.useState([]);
      const { data: sublocations } = useSublocations();
      const section = props.section;
      const { data: userState } = useUserState();
@@ -68,19 +89,11 @@ export const MyHold = (props) => {
                     setUsesHoldPosition(true);
                     setHoldPosition(tmp);
                }
+          } else {
+               setUsesHoldPosition(false);
+               setHoldPosition(null);
           }
-          const update = async () => {
-               await getPickupLocations(library.baseUrl, null, hold.id).then((result) => {
-                    if(result.ok) {
-                         const pickupLocationsList = formatPickupLocations(result.data.result);
-                         if (pickupLocations !== pickupLocationsList.locations) {
-                              setPickupLocations(pickupLocationsList.locations);
-                         }
-                    }
-               });
-          };
-          update();
-     }, [language]);
+     }, [hold.holdQueueLength, hold.position, language]);
 
      if (hold.canFreeze === true) {
           if (hold.frozen === true) {
@@ -380,8 +393,8 @@ export const ManageSelectedHolds = (props) => {
      let numToThaw = 0;
      let numSelected = 0;
 
-     if (_.isArray(selectedValues)) {
-          _.map(selectedValues, function (item) {
+     if (isArray(selectedValues)) {
+          map(selectedValues, function (item, index, collection) {
                if (item.includes('freeze')) {
                     const arr = item.split('|');
                     titlesToFreeze.push({
@@ -413,7 +426,7 @@ export const ManageSelectedHolds = (props) => {
           numToCancel = titlesToCancel.length;
           numToFreeze = titlesToFreeze.length;
           numToThaw = titlesToThaw.length;
-          numSelected = _.toString(selectedValues.length);
+          numSelected = String(selectedValues.length);
      }
 
      const numToCancelLabel = getTermFromDictionary(language, 'cancel_selected_holds') + ' (' + numToCancel + ')';
@@ -544,8 +557,8 @@ export const ManageAllHolds = (props) => {
 
      const holdsNotReady = holds[1].data;
 
-     if (_.isArray(holdsNotReady)) {
-          _.map(holdsNotReady, function (item) {
+     if (isArray(holdsNotReady)) {
+          map(holdsNotReady, function (item, index, collection) {
                let record = item.recordId;
                if(item.source === 'overdrive') {
                   record = item.sourceId
@@ -604,7 +617,6 @@ export const ManageAllHolds = (props) => {
                                         resetGroup();
                                         startFreezing(false);
                                    });
-                                   queryClient.invalidateQueries({ queryKey: ['holds', user.id, library.baseUrl, language] });
                               }}>
                               <ActionsheetItemText>{numToFreezeLabel}</ActionsheetItemText>
                          </ActionsheetItem>

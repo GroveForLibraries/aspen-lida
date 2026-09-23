@@ -6,8 +6,8 @@ import { useUserState, useCards, useAccounts, useUpdateUserProfile } from '../..
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { navigateStack } from '../../helpers/RootNavigator';
+import { concat, find } from '../../helpers/helpers';
 import { ThemedMaterialIcons as MaterialIcons, ThemedMaterialCommunityIcons as MaterialCommunityIcons } from '../../components/themed/ThemedMaterialIcons';
-import _ from 'lodash';
 import { loadingSpinner } from '../../components/loadingSpinner';
 import { checkoutItem, refreshProfile } from '../../util/api/user';
 import { useQueryClient } from '@tanstack/react-query';
@@ -47,6 +47,7 @@ export const SelfCheckOut = () => {
      const { data: cards } = useCards();
      const { data: accounts } = useAccounts();
      const { checkouts, updateCheckouts } = React.useContext(CheckoutsContext);
+     const availableAccounts = Object.values(accounts ?? {});
      const { brand } = useTheme();
 
      const passedItems = route.params?.items ?? [];
@@ -100,10 +101,10 @@ export const SelfCheckOut = () => {
           }
      }, [library.baseUrl, updateUserProfile]);
 
-     if (_.find(cards, ['ils_barcode', activeAccount])) {
-          activeAccount = _.find(cards, ['ils_barcode', activeAccount]);
-     } else if (_.find(cards, ['cat_username', activeAccount])) {
-          activeAccount = _.find(cards, ['cat_username', activeAccount]);
+     if (find(cards, ['ils_barcode', activeAccount])) {
+          activeAccount = find(cards, ['ils_barcode', activeAccount]);
+     } else if (find(cards, ['cat_username', activeAccount])) {
+          activeAccount = find(cards, ['cat_username', activeAccount]);
      }
 
      React.useLayoutEffect(() => {
@@ -125,9 +126,9 @@ export const SelfCheckOut = () => {
                          logDebugMessage('session checkouts: ');
                          logDebugMessage(sessionCheckouts);
                          logDebugMessage('matching items: ');
-                         logDebugMessage(_.find(sessionCheckouts, ['barcode', barcode]) ?? false);
+                         logDebugMessage(find(sessionCheckouts, ['barcode', barcode]) ?? false);
                          // check if item is already checked out
-                         if (_.find(sessionCheckouts, ['barcode', barcode]) || _.find(checkouts, ['barcode', barcode])) {
+                         if (find(sessionCheckouts, ['barcode', barcode]) || find(checkouts, ['barcode', barcode])) {
                               // prompt error
                               setHasError(true);
                               setErrorBody(getTermFromDictionary(language, 'item_already_checked_out'));
@@ -150,7 +151,7 @@ export const SelfCheckOut = () => {
                                         let tmp = result.itemData;
                                         tmp.completionMessage = result.completionMessage ?? null;
                                         tmp.mustConfirm = result.mustConfirmCompletionMessage ?? false;
-                                        let updatedSession = _.concat(tmp, items);
+                                        let updatedSession = concat(tmp, items);
                                         logInfoMessage(tmp);
                                         //setItems(tmp);
                                         setItems([...items, tmp]);
@@ -196,7 +197,7 @@ export const SelfCheckOut = () => {
 
      const startNewSession = () => {
           setShowFinishModal(false);
-          if (_.size(accounts) >= 1) {
+          if (availableAccounts.length >= 1) {
                navigation.replace('StartCheckOutSession', {
                     startNew: true });
           } else {
@@ -212,7 +213,7 @@ export const SelfCheckOut = () => {
      };
 
      const currentCheckoutHeader = () => {
-          if (_.size(items) >= 1) {
+          if (items.length >= 1) {
                return (
                     <HStack space="md" className="justify-between pb-2">
                          <Text bold className="w-[70%]" size="xs">

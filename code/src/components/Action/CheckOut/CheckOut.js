@@ -1,7 +1,6 @@
 import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../themed/ThemedButton';
 import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
 import React from 'react';
-import _ from 'lodash';
 import { useQueryClient } from '@tanstack/react-query';
 import { useWindowDimensions } from 'react-native';
 import RenderHtml from 'react-native-render-html';
@@ -35,6 +34,8 @@ export const CheckOut = (props) => {
      const library = useLibrary();
      const language = useActiveLanguage();
      const { neutrals, brand, textColor } = useTheme();
+     const availableAccounts = Object.values(accounts ?? {});
+     const [loading, setLoading] = React.useState(false);
 
      const volumeInfo = {
           numItemsWithVolumes: 0,
@@ -49,7 +50,7 @@ export const CheckOut = (props) => {
           }
      }, [library.baseUrl, updateUserProfile]);
 
-     if (_.size(accounts) > 0) {
+     if (availableAccounts.length > 0) {
           return (
                <HoldPrompt
                     language={language}

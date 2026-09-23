@@ -47,16 +47,16 @@ export async function saveDictionary(dictionary = {}) {
      });
 
      const entries = toDictionaryEntries(dictionary);
-     await db.withTransactionAsync(async () => {
-          await db.runAsync(`DELETE FROM language_state;`);
-          for (const [languageCode, terms] of entries) {
-               await db.runAsync(
-                    `INSERT INTO language_state (language_code, updated_at, dictionary_json)
-                     VALUES (?, ?, ?);`,
-                    [languageCode, now, safeStringify(terms)]
-               );
-          }
-     });
+     for (const [languageCode, terms] of entries) {
+          await db.runAsync(
+               `INSERT INTO language_state (language_code, updated_at, dictionary_json)
+                VALUES (?, ?, ?)
+                ON CONFLICT(language_code) DO UPDATE SET
+                     updated_at = excluded.updated_at,
+                     dictionary_json = excluded.dictionary_json;`,
+               [languageCode, now, safeStringify(terms)]
+          );
+     }
 }
 
 export async function loadDictionary() {

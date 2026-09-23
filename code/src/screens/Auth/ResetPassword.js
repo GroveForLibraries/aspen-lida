@@ -1,9 +1,8 @@
-import _ from 'lodash';
 import React from 'react';
 import { loadingSpinner } from '../../components/loadingSpinner';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { getTermFromDictionary, getTranslationWithValuesText } from '../../translations/TranslationService';
-import { normalizeDisplayText } from '../../helpers/helpers';
+import { normalizeDisplayText, isEmpty, lowerCase } from '../../helpers/helpers';
 import { LIBRARY } from '../../util/globals';
 import { logDebugMessage, getErrorMessage } from '../../util/logging';
 import { resetPassword } from '../../util/api/user';
@@ -49,18 +48,18 @@ export const ResetPassword = (props) => {
                setModalButtonLabel(await getTranslationWithValuesText('reset_my_password', passwordLabel, language, libraryUrl, true));
 
                if (ils === 'koha') {
-                    setResetBody(await getTranslationWithValuesText('koha_password_reset_body', [_.lowerCase(passwordLabel), _.lowerCase(usernameLabel)], language, libraryUrl, true));
+                    setResetBody(await getTranslationWithValuesText('koha_password_reset_body', [lowerCase(passwordLabel), lowerCase(usernameLabel)], language, libraryUrl, true));
                } else if (ils === 'sirsi' || ils === 'horizon') {
-                    setResetBody(await getTranslationWithValuesText('sirsi_password_reset_body', _.lowerCase(passwordLabel), language, libraryUrl, true));
+                    setResetBody(await getTranslationWithValuesText('sirsi_password_reset_body', lowerCase(passwordLabel), language, libraryUrl, true));
                } else if (ils === 'evergreen') {
-                    setResetBody(await getTranslationWithValuesText('evergreen_password_reset_body', _.lowerCase(passwordLabel), language, libraryUrl, true));
+                    setResetBody(await getTranslationWithValuesText('evergreen_password_reset_body', lowerCase(passwordLabel), language, libraryUrl, true));
                } else if (ils === 'millennium') {
-                    setResetBody(await getTranslationWithValuesText('millennium_password_reset_body', [_.lowerCase(usernameLabel), _.lowerCase(passwordLabel)], language, libraryUrl, true));
+                    setResetBody(await getTranslationWithValuesText('millennium_password_reset_body', [lowerCase(usernameLabel), lowerCase(passwordLabel)], language, libraryUrl, true));
                     setModalButtonLabel(await getTranslationWithValuesText('request_pin_reset', passwordLabel, language, libraryUrl, true));
                } else if (ils === 'symphony') {
-                    setResetBody(await getTranslationWithValuesText('symphony_password_reset_body', _.lowerCase(usernameLabel), language, libraryUrl, true));
+                    setResetBody(await getTranslationWithValuesText('symphony_password_reset_body', lowerCase(usernameLabel), language, libraryUrl, true));
                } else {
-                    setResetBody(await getTranslationWithValuesText('aspen_password_reset_body', [_.lowerCase(passwordLabel), _.lowerCase(usernameLabel)], language, libraryUrl, true));
+                    setResetBody(await getTranslationWithValuesText('aspen_password_reset_body', [lowerCase(passwordLabel), lowerCase(usernameLabel)], language, libraryUrl, true));
                }
                setIsLoading(false);
           }
@@ -286,7 +285,7 @@ function useResetPasswordState(setShowForgotPasswordModal, setIsProcessing) {
  */
 function renderStandardResults({ results, showResults, hasError, textColor, closeWindow, resetWindow, primaryColor, primaryTextColor, successHasResend = false, onResend }) {
      if (results && showResults && !hasError) {
-          if (_.isEmpty(results.success) && results.error) {
+          if (isEmpty(results.success) && results.error) {
                return (
                     <>
                          <ModalBody>
@@ -295,9 +294,7 @@ function renderStandardResults({ results, showResults, hasError, textColor, clos
                          <ResultFooter textColor={textColor} onClose={closeWindow} onRetry={resetWindow} showRetry primaryColor={primaryColor} primaryTextColor={primaryTextColor} />
                     </>
                );
-          }
-
-          if (!_.isEmpty(results.message)) {
+          } else if (!isEmpty(results.message)) {
                return (
                     <>
                          <ModalBody>
@@ -492,8 +489,57 @@ function SirsiResetPassword(props) {
           primaryTextColor: brand.primary['500-text'],
      });
 
-     if (renderedResults) {
-          return renderedResults;
+     if (results && showResults && !hasError) {
+          if (_.isEmpty(results.success) && results.error) {
+               return (
+                    <>
+                         <ModalBody>
+                              <Text color={textColor}>{normalizeDisplayText(results.error)}</Text>
+                         </ModalBody>
+                         <ModalFooter>
+                              <ButtonGroup space="$2">
+                                   <Button variant="link" onPress={closeWindow}>
+                                        <ButtonText color={textColor}>{getTermFromDictionary('en', 'button_ok')}</ButtonText>
+                                   </Button>
+                                   <Button bgColor={theme.tokens.colors.primary['500']} onPress={resetWindow}>
+                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary('en', 'try_again')}</ButtonText>
+                                   </Button>
+                              </ButtonGroup>
+                         </ModalFooter>
+                    </>
+               );
+          } else if (!_.isEmpty(results.message)) {
+               return (
+                    <>
+                         <ModalBody>
+                              <Text color={textColor}>{normalizeDisplayText(results.message)}</Text>
+                         </ModalBody>
+                         <ModalFooter>
+                              <ButtonGroup space="$2">
+                                   <Button variant="link" onPress={closeWindow}>
+                                        <ButtonText color={textColor}>{getTermFromDictionary('en', 'cancel')}</ButtonText>
+                                   </Button>
+                              </ButtonGroup>
+                         </ModalFooter>
+                    </>
+               );
+          } else {
+               return (
+                    <>
+                         <ModalBody>
+                              <Text color={textColor}>{getTermFromDictionary('en', 'password_reset_success_body_1')}</Text>
+                              <Text color={textColor}>{getTermFromDictionary('en', 'password_reset_success_body_2')}</Text>
+                         </ModalBody>
+                         <ModalFooter>
+                              <ButtonGroup space="$2">
+                                   <Button variant="link" onPress={closeWindow}>
+                                        <ButtonText color={textColor}>{getTermFromDictionary('en', 'button_ok')}</ButtonText>
+                                   </Button>
+                              </ButtonGroup>
+                         </ModalFooter>
+                    </>
+               );
+          }
      }
 
      return <ResetForm resetBody={resetBody} usernameLabel={usernameLabel} username={username} setUsername={setUsername} onSubmit={initiateResetPassword} textColor={textColor} borderColor={borderColor} submitLabel={modalButtonLabel} isProcessing={isProcessing} primaryColor={brand.primary[500]} primaryTextColor={brand.primary['500-text']} onClose={closeWindow} />;
@@ -653,7 +699,7 @@ function MillenniumResetPassword(props) {
                               <Button variant="link" onPress={closeWindow}>
                                    <ButtonText style={{ color: textColor }}>{getTermFromDictionary('en', 'button_ok')}</ButtonText>
                               </Button>
-                              {!_.isEmpty(results.error) ? (
+                              {!isEmpty(results.error) ? (
                                    <Button colorScheme="primary" onPress={resetWindow}>
                                         <ButtonText>{getTermFromDictionary('en', 'try_again')}</ButtonText>
                                    </Button>

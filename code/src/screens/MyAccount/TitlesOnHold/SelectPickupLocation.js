@@ -1,5 +1,4 @@
 import { ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/ThemedMaterialIcons';
-import _ from 'lodash';
 import React from 'react';
 import { getTermFromDictionary } from '@/src/translations/TranslationService';
 import { changeHoldPickUpLocation } from '@/src/util/api/user';
@@ -26,32 +25,47 @@ export const SelectPickupLocation = (props) => {
           return o.locationId === currentPickupId;
      });
 
-     let pickupId = currentPickupId;
-     if (_.isNumber(pickupId)) {
-          pickupId = _.toString(pickupId);
-     }
-
-     pickupLocation = _.nth(locations, pickupLocation);
-     let pickupLocationCode = _.get(pickupLocation, 'code', '');
-     if (_.isNumber(pickupLocationCode)) {
-          pickupLocationCode = _.toString(pickupLocationCode);
-     }
-     if (pickupId != false) {
-          pickupLocation = pickupId.concat('_', pickupLocationCode);
-     }else{
-          pickupLocation = '';
-     }
-
      const [loading, setLoading] = React.useState(false);
+     const [loadingLocations, setLoadingLocations] = React.useState(false);
      const [showModal, setShowModal] = React.useState(false);
-     let [location, setLocation] = React.useState(pickupLocation);
-     let [activeSublocation, setActiveSublocation] = React.useState(null);
+     const [locations, setLocations] = React.useState([]);
+     const [location, setLocation] = React.useState('');
+     const [activeSublocation, setActiveSublocation] = React.useState(null);
+
+     const buildInitialLocation = React.useCallback((allLocations) => {
+          const matchedLocation = _.find(allLocations, (item) => _.toString(item.locationId) === _.toString(currentPickupId));
+          if (!matchedLocation) {
+               return '';
+          }
+
+          const locationId = _.toString(matchedLocation.locationId ?? '');
+          const code = _.toString(matchedLocation.code ?? '');
+          return `${locationId}_${code}`;
+     }, [currentPickupId]);
+
+     const loadLocations = React.useCallback(async () => {
+          setLoadingLocations(true);
+          const result = await getPickupLocations(libraryContext.baseUrl, null, pickupRecordId);
+          if (result?.ok) {
+               const pickupLocationsResult = formatPickupLocations(result.data?.result ?? []);
+               const validLocations = pickupLocationsResult?.locations ?? [];
+               setLocations(validLocations);
+
+               const initialLocation = buildInitialLocation(validLocations);
+               if (initialLocation) {
+                    setLocation(initialLocation);
+               }
+          }
+          setLoadingLocations(false);
+     }, [libraryContext.baseUrl, pickupRecordId, buildInitialLocation]);
 
      return (
           <>
                <ActionsheetItem
-                    onPress={() => {
+                    isLoading={loadingLocations}
+                    onPress={async () => {
                          setShowModal(true);
+                         await loadLocations();
                     }}>
                     <MaterialIcons name="location-on" size={18} className="mr-1" />
                    <ActionsheetItemText>{getTermFromDictionary(language, 'change_location')}</ActionsheetItemText>
@@ -83,8 +97,8 @@ export const SelectPickupLocation = (props) => {
 
                                              <SelectTrigger>
                                                   {locations.map((item, index) => {
-                                                       const locationId = item.locationId;
-                                                       const code = item.code;
+                                                       const locationId = _.toString(item.locationId ?? '');
+                                                       const code = _.toString(item.code ?? '');
                                                        const id = locationId.concat('_', code);
                                                        if (id === location) {
                                                             return <SelectInput key={index} value={item.name} />;
@@ -100,8 +114,8 @@ export const SelectPickupLocation = (props) => {
                                                        </SelectDragIndicatorWrapper>
                                                        <ScrollView className="max-h-100 min-w-full">
                                                             {locations.map((item, index) => {
-                                                                 const locationId = item.locationId;
-                                                                 const code = item.code;
+                                                                 const locationId = _.toString(item.locationId ?? '');
+                                                                 const code = _.toString(item.code ?? '');
                                                                  const id = locationId.concat('_', code);
                                                                  return (
                                                                      <SelectItem
@@ -134,6 +148,7 @@ export const SelectPickupLocation = (props) => {
                                        <ButtonText>{getTermFromDictionary(language, 'cancel')}</ButtonText>
                                    </Button>
                                    <Button
+                                        isDisabled={loadingLocations || !location}
                                         isLoading={loading}
                                        colorScheme="primary"
                                         isLoadingText={getTermFromDictionary(language, 'updating', true)}

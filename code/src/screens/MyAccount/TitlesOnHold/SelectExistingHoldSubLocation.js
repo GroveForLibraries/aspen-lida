@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import { isObject } from '../../../helpers/helpers';
 import React from 'react';
 import { Box } from '@/components/ui/box';
 import { ThemedFormControlLabel as FormControlLabel, ThemedFormControl as FormControl, ThemedFormControlLabelText as FormControlLabelText } from '../../../components/themed/ThemedFormControls';
@@ -16,7 +16,8 @@ export const SelectExistingHoldSubLocation = (props) => {
 
      const [locationId, locationCode] = location.split("_");
      if (sublocations !== undefined) {
-          if (_.isObject(sublocations)) {
+          if (isObject(sublocations)) {
+               const objectSize = Object.keys(sublocations).length;
                const validSublocations = [];
 
                const sublocationValues = Object.values(sublocations);

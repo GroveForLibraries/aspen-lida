@@ -1,7 +1,5 @@
 import { translationsLibrary as helperLibrary, getTermFromDictionary as helperGetTermFromDictionary } from './TranslationHelper';
 import { ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/ThemedMaterialIcons';
-import _ from 'lodash';
-import moment from 'moment';
 import React from 'react';
 import { Modal, StyleSheet, View } from 'react-native';
 import { Box } from '@/components/ui/box';
@@ -19,7 +17,7 @@ import {
      useUpdateLanguageDisplayName,
      useUpdateDictionary } from '../hooks/useLanguageData';
 
-import {decodeHTML } from '../helpers/helpers';
+import { decodeHTML, findByProperty, getCurrentDate, isObject, mergeDeep, mergeIntoNew } from '../helpers/helpers';
 import { GLOBALS } from '../util/globals';
 import { logDebugMessage, logInfoMessage, logWarnMessage, logErrorMessage, getErrorMessage } from '../util/logging.js';
 import { createApiClient } from '../util/api/apiFactory';
@@ -63,8 +61,8 @@ export const LanguageSwitcher = () => {
                // Hydrate selected language terms from SQLite immediately so UI reads the correct row
                // while fresh translations are fetched.
                const cachedTerms = await loadDictionaryForLanguage(val);
-               if (_.isObject(cachedTerms) && Object.keys(cachedTerms).length > 0) {
-                    setTranslationsLibrary(_.merge({}, translationsLibrary, { [val]: cachedTerms }));
+               if (isObject(cachedTerms) && Object.keys(cachedTerms).length > 0) {
+                    setTranslationsLibrary(mergeIntoNew(translationsLibrary, { [val]: cachedTerms }));
                }
 
                await getTranslatedTermsForUserPreferredLanguage(val, languageUrl);
@@ -87,7 +85,7 @@ export const LanguageSwitcher = () => {
           }
      };
 
-     if (_.isArray(languages) && _.size(languages) > 1) {
+     if (Array.isArray(languages) && languages.length > 1) {
           return (
                <>
                     <Box>
@@ -119,7 +117,7 @@ export const LanguageSwitcher = () => {
                                    </Button>
                               );
                          }}>
-                         {_.isArray(languages) ? (
+                         {Array.isArray(languages) ? (
                               <>
                                    {languages.map((language) => {
                                         return (
@@ -273,15 +271,15 @@ export async function getTranslationsWithValues(key, values, language, url, addT
                const translation = Object.values(response.data?.result?.translation);
                if (Object.values(response.data?.result?.translation) && addToDictionary) {
                     const lastUpdated = {
-                         lastUpdated: moment() };
-                    translationsLibrary = _.merge(translationsLibrary, lastUpdated);
+                         lastUpdated: getCurrentDate() };
+                    translationsLibrary = mergeDeep(translationsLibrary, lastUpdated);
 
                     const resolvedTranslation = formatTranslationWithValues(translation[0], normalizedValues);
                     const obj = {
                          [language]: {
                               [key]: translation[0],
                               [valuesCacheKey]: resolvedTranslation } };
-                    translationsLibrary = _.merge(translationsLibrary, obj);
+                     translationsLibrary = mergeDeep(translationsLibrary, obj);
 
                     try {
                          await saveDictionary(translationsLibrary);
@@ -338,7 +336,7 @@ export function getLanguageDisplayName(code, languages) {
      if (!Array.isArray(languages) || !code) {
           return '';
      }
-     const language = _.find(languages, ['code', code]);
+     const language = findByProperty(languages, 'code', code);
      return language?.displayName ?? '';
 }
 
@@ -354,8 +352,8 @@ export async function ensureTranslationsLibraryHydrated() {
                try {
                     logDebugMessage("Doing initial load of translations from SQL at startup")
                     const cachedDictionary = await loadDictionary();
-                    if (_.isObject(cachedDictionary) && Object.keys(cachedDictionary).length > 0) {
-                         translationsLibrary = _.merge({}, helperLibrary, cachedDictionary);
+                    if (isObject(cachedDictionary) && Object.keys(cachedDictionary).length > 0) {
+                         translationsLibrary = mergeIntoNew(helperLibrary, cachedDictionary);
                     }
                } catch (error) {
                     logWarnMessage('Failed loading cached translations dictionary from SQLite');
@@ -368,8 +366,8 @@ export async function ensureTranslationsLibraryHydrated() {
 }
 
 export function setTranslationsLibrary(dictionary) {
-     if (_.isObject(dictionary)) {
-          translationsLibrary = _.merge({}, helperLibrary, dictionary);
+     if (isObject(dictionary)) {
+          translationsLibrary = mergeIntoNew(helperLibrary, dictionary);
           dictionaryHydrationPromise = Promise.resolve();
      }
 }
@@ -394,7 +392,7 @@ export async function loadTranslationsFromDiscovery(language, url) {
           logInfoMessage("Skipping getBulkTranslations because defaults.json is empty.");
           const obj = {
                [language]: {} };
-          translationsLibrary = _.merge(translationsLibrary, obj);
+          translationsLibrary = mergeDeep(translationsLibrary, obj);
           return;
      }
 
@@ -430,18 +428,18 @@ export async function loadTranslationsFromDiscovery(language, url) {
                if (response.ok) {
                     const translation = response?.data?.result?.[language] ?? defaults;
                     const lastUpdated = {
-                         lastUpdated: moment() };
-                    translationsLibrary = _.merge(translationsLibrary, lastUpdated);
+                         lastUpdated: getCurrentDate() };
+                    translationsLibrary = mergeDeep(translationsLibrary, lastUpdated);
 
-                    if (_.isObject(translation)) {
+                    if (isObject(translation)) {
                          const obj = {
                               [language]: translation };
-                         translationsLibrary = _.merge(translationsLibrary, obj);
+                         translationsLibrary = mergeDeep(translationsLibrary, obj);
                     }
                } else {
                     const obj = {
                          [language]: defaults };
-                    translationsLibrary = _.merge(translationsLibrary, obj);
+                    translationsLibrary = mergeDeep(translationsLibrary, obj);
                     logDebugMessage('loadTranslationsFromDiscovery failed');
                     logDebugMessage(response);
                     getErrorMessage(response.code, response.problem);
@@ -452,7 +450,7 @@ export async function loadTranslationsFromDiscovery(language, url) {
                const obj = {
                     [language]: defaults };
 
-               translationsLibrary = _.merge(translationsLibrary, obj);
+               translationsLibrary = mergeDeep(translationsLibrary, obj);
           } finally {
                // 4. Cleanup: Clear the lock once done so future updates can trigger if needed
                delete activeTranslationRequests[language];

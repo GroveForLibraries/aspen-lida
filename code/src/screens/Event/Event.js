@@ -7,6 +7,26 @@ import * as SecureStore from 'expo-secure-store';
 import * as WebBrowser from 'expo-web-browser';
 import _ from 'lodash';
 import moment from 'moment';
+import {
+     Box,
+     Divider,
+     Pressable,
+     ScrollView,
+     VStack,
+     Text,
+     Button,
+     ButtonGroup,
+     ButtonText,
+     Center,
+     Heading,
+     Icon,
+     Modal,
+     ModalContent,
+     ModalHeader,
+     ModalBody,
+     ModalFooter,
+     HStack,
+     CloseIcon, ModalCloseButton, ModalBackdrop } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
 import { showLocation } from 'react-native-map-link';
@@ -21,7 +41,7 @@ import { navigateStack } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { getEventDetails, saveEvent } from '../../util/api/event';
 import { refreshProfile } from '../../util/api/user';
-import { decodeHTML, stripHTML } from '../../helpers/helpers';
+import { decodeHTML, findByProperty, getEventDateDisplayData, isEmpty, isObject, stripHTML } from '../../helpers/helpers';
 import AddToList from '../Search/AddToList';
 import { logDebugMessage, logErrorMessage, logInfoMessage, getErrorMessage } from '../../util/logging';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
@@ -62,6 +82,7 @@ export const EventScreen = () => {
      const [errorMessage, setErrorMessage] = React.useState('');
 
      const { status, data, error, isFetching } = useQuery(['event', id, source, language, library.baseUrl], () => getEventDetails(id, source, language, library.baseUrl), {
+          refetchOnMount: 'always',
           onSuccess: (data) => {
                if(data.ok) {
                     setEventData(data.data.result);
@@ -80,9 +101,9 @@ export const EventScreen = () => {
      });
 
      React.useEffect(() => {
-          if (!_.isEmpty(data) && !_.isUndefined(data.data.results)) {
+          if (!isEmpty(data) && data?.data?.results !== undefined) {
                const update = async () => {
-                    if (!_.isUndefined(data.data.results.cover)) {
+                    if (data.data.results.cover !== undefined) {
                          if (data.data.results.cover) {
                               const urlResult = checkImageUrl(data.data.results.cover);
                               setHasValidImage(urlResult);
@@ -94,7 +115,7 @@ export const EventScreen = () => {
      }, [data]);
 
      const showSystemMessage = () => {
-          if (_.isArray(systemMessages)) {
+          if (Array.isArray(systemMessages)) {
                return systemMessages.map((obj, index, collection) => {
                     if (obj.showOn === '0') {
                          return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
@@ -116,7 +137,7 @@ export const EventScreen = () => {
                     <Box className="pt-[50px]">{loadError(errorMessage, '')}</Box>
                ) : (
                     <>
-                         {_.size(systemMessages) > 0 ? <Box className="p-2">{showSystemMessage()}</Box> : null}
+                         {Array.isArray(systemMessages) && systemMessages.length > 0 ? <Box className="p-2">{showSystemMessage()}</Box> : null}
                          <DisplayEvent data={eventData} source={source} hasValidImage={hasValidImage} />
                     </>
                )}
@@ -285,7 +306,7 @@ const EventAudiences = ({ audiences }) => {
                     <Text size="lg" bold className="text-center">
                          {getTermFromDictionary(language, 'audiences')}
                     </Text>
-                    {_.map(audiences, function (item, index, array) {
+                     {audiences.map((item, index) => {
                          return <Text key={index}>{item}</Text>;
                     })}
                </Box>
@@ -311,7 +332,7 @@ const EventCategories = ({ categories }) => {
                     <Text size="lg" bold className="text-center">
                          {getTermFromDictionary(language, 'categories')}
                     </Text>
-                    {_.map(categories, function (item, index, array) {
+                     {categories.map((item, index) => {
                          return <Text key={index}>{item}</Text>;
                     })}
                </Box>
@@ -337,7 +358,7 @@ const EventProgramTypes = ({ programTypes }) => {
                     <Text size="lg" bold className="text-center">
                          {getTermFromDictionary(language, 'program_types')}
                     </Text>
-                    {_.map(programTypes, function (item, index, array) {
+                     {programTypes.map((item, index) => {
                          return <Text key={index}>{item}</Text>;
                     })}
                </Box>
@@ -369,29 +390,26 @@ const AddToCalendar = ({ start, end, location, event }) => {
      let displayDay = false;
      let displayStartTime = false;
      let displayEndTime = false;
-     let day = '';
-     let time1arr = '';
-     let time2arr = '';
      let startTime = null;
      let endTime = null;
+     let startDate = null;
+     let endDate = null;
 
      if (start) {
           startTime = start.date;
-          let time1 = startTime.split(' ');
-          day = time1[0];
-          time1arr = time1[1].split(':');
-          displayDay = moment(day);
-          displayStartTime = moment().set({ hour: time1arr[0], minute: time1arr[1] });
-          displayDay = moment(displayDay).format('dddd, MMMM D, YYYY');
-          displayStartTime = moment(displayStartTime).format('h:mm A');
+          const displayData = getEventDateDisplayData(startTime, end?.date);
+          startDate = displayData.startDate;
+          endDate = displayData.endDate;
+          displayDay = displayData.displayDay;
+          displayStartTime = displayData.displayStartTime;
+          displayEndTime = displayData.displayEndTime;
      }
 
-     if (end) {
+     if (end && !displayEndTime) {
           endTime = end.date;
-          let time2 = endTime.split(' ');
-          time2arr = time2[1].split(':');
-          displayEndTime = moment().set({ hour: time2arr[0], minute: time2arr[1] });
-          displayEndTime = moment(displayEndTime).format('h:mm A');
+          const displayData = getEventDateDisplayData(start?.date, endTime);
+          endDate = displayData.endDate;
+          displayEndTime = displayData.displayEndTime;
      }
 
      const handleAddToCalendar = async () => {
@@ -407,8 +425,8 @@ const AddToCalendar = ({ start, end, location, event }) => {
                const calendars = await Calendar.getCalendarsAsync();
 
                let id = null;
-               if (_.find(calendars, _.matchesProperty('title', location.name + ' Events'))) {
-                    const deviceCalendar = _.find(calendars, _.matchesProperty('title', location.name + ' Events'));
+                if (findByProperty(calendars, 'title', location.name + ' Events')) {
+                     const deviceCalendar = findByProperty(calendars, 'title', location.name + ' Events');
                     id = deviceCalendar.id;
                } else {
                     id = await Calendar.createCalendarAsync({
@@ -436,18 +454,16 @@ const AddToCalendar = ({ start, end, location, event }) => {
      };
 
      const createCalendarEvent = async () => {
-          const starts = moment(day).set({ hour: time1arr[0], minute: time1arr[1] });
-          const ends = moment(day).set({ hour: time2arr[0], minute: time2arr[1] });
           let eventLocation = location.name;
           if (location.address) {
                eventLocation = eventLocation + ' ' + location.address;
           }
-          if (calendarId) {
+          if (calendarId && startDate && endDate) {
                try {
                     await Calendar.createEventAsync(calendarId, {
                          title: event.title,
-                         startDate: moment(starts, "YYYY-MM-DD'T'HH:mm:ss.sssZ").toDate(),
-                         endDate: moment(ends, "YYYY-MM-DD'T'HH:mm:ss.sssZ").toDate(),
+                         startDate,
+                         endDate,
                          id: event.id,
                          location: eventLocation,
                          allDay: event.isAllDay ?? false,
@@ -536,8 +552,8 @@ const AddToCalendar = ({ start, end, location, event }) => {
 const Directions = ({ location, room }) => {
      const { neutrals } = useTheme();
      let hasCoordinates = false;
-     if (location) {
-          if (!_.isUndefined(location.coordinates) && _.isObject(location.coordinates)) {
+          if (location) {
+           if (location.coordinates !== undefined && isObject(location.coordinates)) {
                if (location.coordinates.latitude !== 0 && location.coordinates.longitude !== 0) {
                     hasCoordinates = true;
                }
@@ -715,7 +731,7 @@ const RegistrationModal = ({ event }) => {
  */
 async function checkImageUrl(url) {
      fetch(url).then((response) => {
-          if (!_.isUndefined(response.status)) {
+          if (response.status !== undefined) {
                if (response.status === 200 || response.status === 201) {
                     return true;
                }

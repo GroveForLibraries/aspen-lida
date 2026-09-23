@@ -1,40 +1,15 @@
 import { getDb } from '../sqlite';
 import { safeStringify } from '../serialize';
+import { getCurrentUserId, setCurrentUserId } from '../sessionContext';
 import {logDebugMessage} from "../../logging";
+import { boolToInt, intToBool, numberOrNull, safeParse } from '../../../helpers/helpers';
 
-const ROW_ID = 1;
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function boolToInt(value) {
-     if (typeof value !== 'boolean') return null;
-     return value ? 1 : 0;
-}
-
-function intToBool(value) {
-     if (value === 1) return true;
-     if (value === 0) return false;
-     return null;
-}
-
-function numberOrNull(value) {
-     const num = Number(value);
-     return Number.isFinite(num) ? num : null;
-}
-
-function safeParse(json) {
-     if (!json || typeof json !== 'string') return null;
-     try {
-          return JSON.parse(json);
-     } catch {
-          return null;
-     }
-}
-
-async function ensureUserStateRow(db, now) {
+async function ensureUserStateRow(db, now, userId) {
+     if (userId == null) return;
      await db.runAsync(
-          `INSERT OR IGNORE INTO user_state (id, updated_at) VALUES (?, ?);`,
-          [ROW_ID, now]
+          `INSERT INTO user_state (user_id, updated_at) VALUES (?, ?)
+           ON CONFLICT(user_id) DO NOTHING;`,
+          [userId, now]
      );
 }
 
@@ -43,11 +18,20 @@ async function ensureUserStateRow(db, now) {
 /**
  * Saves the full user profile object scalar fields.
  * Called when the user profile API returns fresh data.
+ * The row is keyed by user_id (not a foreign key, just the owning patron's id) so a
+ * different patron logging in gets their own row instead of overwriting this one.
  */
 export async function saveUserProfile(user = {}) {
+     const userId = numberOrNull(user.id) ?? getCurrentUserId();
+     if (userId == null) {
+          logDebugMessage('saveUserProfile: no current user id, skipping save');
+          return;
+     }
+     setCurrentUserId(userId);
+
      const db = await getDb();
      const now = Date.now();
-     await ensureUserStateRow(db, now);
+     await ensureUserStateRow(db, now, userId);
      await db.runAsync(
           `UPDATE user_state SET
                 updated_at = ?,
@@ -83,10 +67,10 @@ export async function saveUserProfile(user = {}) {
                 remember_hold_pickup_location = ?,
                 prompt_for_hold_notifications = ?,
                 profile_json = ?
-           WHERE id = ?;`,
+           WHERE user_id = ?;`,
           [
                now,
-               numberOrNull(user.id),
+               userId,
                user.displayName ?? null,
                user.cat_name ?? null,
                user.ils_barcode ?? null,
@@ -118,7 +102,7 @@ export async function saveUserProfile(user = {}) {
                numberOrNull(user.rememberHoldPickupLocation),
                boolToInt(user.promptForHoldNotifications),
                safeStringify(user),
-               ROW_ID,
+               userId,
           ]
      );
 }
@@ -127,9 +111,15 @@ export async function saveUserProfile(user = {}) {
  * Saves session/preference fields that don't come directly from the user profile.
  */
 export async function saveUserSettings(settings = {}) {
+     const userId = getCurrentUserId();
+     if (userId == null) {
+          logDebugMessage('saveUserSettings: no current user id, skipping save');
+          return;
+     }
+
      const db = await getDb();
      const now = Date.now();
-     await ensureUserStateRow(db, now);
+     await ensureUserStateRow(db, now, userId);
      const fieldMappings = [
           ['language', 'language', value => value],
           ['languageDisplayName', 'language_display_name', value => value],
@@ -164,12 +154,12 @@ export async function saveUserSettings(settings = {}) {
 
      updates.unshift('updated_at = ?');
      values.unshift(now);
-     values.push(ROW_ID);
+     values.push(userId);
 
      await db.runAsync(
           `UPDATE user_state
               SET ${updates.join(', ')}
-            WHERE id = ?;`,
+            WHERE user_id = ?;`,
           values
      );
 }
@@ -178,16 +168,22 @@ export async function saveUserSettings(settings = {}) {
  * Saves pickup location validity and warning after the pickup locations API responds.
  */
 export async function savePickupLocationPrefs(isValid, warning) {
+     const userId = getCurrentUserId();
+     if (userId == null) {
+          logDebugMessage('savePickupLocationPrefs: no current user id, skipping save');
+          return;
+     }
+
      const db = await getDb();
      const now = Date.now();
-     await ensureUserStateRow(db, now);
+     await ensureUserStateRow(db, now, userId);
      await db.runAsync(
           `UPDATE user_state SET
                 updated_at = ?,
                 preferred_pickup_location_is_valid = ?,
                 preferred_pickup_location_warning = ?
-           WHERE id = ?;`,
-          [now, boolToInt(isValid), warning ?? null, ROW_ID]
+           WHERE user_id = ?;`,
+          [now, boolToInt(isValid), warning ?? null, userId]
      );
 }
 
@@ -195,29 +191,62 @@ export async function savePickupLocationPrefs(isValid, warning) {
  * Saves the most recently used list id for quick reuse in list-related screens.
  */
 export async function saveLastListUsed(listId) {
+     const userId = getCurrentUserId();
+     if (userId == null) {
+          logDebugMessage('saveLastListUsed: no current user id, skipping save');
+          return;
+     }
+
      const db = await getDb();
      const now = Date.now();
-     await ensureUserStateRow(db, now);
+     await ensureUserStateRow(db, now, userId);
      await db.runAsync(
           `UPDATE user_state SET
                 updated_at = ?,
                 last_list_used = ?
-           WHERE id = ?;`,
-          [now, listId ? String(listId) : null, ROW_ID]
+           WHERE user_id = ?;`,
+          [now, listId ? String(listId) : null, userId]
      );
+}
+
+/**
+ * Resolves the numeric user_id for a cached row by the patron's username/barcode -
+ * the one stable identity known at cold app start (SecureStore's `userKey`), before any
+ * network call and before a numeric user_id can be looked up any other way. Splash.js
+ * uses this to set the current user id so its cache-bypass checks are correctly scoped.
+ * Returns null if no cached row matches (new user, or first-ever login).
+ */
+export async function findCachedUserIdForUsername(username) {
+     if (!username) return null;
+     // Case-insensitive: the typed/scanned login value doesn't reliably match the ILS's
+     // stored casing for cat_username/ils_barcode.
+     const normalized = String(username).trim().toLowerCase();
+     if (!normalized) return null;
+
+     const db = await getDb();
+     const row = await db.getFirstAsync(
+          `SELECT user_id FROM user_state
+            WHERE LOWER(cat_username) = ? OR LOWER(ils_barcode) = ?
+            LIMIT 1;`,
+          [normalized, normalized]
+     );
+     return row?.user_id ?? null;
 }
 
 // ─── user_state: read ─────────────────────────────────────────────────────────
 
 /**
- * Loads the user state row.
- * Returns null if no row exists yet.
+ * Loads the user state row for the currently logged-in user.
+ * Returns null if no current user is set, or no row exists yet for them.
  */
 export async function loadUserState() {
+     const userId = getCurrentUserId();
+     if (userId == null) return null;
+
      const db = await getDb();
      const row = await db.getFirstAsync(
-          `SELECT * FROM user_state WHERE id = ? LIMIT 1;`,
-          [ROW_ID]
+          `SELECT * FROM user_state WHERE user_id = ? LIMIT 1;`,
+          [userId]
      );
 
      if (!row) return null;
@@ -279,19 +308,28 @@ export async function loadUserState() {
 // ─── Collection table helpers ─────────────────────────────────────────────────
 
 async function upsertCollection(tableName, data) {
+     const userId = getCurrentUserId();
+     if (userId == null) {
+          logDebugMessage(`${tableName}: no current user id, skipping save`);
+          return;
+     }
+
      const db = await getDb();
      await db.runAsync(
-          `INSERT INTO ${tableName} (id, updated_at, payload) VALUES (?, ?, ?)
-           ON CONFLICT(id) DO UPDATE SET updated_at = excluded.updated_at, payload = excluded.payload;`,
-          [ROW_ID, Date.now(), safeStringify(data)]
+          `INSERT INTO ${tableName} (user_id, updated_at, payload) VALUES (?, ?, ?)
+           ON CONFLICT(user_id) DO UPDATE SET updated_at = excluded.updated_at, payload = excluded.payload;`,
+          [userId, Date.now(), safeStringify(data)]
      );
 }
 
 async function fetchCollection(tableName) {
+     const userId = getCurrentUserId();
+     if (userId == null) return null;
+
      const db = await getDb();
      const row = await db.getFirstAsync(
-          `SELECT payload FROM ${tableName} WHERE id = ? LIMIT 1;`,
-          [ROW_ID]
+          `SELECT payload FROM ${tableName} WHERE user_id = ? LIMIT 1;`,
+          [userId]
      );
      return safeParse(row?.payload);
 }
@@ -357,55 +395,65 @@ const COLLECTION_TABLES = [
  * Used for initial full write on first login.
  */
 export async function saveAllUserData(state = {}) {
+     const userId = numberOrNull(state.user?.id) ?? getCurrentUserId();
+     if (userId == null) {
+          logDebugMessage('saveAllUserData: no current user id, skipping save');
+          return;
+     }
+     setCurrentUserId(userId);
+
+     // Not wrapped in a transaction: this can run alongside several other concurrent
+     // SQLite hydration/fetch effects during login/app-startup, and expo-sqlite doesn't
+     // support overlapping transactions on one connection ("cannot rollback - no
+     // transaction is active" if two try to run at once). Each save below already targets
+     // the same user_id row independently, so atomicity across them isn't needed here.
      const db = await getDb();
      const now = Date.now();
-     await ensureUserStateRow(db, now);
+     await ensureUserStateRow(db, now, userId);
 
-     await db.withTransactionAsync(async () => {
-          await saveUserProfile(state.user ?? {});
-          await saveUserSettings({
-               language: state.language,
-               languageDisplayName: state.languageDisplayName,
-               notificationOnboard: state.notificationOnboard,
-               expoToken: state.expoToken,
-               seenNotificationOnboardPrompt: state.seenNotificationOnboardPrompt,
-               userCheckoutSortMethod: state.userCheckoutSortMethod,
-               userHoldPendingSortMethod: state.userHoldPendingSortMethod,
-               userHoldReadySortMethod: state.userHoldReadySortMethod,
-          });
-          await savePickupLocationPrefs(state.preferredPickupLocationIsValid, state.preferredPickupLocationWarning);
-
-          const collections = [
-               ['user_accounts', state.accounts],
-               ['user_viewers', state.viewers],
-               ['user_lists', state.lists],
-               ['user_list_groups', state.listGroups],
-               ['user_locations', state.locations],
-               ['user_reading_history', state.readingHistory],
-               ['user_saved_events', state.savedEvents],
-               ['user_cards', state.cards],
-               ['user_notification_settings', state.notificationSettings],
-               ['user_app_preferences', state.appPreferences],
-               ['user_debug_messages', state.userDebugMessage],
-               ['user_notification_history', state.notificationHistory],
-               ['user_inbox', state.inbox],
-               ['user_sublocations', state.sublocations],
-               ['user_saved_searches', state.savedSearches],
-          ];
-
-          for (const [table, data] of collections) {
-               await db.runAsync(
-                    `INSERT INTO ${table} (id, updated_at, payload) VALUES (?, ?, ?)
-                     ON CONFLICT(id) DO UPDATE SET updated_at = excluded.updated_at, payload = excluded.payload;`,
-                    [ROW_ID, now, safeStringify(data)]
-               );
-          }
+     await saveUserProfile(state.user ?? {});
+     await saveUserSettings({
+          language: state.language,
+          languageDisplayName: state.languageDisplayName,
+          notificationOnboard: state.notificationOnboard,
+          expoToken: state.expoToken,
+          seenNotificationOnboardPrompt: state.seenNotificationOnboardPrompt,
+          userCheckoutSortMethod: state.userCheckoutSortMethod,
+          userHoldPendingSortMethod: state.userHoldPendingSortMethod,
+          userHoldReadySortMethod: state.userHoldReadySortMethod,
      });
+     await savePickupLocationPrefs(state.preferredPickupLocationIsValid, state.preferredPickupLocationWarning);
+
+     const collections = [
+          ['user_accounts', state.accounts],
+          ['user_viewers', state.viewers],
+          ['user_lists', state.lists],
+          ['user_list_groups', state.listGroups],
+          ['user_locations', state.locations],
+          ['user_reading_history', state.readingHistory],
+          ['user_saved_events', state.savedEvents],
+          ['user_cards', state.cards],
+          ['user_notification_settings', state.notificationSettings],
+          ['user_app_preferences', state.appPreferences],
+          ['user_debug_messages', state.userDebugMessage],
+          ['user_notification_history', state.notificationHistory],
+          ['user_inbox', state.inbox],
+          ['user_sublocations', state.sublocations],
+          ['user_saved_searches', state.savedSearches],
+     ];
+
+     for (const [table, data] of collections) {
+          await db.runAsync(
+               `INSERT INTO ${table} (user_id, updated_at, payload) VALUES (?, ?, ?)
+                ON CONFLICT(user_id) DO UPDATE SET updated_at = excluded.updated_at, payload = excluded.payload;`,
+               [userId, now, safeStringify(data)]
+          );
+     }
 }
 
 /**
  * Loads all user data from each table in parallel.
- * Returns null if no user_state row exists.
+ * Returns null if no user_state row exists for the current user.
  */
 export async function loadAllUserData() {
      const stateRow = await loadUserState();
@@ -433,14 +481,46 @@ export async function loadAllUserData() {
 }
 
 /**
- * Clears all user data across every table.
+ * Deletes the current user's row from every user table.
+ * Not used on logout (logout must not delete SQLite data) - kept for flows that
+ * genuinely need to purge a patron's cached data, e.g. account removal.
  */
 export async function clearAllUserData() {
+     const userId = getCurrentUserId();
+     if (userId == null) return;
+
      const db = await getDb();
-     await db.withTransactionAsync(async () => {
-          await db.runAsync(`DELETE FROM user_state WHERE id = ?;`, [ROW_ID]);
-          for (const table of COLLECTION_TABLES) {
-               await db.runAsync(`DELETE FROM ${table} WHERE id = ?;`, [ROW_ID]);
-          }
-     });
+     await db.runAsync(`DELETE FROM user_state WHERE user_id = ?;`, [userId]);
+     for (const table of COLLECTION_TABLES) {
+          await db.runAsync(`DELETE FROM ${table} WHERE user_id = ?;`, [userId]);
+     }
+}
+
+/**
+ * One-time backfill for installs upgrading from the pre-26.09.01 singleton-row schema.
+ * Before this migration, only user_state had a user_id column - the collection tables'
+ * single legacy row has user_id = NULL until this runs. Safe to call on every app start:
+ * it only ever touches rows still missing a user_id, so it's a no-op afterward.
+ */
+export async function backfillLegacyUserId(userId) {
+     const numericUserId = numberOrNull(userId);
+     if (numericUserId == null) return;
+
+     // Not wrapped in a transaction: this runs during app startup alongside several other
+     // concurrent SQLite hydration/fetch effects, and expo-sqlite doesn't support
+     // overlapping transactions on one connection ("cannot rollback - no transaction is
+     // active" if two try to run at once). Each UPDATE below is already a self-contained,
+     // idempotent, guarded statement, so atomicity across tables isn't needed here.
+     const db = await getDb();
+     for (const table of COLLECTION_TABLES) {
+          // Guard against the unique(user_id) index: only claim the orphaned legacy
+          // row if this user doesn't already have a real row (e.g. logged in fresh
+          // post-migration on an earlier boot).
+          await db.runAsync(
+               `UPDATE ${table} SET user_id = ?
+                 WHERE user_id IS NULL
+                   AND NOT EXISTS (SELECT 1 FROM ${table} WHERE user_id = ?);`,
+               [numericUserId, numericUserId]
+          );
+     }
 }

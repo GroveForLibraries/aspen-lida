@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import { find } from '../../../helpers/helpers';
 import React from 'react';
 import { ThemedScrollView as ScrollView } from '@/src/components/themed/ThemedScrollView';
 import { LoadingSpinner } from '@/src/components/loadingSpinner';
@@ -53,8 +53,8 @@ export const Facet_Slider = ({ data, category, updater, language }) => {
 
      const appliedStartValue = () => {
           let value = 0.0;
-          if (_.find(data, ['isApplied', true])) {
-               const appliedFilterObj = _.find(data, ['isApplied', true]);
+          if (find(data, ['isApplied', true])) {
+               const appliedFilterObj = find(data, ['isApplied', true]);
                value = appliedFilterObj['value'];
           }
           setStartValue(value);
@@ -62,8 +62,8 @@ export const Facet_Slider = ({ data, category, updater, language }) => {
 
      const appliedEndValue = () => {
           let value = 5.0;
-          if (_.find(data, ['isApplied', true])) {
-               const appliedFilterObj = _.find(data, ['isApplied', true]);
+          if (find(data, ['isApplied', true])) {
+               const appliedFilterObj = find(data, ['isApplied', true]);
                value = appliedFilterObj['value'];
           }
           setEndValue(value);

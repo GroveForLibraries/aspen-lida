@@ -2,6 +2,43 @@ import { ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/Th
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useIsFetching, useQuery, useQueryClient } from '@tanstack/react-query';
 import _ from 'lodash';
+import {
+     AlertDialog,
+     AlertDialogBackdrop,
+     AlertDialogContent,
+     AlertDialogHeader,
+     AlertDialogCloseButton,
+     AlertDialogBody,
+     AlertDialogFooter,
+     Box,
+     Button,
+     ButtonGroup,
+     ButtonText,
+     ButtonIcon,
+     Center,
+     CheckIcon,
+     FlatList,
+     FormControl,
+     HStack,
+     Icon,
+     ScrollView,
+     Select,
+     SelectTrigger,
+     SelectInput,
+     SelectIcon,
+     SelectPortal,
+     SelectBackdrop,
+     SelectContent,
+     SelectDragIndicatorWrapper,
+     SelectDragIndicator,
+     SelectItem,
+     SelectScrollView,
+     Text,
+     VStack,
+     CloseIcon,
+     Heading,
+     ChevronDownIcon
+} from '@gluestack-ui/themed';
 import React from 'react';
 import { FlatList } from 'react-native';
 import { ThemedAlertDialog as AlertDialog, ThemedAlertDialogBackdrop as AlertDialogBackdrop, ThemedAlertDialogBody as AlertDialogBody, ThemedAlertDialogCloseButton as AlertDialogCloseButton, ThemedAlertDialogFooter as AlertDialogFooter, ThemedAlertDialogHeader as AlertDialogHeader, ThemedAlertDialogContent as AlertDialogContent } from '@/src/components/themed/ThemedAlertDialog';
@@ -24,6 +61,7 @@ import { getTermFromDictionary, getTranslationsWithValues } from '@/src/translat
 import { confirmRenewAllCheckouts, confirmRenewCheckout, renewAllCheckouts, getPatronCheckedOutItems, refreshProfile, setSortPreferences } from '@/src/util/api/user';
 import { sortCheckouts } from '@/src/util/api/userHelper';
 import { stripHTML } from '@/src/helpers/helpers';
+import { stripHTML, isArray, isEmpty, set } from '../../../helpers/helpers';
 import { MyCheckout } from './MyCheckout';
 import { logDebugMessage, logErrorMessage, getErrorMessage } from '@/src/util/logging';
 import { useActiveLanguage } from '@/src/hooks/useLanguageData';
@@ -117,7 +155,7 @@ export const MyCheckouts = () => {
      const toggleCheckoutSource = async (value) => {
           setCheckoutSource(value);
           //setLoading(true);
-          if (!_.isNull(value)) {
+          if (value !== null) {
                if (value === 'ils') {
                     navigation.setOptions({ title: checkoutsBy.ils });
                } else if (value === 'overdrive') {
@@ -144,13 +182,13 @@ export const MyCheckouts = () => {
 
                     term = getTermFromDictionary(language, 'checkouts_for_all');
                     if (!term.includes('%1%')) {
-                         tmp = _.set(tmp, 'all', term);
+                         tmp = set(tmp, 'all', term);
                          setCheckoutBy(tmp);
                     }
 
                     term = getTermFromDictionary(language, 'checkouts_for_ils');
                     if (!term.includes('%1%')) {
-                         tmp = _.set(tmp, 'ils', term);
+                         tmp = set(tmp, 'ils', term);
                          setCheckoutBy(tmp);
                     }
 
@@ -171,31 +209,31 @@ export const MyCheckouts = () => {
                     }
 
                     if (!term.includes('%1%')) {
-                         tmp = _.set(tmp, 'overdrive', term);
+                         tmp = set(tmp, 'overdrive', term);
                          setCheckoutBy(tmp);
                     }
 
                     term = getTermFromDictionary(language, 'checkouts_for_hoopla');
                     if (!term.includes('%1%')) {
-                         tmp = _.set(tmp, 'hoopla', term);
+                         tmp = set(tmp, 'hoopla', term);
                          setCheckoutBy(tmp);
                     }
 
                     term = getTermFromDictionary(language, 'checkouts_for_cloud_library');
                     if (!term.includes('%1%')) {
-                         tmp = _.set(tmp, 'cloud_library', term);
+                         tmp = set(tmp, 'cloud_library', term);
                          setCheckoutBy(tmp);
                     }
 
                     term = getTermFromDictionary(language, 'checkouts_for_boundless');
                     if (!term.includes('%1%')) {
-                         tmp = _.set(tmp, 'axis_360', term);
+                         tmp = set(tmp, 'axis_360', term);
                          setCheckoutBy(tmp);
                     }
 
                     term = getTermFromDictionary(language, 'checkouts_for_palace_project');
                     if (!term.includes('%1%')) {
-                         tmp = _.set(tmp, 'palace_project', term);
+                         tmp = set(tmp, 'palace_project', term);
                          setCheckoutBy(tmp);
                     }
 
@@ -203,43 +241,43 @@ export const MyCheckouts = () => {
 
                     term = getTermFromDictionary(language, 'sort_by_title');
                     if (!term.includes('%1%')) {
-                         tmp = _.set(tmp, 'title', term);
+                         tmp = set(tmp, 'title', term);
                          setSortBy(tmp);
                     }
 
                     term = getTermFromDictionary(language, 'sort_by_author');
                     if (!term.includes('%1%')) {
-                         tmp = _.set(tmp, 'author', term);
+                         tmp = set(tmp, 'author', term);
                          setSortBy(tmp);
                     }
 
                     term = getTermFromDictionary(language, 'sort_by_due_asc');
                     if (!term.includes('%1%')) {
-                         tmp = _.set(tmp, 'due_asc', term);
+                         tmp = set(tmp, 'due_asc', term);
                          setSortBy(tmp);
                     }
 
                     term = getTermFromDictionary(language, 'sort_by_due_desc');
                     if (!term.includes('%1%')) {
-                         tmp = _.set(tmp, 'due_desc', term);
+                         tmp = set(tmp, 'due_desc', term);
                          setSortBy(tmp);
                     }
 
                     term = getTermFromDictionary(language, 'sort_by_format');
                     if (!term.includes('%1%')) {
-                         tmp = _.set(tmp, 'format', term);
+                         tmp = set(tmp, 'format', term);
                          setSortBy(tmp);
                     }
 
                     term = getTermFromDictionary(language, 'sort_by_library_account');
                     if (!term.includes('%1%')) {
-                         tmp = _.set(tmp, 'library_account', term);
+                         tmp = set(tmp, 'library_account', term);
                          setSortBy(tmp);
                     }
 
                     term = getTermFromDictionary(language, 'sort_by_times_renewed');
                     if (!term.includes('%1%')) {
-                         tmp = _.set(tmp, 'times_renewed', term);
+                         tmp = set(tmp, 'times_renewed', term);
                          setSortBy(tmp);
                     }
 
@@ -251,7 +289,7 @@ export const MyCheckouts = () => {
           }, [language])
      );
 
-     const numCheckedOut = !_.isUndefined(user.numCheckedOut) ? user.numCheckedOut : 0;
+     const numCheckedOut = user.numCheckedOut !== undefined ? user.numCheckedOut : 0;
 
      const noCheckouts = () => {
           return (
@@ -503,7 +541,7 @@ export const MyCheckouts = () => {
      };
 
      const showSystemMessage = () => {
-          if (_.isArray(systemMessages)) {
+          if (isArray(systemMessages)) {
                return systemMessages.map((obj, index, collection) => {
                     if (obj.showOn === '0' || obj.showOn === '1' || obj.showOn === '2') {
                          return <DisplaySystemMessage key={obj.id || index} style={obj.style} message={obj.message} dismissable={obj.dismissable} id={obj.id} all={systemMessages} url={library.baseUrl} updateSystemMessages={updateSystemMessages} queryClient={queryClient} />;
@@ -517,7 +555,7 @@ export const MyCheckouts = () => {
           return stripHTML(string);
      };
 
-     if (isLoading || (_.isEmpty(checkouts) && isFetchingCheckouts)) {
+     if (isLoading || (isEmpty(checkouts) && isFetchingCheckouts)) {
           return loadingSpinner();
      }
 

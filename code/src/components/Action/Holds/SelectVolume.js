@@ -3,12 +3,11 @@ import { useQuery } from '@tanstack/react-query';
 import { getVolumes } from '@/src/util/api/item';
 import { loadingSpinner } from '../../loadingSpinner';
 import { loadError } from '../../loadError';
-import _ from 'lodash';
-import { getTermFromDictionary } from '@/src/translations/TranslationService';
 import { ThemedFormControl as FormControl, ThemedFormControlLabelText as FormControlLabelText, ThemedFormControlLabel as FormControlLabel } from '../../themed/ThemedFormControls';
 import { ThemedMaterialIcons as MaterialIcons } from '../../themed/ThemedMaterialIcons';
 import { ThemedRadio as Radio, ThemedRadioGroup as RadioGroup, ThemedRadioIcon as RadioIcon, ThemedRadioIndicator as RadioIndicator, ThemedRadioLabel as RadioLabel } from '../../themed/ThemedRadio';
 import { ThemedSelect as Select, ThemedSelectBackdrop as SelectBackdrop, ThemedSelectContent as SelectContent, ThemedSelectDragIndicator as SelectDragIndicator, ThemedSelectDragIndicatorWrapper as SelectDragIndicatorWrapper, ThemedSelectInput as SelectInput, ThemedSelectItem as SelectItem, ThemedSelectPortal as SelectPortal, ThemedSelectScrollView as SelectScrollView, ThemedSelectTrigger as SelectTrigger } from '../../themed/ThemedSelect';
+import { isEmpty } from '../../../helpers/helpers';
 
 /**
  * SelectVolume component for selecting a volume for a library hold request.
@@ -24,8 +23,9 @@ export const SelectVolume = (props) => {
           queryFn: () => getVolumes(id, url),
           enabled: !!showModal,
      });
+     const volumeOptions = Object.values(data ?? {});
 
-     if (!isFetching && data && _.isEmpty(volume)) {
+     if (!isFetching && data && isEmpty(volume)) {
           let volumesKeys = Object.keys(data);
           let key = volumesKeys[0];
           setVolume(data[key].volumeId);
@@ -71,7 +71,7 @@ export const SelectVolume = (props) => {
                                    </FormControlLabel>
                                    <Select name="volumeForHold" selectedValue={volume} defaultValue={volume} minWidth="200" accessibilityLabel={getTermFromDictionary(language, 'select_volume')} className="mt-1 mb-2" onValueChange={(itemValue) => setVolume(itemValue)}>
                                         <SelectTrigger>
-                                             {_.map(data, function (item, index, array) {
+                                             {volumeOptions.map((item) => {
                                                   if (item.volumeId === volume) {
                                                        return <SelectInput value={item.label} />;
                                                   }
@@ -84,8 +84,8 @@ export const SelectVolume = (props) => {
                                                       <SelectDragIndicator />
                                                  </SelectDragIndicatorWrapper>
                                                  <SelectScrollView>
-                                                      {_.map(data, function (item, index, array) {
-                                                           if (item.volumeId === volume) {
+                                                       {volumeOptions.map((item, index) => {
+                                                            if (item.volumeId === volume) {
                                                                 return <SelectItem label={item.label} value={item.volumeId} key={index} style={{ backgroundColor: brand.tertiary[300] }} textStyle={{ color: brand.tertiary['500-text'] }} />;
                                                             }
                                                             return <SelectItem label={item.label} value={item.volumeId} key={index} textStyle={{ color: textColor }} />;

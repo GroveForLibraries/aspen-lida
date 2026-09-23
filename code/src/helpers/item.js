@@ -1,4 +1,3 @@
-import moment from 'moment';
 import React from 'react';
 import { ThemedBadge as Badge, ThemedBadgeText as BadgeText } from '../components/themed/ThemedBadge';
 import { Box } from '@/components/ui/box';
@@ -6,6 +5,7 @@ import { ThemedActionsheetItemText as ActionsheetItemText } from '../components/
 import { ThemedText as Text } from '@/src/components/themed/ThemedText';
 import { useUserState } from '../hooks/useUserData';
 import { useLibrary } from '../hooks/useLibrarySystemData';
+import { formatDateShort, formatUnixDate } from './helpers';
 import { getTermFromDictionary, getTranslationWithValuesText } from '../translations/TranslationService';
 import { useActiveLanguage } from '../hooks/useLanguageData';
 import { useTheme } from '../themes/theme';
@@ -349,8 +349,8 @@ export const getDueDate = (date) => {
      if (date && date !== 0) {
           //offset is in minutes we multiply 60 to get seconds
           const timezoneOffset = new Date().getTimezoneOffset() * 60;
-          const dueDate = moment.unix(date - timezoneOffset);
-          const itemDueOn = moment(dueDate).format('MMM D, YYYY');
+          const dueDate = new Date(Number(date - timezoneOffset) * 1000);
+          const itemDueOn = formatDateShort(dueDate);
           return (
                <Text size="xs">
                     <Text bold size="xs">
@@ -374,8 +374,7 @@ export const getDateLastUsed = (date, checkedOut) => {
      const language = useActiveLanguage();
      const {} = useTheme();
      if (date && date !== 0) {
-          const dateLastUsed = moment.unix(date);
-          let itemLastUsedOn = moment(dateLastUsed).format('MMM D, YYYY');
+          let itemLastUsedOn = formatUnixDate(date);
           if (checkedOut) {
                itemLastUsedOn = getTermFromDictionary(language, 'in_use');
           }
@@ -508,8 +507,7 @@ export const getExpirationDate = (expiration, available) => {
      const language = useActiveLanguage();
      const {} = useTheme();
      if (expiration && available) {
-          const expirationDateUnix = moment.unix(expiration);
-          let expirationDate = moment(expirationDateUnix).format('MMM D, YYYY');
+          let expirationDate = formatUnixDate(expiration);
           return (
                <Text size="xs">
                     <Text bold size="xs">

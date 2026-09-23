@@ -1,6 +1,7 @@
 import { useNavigation, useIsFocused, useRoute } from '@react-navigation/native';
 import { useCameraPermissions, CameraView } from 'expo-camera';
 import _ from 'lodash';
+import { Button, ButtonText, View } from '@gluestack-ui/themed';
 import React, {useState} from 'react';
 import { StyleSheet } from 'react-native';
 import BarcodeMask from 'react-native-barcode-mask';
@@ -29,7 +30,7 @@ export default function SelfCheckScanner() {
      const [scanned, setScanned] = useState(false);
 
      let allowedBarcodes = ['upc_a', 'upc_e', 'ean13', 'ean8', 'codabar'];
-     if (selfCheckSettings.barcodeStyles && _.isArray(selfCheckSettings.barcodeStyles)) {
+     if (selfCheckSettings.barcodeStyles && Array.isArray(selfCheckSettings.barcodeStyles)) {
           allowedBarcodes = selfCheckSettings.barcodeStyles;
      }
 

@@ -2,7 +2,6 @@ import { ThemedMaterialIcons as MaterialIcons } from '../../components/themed/Th
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
-import _ from 'lodash';
 import React from 'react';
 import { popAlert } from '../../components/feedback';
 import { AuthContext } from '../../context/AuthContext';
@@ -73,10 +72,10 @@ export const ResetExpiredPin = (props) => {
           if (pin === undefined) {
                setErrors({ ...errors, pin: 'Pin is required' });
                return false;
-          } else if (_.size(pin) < pinValidationRules.minLength) {
+          } else if (pin.length < pinValidationRules.minLength) {
                setErrors({ ...errors, pin: 'Pin should be greater than ' + pinValidationRules.minLength + ' characters' });
                return false;
-          } else if (_.size(pin) > pinValidationRules.maxLength) {
+          } else if (pin.length > pinValidationRules.maxLength) {
                setErrors({ ...errors, pin: 'Pin should be less than ' + pinValidationRules.maxLength + ' characters' });
                return false;
           } else if (pin !== pinConfirmed) {
@@ -91,10 +90,10 @@ export const ResetExpiredPin = (props) => {
           if (pinConfirmed === undefined) {
                setErrors({ ...errors, pinConfirmed: 'Pin is required' });
                return false;
-          } else if (_.size(pinConfirmed) < pinValidationRules.minLength) {
+          } else if (pinConfirmed.length < pinValidationRules.minLength) {
                setErrors({ ...errors, pinConfirmed: 'Pin should be greater than ' + pinValidationRules.minLength + ' characters' });
                return false;
-          } else if (_.size(pinConfirmed) > pinValidationRules.maxLength) {
+          } else if (pinConfirmed.length > pinValidationRules.maxLength) {
                setErrors({ ...errors, pinConfirmed: 'Pin should be less than ' + pinValidationRules.maxLength + ' characters' });
                return false;
           } else if (pinConfirmed !== pin) {

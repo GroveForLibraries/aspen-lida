@@ -27,7 +27,7 @@ export const CatalogOffline = () => {
 
      logInfoMessage('CatalogOffline: ' + catalogStatus);
 
-     if (catalogStatus > 0) {
+     if (catalogStatus > 0 && theme !== undefined) {
           return (
                <Center>
                     <AlertDialog leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={onClose}>

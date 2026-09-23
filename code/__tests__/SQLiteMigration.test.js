@@ -54,6 +54,14 @@ describe('SQLite Migration Detection', () => {
                const result = await isUserDataEmpty();
                expect(result).toBe(true);
           });
+
+          it('should not scope the count by "WHERE id = 1" (regression: user_state is multi-row since 26.09.01, keyed by user_id - scoping by the old singleton id would only ever see the first user ever logged in on the device)', async () => {
+               mockDb.getFirstAsync.mockResolvedValueOnce({ count: 2 });
+               await isUserDataEmpty();
+
+               const [sql] = mockDb.getFirstAsync.mock.calls[0];
+               expect(sql).not.toMatch(/WHERE\s+id\s*=\s*1/i);
+          });
      });
 
      describe('isSQLiteMigrationNeeded()', () => {
