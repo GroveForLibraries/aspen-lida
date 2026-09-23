@@ -42,10 +42,10 @@ export const SelfRegistration = () => {
 		(async () => {
 			await getSelfRegistrationForm(libraryUrl).then((response) => {
 				if(response.ok) {
-                         const formFields = response.data.result ?? [];
+                         const formFields = Array.isArray(response?.data?.result) ? response.data.result : [];
                          setFields(formFields);
                          let object = {};
-												 formFields.forEach((section) => {
+                          formFields.forEach((section) => {
                               const properties = section.properties;
                               forEach(properties, function (field, key) {
                                    let prop = field.property;

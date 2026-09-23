@@ -60,7 +60,7 @@ export const PlaceHold = (props = {}) => {
      const { data: locations } = useLocations();
       const library = useLibrary();
      const holdsContext = React.useContext(HoldsContext) ?? {};
-     const holds = holdsContext.holds ?? [];
+     const holds = Array.isArray(holdsContext.holds) ? holdsContext.holds : [];
      const { brand } = useTheme();
      const primary500 = brand.primary[500];
      const primary500Text = brand.primary['500-text'];
@@ -130,15 +130,14 @@ export const PlaceHold = (props = {}) => {
      logDebugMessage("holdTypeForFormat = " + holdTypeForFormat);
      logDebugMessage("record = " + record);
      let alreadyOnHold = false;
-     if(holds) {
-          holds.forEach(holdSection => {
-               holdSection.data.forEach(hold => {
-                    if ((hold.source + ':' + hold.sourceId) == record) {
-                         alreadyOnHold = true;
-                    }
-               });
+     holds.forEach((holdSection) => {
+          const sectionHolds = Array.isArray(holdSection?.data) ? holdSection.data : [];
+          sectionHolds.forEach((hold) => {
+               if ((hold.source + ':' + hold.sourceId) == record) {
+                    alreadyOnHold = true;
+               }
           });
-     }
+     });
      if (alreadyOnHold) {
           logDebugMessage("Showing Hold Prompt because titles is already on hold");
           loadHoldPrompt = true;

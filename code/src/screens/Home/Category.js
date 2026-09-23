@@ -38,6 +38,7 @@ const DisplayBrowseCategory = ({category}) => {
      const maxNum = useMaxCategories();
      const toggleCategoryVisibility = useToggleBrowseCategoryVisibility();
      const updateBrowseCategories = useUpdateBrowseCategories();
+     const safeCategory = category ?? {};
 
      const [selectedSubCategoryIndex, setSelectedSubCategoryIndex] = React.useState(0);
      const handleSelectSubCategory = (index) => setSelectedSubCategoryIndex(index);
@@ -45,13 +46,13 @@ const DisplayBrowseCategory = ({category}) => {
      React.useEffect(() => {
           // Reset selected tab when the parent category changes.
           setSelectedSubCategoryIndex(0);
-     }, [category?.id, category?.textId, category?.sourceListId]);
+     }, [safeCategory?.id, safeCategory?.textId, safeCategory?.sourceListId]);
 
-     const subCategories = category.subCategories ?? [];
-     const records = category.records ?? [];
+     const subCategories = Array.isArray(safeCategory?.subCategories) ? safeCategory.subCategories : [];
+     const records = Array.isArray(safeCategory?.records) ? safeCategory.records : [];
 
      if(records.length === 0 && subCategories.length === 0) {
-          const emptyKey = category.textId ?? category.id ?? category.label ?? 'unknown_category';
+          const emptyKey = safeCategory.textId ?? safeCategory.id ?? safeCategory.label ?? 'unknown_category';
           if (!loggedEmptyCategoryKeys.has(emptyKey)) {
                // Avoid repeated logs for the same empty category on re-renders.
                logDebugMessage('No records to show for ' + emptyKey);
@@ -68,23 +69,27 @@ const DisplayBrowseCategory = ({category}) => {
      const hasMore = records.length > maxItems;
      const displayedData = hasMore ? records.slice(0, maxItems) : records;
 
-     const isSystemBrowseCategory = category.textId === 'system_user_lists' || category.textId === 'system_saved_searches' || category.textId === 'system_recommended_for_you';
-     const isListSource = category.source === 'List';
+     const isSystemBrowseCategory = safeCategory.textId === 'system_user_lists' || safeCategory.textId === 'system_saved_searches' || safeCategory.textId === 'system_recommended_for_you';
+     const isListSource = safeCategory.source === 'List';
 
      let subCategoryRecords = [];
      let subCategoryHasMore = false;
      if (showSubCategoryRecords) {
           let allRecords;
-          if(category.textId === 'system_user_lists') {
-               allRecords = subCategories[selectedSubCategoryIndex].records.titles;
+          if(safeCategory.textId === 'system_user_lists') {
+               allRecords = Array.isArray(subCategories[selectedSubCategoryIndex]?.records?.titles)
+                    ? subCategories[selectedSubCategoryIndex].records.titles
+                    : [];
           } else {
-               allRecords = subCategories[selectedSubCategoryIndex].records;
+               allRecords = Array.isArray(subCategories[selectedSubCategoryIndex]?.records)
+                    ? subCategories[selectedSubCategoryIndex].records
+                    : [];
           }
           subCategoryHasMore = allRecords.length > maxItems;
           subCategoryRecords = subCategoryHasMore ? allRecords.slice(0, maxItems) : allRecords;
      }
 
-     const id = isListSource ? category.sourceListId : category.textId;
+     const id = isListSource ? safeCategory.sourceListId : safeCategory.textId;
 
      const refreshHomeFeed = React.useCallback(async () => {
           const requestedMax = maxNum > 0 ? maxNum : 5;
@@ -128,14 +133,14 @@ const DisplayBrowseCategory = ({category}) => {
      return (
           <View className="pb-12">
                <HStack space="md" className="items-center justify-between pb-2">
-                         <DisplayBrowseCategoryTitle category={category.label} key={category.id} textId={id} source={category.source ?? 'GroupedWork'} />
+                         <DisplayBrowseCategoryTitle category={safeCategory.label} key={safeCategory.id} textId={id} source={safeCategory.source ?? 'GroupedWork'} />
                          {subCategories.length > 0 ? (
-                             <Button variant="outline" size="xs" className="py-0" style={{ borderColor: colorMode === 'light' ? neutralPairs.textMuted.light : neutralPairs.white, paddingHorizontal: 6, height: 24 }} onPress={() => onPressHideAll(category.textId)}>
+                             <Button variant="outline" size="xs" className="py-0" style={{ borderColor: colorMode === 'light' ? neutralPairs.textMuted.light : neutralPairs.white, paddingHorizontal: 6, height: 24 }} onPress={() => onPressHideAll(safeCategory.textId)}>
                                   <MaterialIcons name="close" size={14} color={colorMode === 'light' ? neutralPairs.textMuted.light : neutralPairs.white} className="mr-1" />
                                   <ButtonText style={{ color: colorMode === 'light' ? neutralPairs.textMuted.light : neutralPairs.white }}>{getTermFromDictionary(language, 'hide_all')}</ButtonText>
                               </Button>
                          ) : (
-                             <Button variant="outline" size="xs" className="py-0" style={{ borderColor: colorMode === 'light' ? neutralPairs.textMuted.light : neutralPairs.white, paddingHorizontal: 6, height: 24 }} onPress={() => onPressHide(category.textId)}>
+                             <Button variant="outline" size="xs" className="py-0" style={{ borderColor: colorMode === 'light' ? neutralPairs.textMuted.light : neutralPairs.white, paddingHorizontal: 6, height: 24 }} onPress={() => onPressHide(safeCategory.textId)}>
                                   <MaterialIcons name="close" size={14} color={colorMode === 'light' ? neutralPairs.textMuted.light : neutralPairs.white} className="mr-1" />
                                   <ButtonText style={{ color: colorMode === 'light' ? neutralPairs.textMuted.light : neutralPairs.white }}>{getTermFromDictionary(language, 'hide')}</ButtonText>
                               </Button>
@@ -347,6 +352,7 @@ const DisplaySubCategoryBar = ({ subCategories, selectedIndex, onSelect, isSyste
      const maxNum = useMaxCategories();
      const toggleCategoryVisibility = useToggleBrowseCategoryVisibility();
      const updateBrowseCategories = useUpdateBrowseCategories();
+     const safeSubCategories = Array.isArray(subCategories) ? subCategories : [];
 
      const refreshHomeFeed = React.useCallback(async () => {
           const requestedMax = maxNum > 0 ? maxNum : 5;
@@ -358,7 +364,8 @@ const DisplaySubCategoryBar = ({ subCategories, selectedIndex, onSelect, isSyste
      }, [maxNum, library.baseUrl, updateBrowseCategories]);
 
      const onPressHideSubCategory = async (index) => {
-          let activeSubCategory = subCategories[index];
+          let activeSubCategory = safeSubCategories[index];
+          if (!activeSubCategory) return;
           // Optimistic update: toggle visibility immediately
           const result = await toggleCategoryVisibility(activeSubCategory.textId, true, () =>
                updateBrowseCategoryStatus(activeSubCategory.textId, library.baseUrl)
@@ -375,7 +382,7 @@ const DisplaySubCategoryBar = ({ subCategories, selectedIndex, onSelect, isSyste
 
      return (
           <ButtonGroup space="sm" className="flex-row items-center pb-2">
-               {subCategories.map((subCategory, index) => (
+               {safeSubCategories.map((subCategory, index) => (
                    <Button key={(subCategory?.id ?? subCategory?.textId ?? subCategory?.label ?? `subcategory-${index}`).toString()} colorScheme="primary" variant="solid" className="px-3" style={{ height: 34, opacity: selectedIndex === index ? 1 : 0.75 }} onPress={() => onSelect(index)}>
                         <ButtonText className="font-medium">
                               {subCategory.label}

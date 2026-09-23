@@ -276,15 +276,15 @@ const EventDescription = ({ description }) => {
  * @constructor
  */
 const EventAudiences = ({ audiences }) => {
-     const { textColor } = useTheme();
      const language = useActiveLanguage();
-     if (audiences) {
+     const safeAudiences = Array.isArray(audiences) ? audiences : [];
+     if (safeAudiences.length > 0) {
           return (
                <Box>
                     <Text size="lg" bold className="text-center">
                          {getTermFromDictionary(language, 'audiences')}
                     </Text>
-                     {audiences.map((item, index) => {
+                     {safeAudiences.map((item, index) => {
                          return <Text key={index}>{item}</Text>;
                     })}
                </Box>
@@ -304,13 +304,14 @@ const EventAudiences = ({ audiences }) => {
 const EventCategories = ({ categories }) => {
      const { textColor } = useTheme();
      const language = useActiveLanguage();
-     if (categories) {
+     const safeCategories = Array.isArray(categories) ? categories : [];
+     if (safeCategories.length > 0) {
           return (
                <Box>
                     <Text size="lg" bold className="text-center">
                          {getTermFromDictionary(language, 'categories')}
                     </Text>
-                     {categories.map((item, index) => {
+                     {safeCategories.map((item, index) => {
                          return <Text key={index}>{item}</Text>;
                     })}
                </Box>
@@ -330,13 +331,14 @@ const EventCategories = ({ categories }) => {
 const EventProgramTypes = ({ programTypes }) => {
      const { textColor } = useTheme();
      const language = useActiveLanguage();
-     if (programTypes) {
+     const safeProgramTypes = Array.isArray(programTypes) ? programTypes : [];
+     if (safeProgramTypes.length > 0) {
           return (
                <Box>
                     <Text size="lg" bold className="text-center">
                          {getTermFromDictionary(language, 'program_types')}
                     </Text>
-                     {programTypes.map((item, index) => {
+                     {safeProgramTypes.map((item, index) => {
                          return <Text key={index}>{item}</Text>;
                     })}
                </Box>

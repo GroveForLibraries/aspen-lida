@@ -198,6 +198,10 @@ const SavedSearch = (data) => {
  * @returns {*[]}
  */
 function getFormats(data) {
+     if (!Array.isArray(data)) {
+          return [];
+     }
+
      let formats = [];
      data.forEach((item) => {
           let thisFormat = item.split('#');

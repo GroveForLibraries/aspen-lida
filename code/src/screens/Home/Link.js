@@ -28,13 +28,14 @@ const HomeScreenLinkGrid = ({links}) => {
      const isTablet = width >= 768; // Consider tablet if width >= 768px
      const columnsPerRow = isTablet ? 4 : 2;
      const itemWidth = `${100 / columnsPerRow}%`;
+     const safeLinks = Array.isArray(links) ? links : [];
 
      return (
           <Box className="flex-row flex-wrap">
-               {links.map((item, index) => {
+               {safeLinks.map((item, index) => {
                     // Check if this is the last item and if it would be alone in its row
-                    const isLastItem = index === links.length - 1;
-                    const itemsInLastRow = links.length % columnsPerRow;
+                    const isLastItem = index === safeLinks.length - 1;
+                    const itemsInLastRow = safeLinks.length % columnsPerRow;
                     const isAloneInLastRow = isLastItem && itemsInLastRow === 1;
 
                     // Use 100% width if it's alone in the last row, otherwise use calculated width

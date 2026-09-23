@@ -90,13 +90,14 @@ export const ThemeSwitcher = ({ showText = true } = {}) => {
      const { brand, neutralPairs, neutrals, themeId, colorMode, textColor } = useTheme();
      const location = useLibraryLocation();
      const themes = useAvailableThemes(location?.locationId);
+     const safeThemes = Array.isArray(themes) ? themes : [];
      const updateThemeColors = useUpdateThemeColors();
      const updateColorMode = useUpdateThemeColorMode();
 
      const [isThemeMenuOpen, setIsThemeMenuOpen] = React.useState(false);
      const [isSwitchingTheme, setIsSwitchingTheme] = React.useState(false);
 
-     const activeTheme = themes.find((entry) => entry.id === themeId);
+     const activeTheme = safeThemes.find((entry) => entry.id === themeId);
      const activeThemeName = activeTheme?.name ?? '';
 
      const changeTheme = async (themeEntry) => {
@@ -117,7 +118,7 @@ export const ThemeSwitcher = ({ showText = true } = {}) => {
           }
      };
 
-     if (!Array.isArray(themes) || themes.length === 0) {
+     if (safeThemes.length === 0) {
           return null;
      }
 
@@ -163,11 +164,11 @@ export const ThemeSwitcher = ({ showText = true } = {}) => {
                                         className="rounded-md p-1"
                                         style={{
                                              backgroundColor: neutrals.surface,
-                                             height: themes.length > 4 ? 150 : undefined,
+                                             height: safeThemes.length > 4 ? 150 : undefined,
                                              width: 200,
                                         }}>
                                         <ScrollView nestedScrollEnabled={true} scrollEnabled={true}>
-                                             {themes.map((themeEntry) => {
+                                             {safeThemes.map((themeEntry) => {
                                                   const isActive = themeEntry.id === themeId;
                                                   return (
                                                        <Box
