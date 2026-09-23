@@ -38,7 +38,7 @@ export const DisplayEventResult = (props) => {
      const id = item.key ?? item.id;
      const keyParts = item.key.split('_');
 
-     let url = item.image ?? library.baseUrl + '/bookcover.php?id=' + item.key + '&size=medium&type=' + keyParts[0] + '_event';
+     let url = item.image && keyParts[0] !== 'localhop' ? item.image : library.baseUrl + '/bookcover.php?id=' + item.key + '&size=medium&type=' + keyParts[0] + '_event';
 
      let registrationRequired = false;
      if (item.registration_required !== undefined) {
@@ -66,6 +66,10 @@ export const DisplayEventResult = (props) => {
 
           if (item.source === 'aspenEvent') {
                eventSource = 'aspenEvent';
+          }
+
+          if (keyParts[0] === 'localhop') {
+               eventSource = 'localhop';
           }
 
           if (item.bypass) {

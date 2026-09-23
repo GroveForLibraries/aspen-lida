@@ -202,7 +202,7 @@ const DisplayBrowseCategoryRecord = ({record}) => {
 
      let type = 'grouped_work';
      if (record.source !== undefined) {
-          if (record.source === 'library_calendar' || record.source === 'springshare_libcal' || record.source === 'communico' || record.source === 'assabet' || record.source === 'aspenEvents' || record.source === 'aspenEvent') {
+          if (record.source === 'library_calendar' || record.source === 'springshare_libcal' || record.source === 'communico' || record.source === 'assabet' || record.source === 'aspenEvents' || record.source === 'aspenEvent' || record.source === 'localhop') {
                type = 'Event';
           } else {
                type = record.source;
@@ -240,6 +240,10 @@ const DisplayBrowseCategoryRecord = ({record}) => {
           if (typeof id === 'string' && id.includes('aspenEvent_')) {
                type = 'aspenEvent_event';
           }
+          if (typeof id === 'string' && id.includes('localhop_')) {
+               type = 'localhop_event';
+          }
+
      }
 
      if(type !== 'aspenEvent_event') {
@@ -254,7 +258,7 @@ const DisplayBrowseCategoryRecord = ({record}) => {
      let imageUrl = library.baseUrl + '/bookcover.php?id=' + id + '&size=medium&type=' + type;
 
      if (type === 'Event' || type.includes('_event')) {
-          imageUrl = isValidUrl(record.image) ? record.image : (library.baseUrl + '/bookcover.php?id=' + id + '&size=medium&type=' + type);
+          imageUrl = isValidUrl(record.image) && type !== 'localhop_event' ? record.image : (library.baseUrl + '/bookcover.php?id=' + id + '&size=medium&type=' + type);
      }
 
      let isNew = false;
@@ -294,6 +298,8 @@ const DisplayBrowseCategoryRecord = ({record}) => {
                     eventSource = 'assabet';
                } else if (type === 'aspenEvent_event') {
                     eventSource = 'aspenEvents';
+               } else if (type === 'localhop_event') {
+                    eventSource = 'localhop';
                }
 
                navigateStack('BrowseTab', 'EventScreen', {
