@@ -17,7 +17,7 @@ import { ActionButton } from '../../components/Action/ActionButton';
 import { LoadError } from '../../components/loadError';
 import { LoadingSpinner } from '../../components/loadingSpinner';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
-import { useUserState } from '../../hooks/useUserData';
+import { useUserState, useUpdateUserProfile } from '../../hooks/useUserData';
 import { navigate, navigateStack } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { placeHold, confirmHold, refreshProfile } from '../../util/api/user';
@@ -315,6 +315,7 @@ export const Variations = (props) => {
 const Variation = (props) => {
      // 1. Hooks (Singular Variation)
      const { data: userState } = useUserState();
+     const updateUserProfile = useUpdateUserProfile();
      const user = userState?.user ?? {};
      const library = useLibrary();
      const language = useActiveLanguage();

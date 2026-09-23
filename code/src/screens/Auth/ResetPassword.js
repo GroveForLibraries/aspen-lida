@@ -7,8 +7,7 @@ import { LIBRARY } from '../../util/globals';
 import { logDebugMessage, getErrorMessage } from '../../util/logging';
 import { resetPassword } from '../../util/api/user';
 import { useTheme, TOKENS } from '../../themes/theme';
-import { ThemedCloseIcon as CloseIcon, ThemedFormControlLabelText as FormControlLabelText, ThemedFormControlLabel as FormControlLabel } from '../../components/themed/ThemedFormControls';
-import { ThemedFormControl as FormControl, ThemedInput as Input, ThemedInputField as InputField } from '../../components/themed/ThemedFormControls';
+import { ThemedCloseIcon as CloseIcon, ThemedFormControl as FormControl, ThemedFormControlLabel as FormControlLabel, ThemedFormControlLabelText as FormControlLabelText, ThemedInput as Input, ThemedInputField as InputField } from '../../components/themed/ThemedFormControls';
 import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../components/themed/ThemedButton';
 import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
 import { Center } from '@/components/ui/center';
@@ -490,34 +489,34 @@ function SirsiResetPassword(props) {
      });
 
      if (results && showResults && !hasError) {
-          if (_.isEmpty(results.success) && results.error) {
+          if (isEmpty(results.success) && results.error) {
                return (
                     <>
                          <ModalBody>
                               <Text color={textColor}>{normalizeDisplayText(results.error)}</Text>
                          </ModalBody>
                          <ModalFooter>
-                              <ButtonGroup space="$2">
+                              <ButtonGroup space="sm">
                                    <Button variant="link" onPress={closeWindow}>
-                                        <ButtonText color={textColor}>{getTermFromDictionary('en', 'button_ok')}</ButtonText>
+                                        <ButtonText style={{ color: textColor }}>{getTermFromDictionary('en', 'button_ok')}</ButtonText>
                                    </Button>
-                                   <Button bgColor={theme.tokens.colors.primary['500']} onPress={resetWindow}>
-                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary('en', 'try_again')}</ButtonText>
+                                   <Button style={{ backgroundColor: brand.primary['500'] }} onPress={resetWindow}>
+                                        <ButtonText style={{ color: brand.primary['500-text'] }}>{getTermFromDictionary('en', 'try_again')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </ModalFooter>
                     </>
                );
-          } else if (!_.isEmpty(results.message)) {
+          } else if (!isEmpty(results.message)) {
                return (
                     <>
                          <ModalBody>
                               <Text color={textColor}>{normalizeDisplayText(results.message)}</Text>
                          </ModalBody>
                          <ModalFooter>
-                              <ButtonGroup space="$2">
+                              <ButtonGroup space="sm">
                                    <Button variant="link" onPress={closeWindow}>
-                                        <ButtonText color={textColor}>{getTermFromDictionary('en', 'cancel')}</ButtonText>
+                                        <ButtonText style={{ color: textColor }}>{getTermFromDictionary('en', 'cancel')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </ModalFooter>
@@ -531,9 +530,9 @@ function SirsiResetPassword(props) {
                               <Text color={textColor}>{getTermFromDictionary('en', 'password_reset_success_body_2')}</Text>
                          </ModalBody>
                          <ModalFooter>
-                              <ButtonGroup space="$2">
+                              <ButtonGroup space="sm">
                                    <Button variant="link" onPress={closeWindow}>
-                                        <ButtonText color={textColor}>{getTermFromDictionary('en', 'button_ok')}</ButtonText>
+                                        <ButtonText style={{ color: textColor }}>{getTermFromDictionary('en', 'button_ok')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </ModalFooter>

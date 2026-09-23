@@ -1,4 +1,4 @@
-import { map } from '../../../helpers/helpers';
+import { map } from '@/src/helpers/helpers';
 import { ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/ThemedMaterialIcons';
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';

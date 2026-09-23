@@ -8,7 +8,6 @@ import { Box } from '@/components/ui/box';
 import { ScreenContainer, screenContentContainerStyle } from '@/src/components/ScreenContainer';
 import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../../components/themed/ThemedButton';
 import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
-import { ThemedFormControl as FormControl } from '@/src/components/themed/ThemedFormControls';
 import { HStack } from '@/components/ui/hstack';
 import { Pressable } from '@/components/ui/pressable';
 import { ThemedScrollView as ScrollView } from '@/src/components/themed/ThemedScrollView';
@@ -73,7 +72,6 @@ export const MyList = ({ route }) => {
      const borderColor = neutrals.border;
      const dangerColor = neutralPairs.danger;
      const skipNextFetchRef = React.useRef(false);
-     const browserBackgroundColor = colorMode === 'light' ? '#ffffff' : '#111827';
      const t = React.useCallback((key, ellipsis = false, forcedLanguage) => {
           const lang = forcedLanguage || language;
           return getTermFromDictionaryHelper(lang, key, ellipsis, dictionary);

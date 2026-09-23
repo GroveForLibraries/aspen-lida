@@ -1,4 +1,4 @@
-import { find } from '../../../helpers/helpers';
+import { find } from '@/src/helpers/helpers';
 import React from 'react';
 import { ThemedScrollView as ScrollView } from '@/src/components/themed/ThemedScrollView';
 import { LoadingSpinner } from '@/src/components/loadingSpinner';

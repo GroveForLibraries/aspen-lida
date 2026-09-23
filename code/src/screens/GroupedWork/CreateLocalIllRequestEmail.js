@@ -79,11 +79,10 @@ const Request = (payload) => {
                                    {getTermFromDictionary(language, 'title')}
                               </FormControlLabelText>
                          </FormControlLabel>
-                         <Input isReadOnly={true}>
+                         <Input isReadOnly={true} size="lg">
                               <InputField
                                    id="title"
-                                   size="$lg"
-                                   value={workTitle}
+                                                                      value={workTitle}
                                    defaultValue={workTitle}
                                    isReadOnly={true}
                               />
@@ -95,11 +94,10 @@ const Request = (payload) => {
                                    {getTermFromDictionary(language, 'author')}
                               </FormControlLabelText>
                          </FormControlLabel>
-                         <Input isReadOnly={true}>
+                         <Input isReadOnly={true} size="lg">
                               <InputField
                                    id="author"
-                                   size="$lg"
-                                   value={author}
+                                                                      value={author}
                                    defaultValue={author}
                               />
                          </Input>
@@ -110,11 +108,10 @@ const Request = (payload) => {
                                    {getTermFromDictionary(language, 'volume')}
                               </FormControlLabelText>
                          </FormControlLabel>
-                         <Input>
+                         <Input size="lg">
                               <InputField
                                    id="volume"
-                                   size="$lg"
-                                   value={userVolumeName}
+                                                                      value={userVolumeName}
                                    defaultValue={volumeName}
                                    onChangeText={(text) => {
                                         setUserVolumeName(text);

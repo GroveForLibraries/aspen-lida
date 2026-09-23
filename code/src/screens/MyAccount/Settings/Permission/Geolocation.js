@@ -105,7 +105,7 @@ const GeolocationPermissionUsage = () => {
      const language = useActiveLanguage();
 
      return (
-          <Accordion variant="unfilled" width="$full" size="sm">
+          <Accordion className="w-full">
                <AccordionItem value="description">
                     <AccordionHeader>
                          <AccordionTrigger className="px-0">

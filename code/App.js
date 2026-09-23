@@ -5,21 +5,19 @@ import { GluestackUIProvider } from '@/components/ui/gluestack-ui-provider';
 import Constants from 'expo-constants';
 import { QueryClient, QueryClientProvider, dehydrate, hydrate } from '@tanstack/react-query';
 import { StatusBar } from 'expo-status-bar';
-import { View } from 'react-native';
+import { View, LogBox } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import React from 'react';
-import { LogBox } from 'react-native';
 import { enableScreens } from 'react-native-screens';
 import * as Sentry from '@sentry/react-native';
 import App from './src/components/navigation';
 import { AuthProvider } from './src/context/AuthContext';
 import { CheckoutsProvider, GroupedWorkProvider, HoldsProvider, SearchProvider, SystemMessagesProvider } from './src/context/initialContext';
 import { SplashScreenNative } from './src/screens/Auth/SplashNative';
-import { buildThemeForLibrary, runExclusiveThemeInit, THEME_STALE_MS, useThemeForDisplay } from './src/themes/theme';
+import { buildThemeForLibrary, runExclusiveThemeInit, useThemeForDisplay } from './src/themes/theme';
 import { ToastRegistrar } from '@/src/components/feedback';
 import { logDebugMessage, logErrorMessage } from './src/util/logging.js';
-import { initDatabase } from './src/util/db';
-import { loadLibraryUrl, loadThemeState, saveThemeState } from './src/util/db';
+import { initDatabase, isStoredThemeIdMatch, loadLibraryUrl, loadThemeState, saveThemeState } from './src/util/db';
 import { GLOBALS } from './src/util/globals';
 
 logDebugMessage("1 Enabling Screens, react-native-screens");
@@ -167,28 +165,29 @@ export default function AppContainer() {
                          const persistedLibraryUrl = await loadLibraryUrl();
                          const themeUrl = persistedLibraryUrl || GLOBALS.url || Constants.expoConfig.extra.apiUrl;
 
-                    if (!themeUrl) {
-                         logDebugMessage('4 Skipping startup theme fetch because no library URL is available yet');
-                    } else {
-                         logDebugMessage(`4 Building theme for current launch using url=${themeUrl}`);
-                         const builtTheme = await buildThemeForLibrary(themeUrl);
-                         await saveThemeState({
-                              themeId: builtTheme.themeId,
-                              locationId: builtTheme.locationId,
-                              colorMode: mode,
-                              textColor,
-                              themeColors: builtTheme.themeColors,
-                              header: builtTheme.header,
-                         });
-                    }
+                         if (!themeUrl) {
+                              logDebugMessage('4 Skipping startup theme fetch because no library URL is available yet');
+                         } else {
+                              logDebugMessage(`4 Building theme for current launch using url=${themeUrl}`);
+                              const builtTheme = await buildThemeForLibrary(themeUrl);
+                              await saveThemeState({
+                                   themeId: builtTheme.themeId,
+                                   locationId: builtTheme.locationId,
+                                   colorMode: mode,
+                                   textColor,
+                                   themeColors: builtTheme.themeColors,
+                                   header: builtTheme.header,
+                              });
+                         }
 
-                    if (!themeUrl && (!current?.textColor || !current?.colorMode)) {
-                         await saveThemeState({
-                              ...current,
-                              colorMode: mode,
-                              textColor,
-                         });
-                    }
+                         if (!themeUrl && (!current?.textColor || !current?.colorMode)) {
+                              await saveThemeState({
+                                   ...current,
+                                   colorMode: mode,
+                                   textColor,
+                              });
+                         }
+                    });
                } catch (e) {
                     logErrorMessage('4 Could not load or build theme ' + e);
                } finally {

@@ -4,6 +4,7 @@ import { ThemedSelect as Select, ThemedSelectBackdrop as SelectBackdrop, ThemedS
 import { ThemedFormControl as FormControl, ThemedFormControlLabelText as FormControlLabelText, ThemedFormControlLabel as FormControlLabel } from '../../themed/ThemedFormControls';
 import { logDebugMessage, logErrorMessage } from '@/src/util/logging';
 import { getTermFromDictionary } from '@/src/translations/TranslationService';
+import { isObject } from '@/src/helpers/helpers';
 
 /**
  * SelectNewHoldSublocation component for selecting a new hold sublocation for a library hold request.

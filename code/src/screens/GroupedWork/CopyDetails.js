@@ -3,7 +3,6 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import { FlatList } from 'react-native';
 import { ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/ThemedMaterialIcons';
 import {getItemDetails} from '../../util/api/item';
-import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 import {getTermFromDictionary} from '../../translations/TranslationService';
 import { logDebugMessage, getErrorMessage } from '../../util/logging';

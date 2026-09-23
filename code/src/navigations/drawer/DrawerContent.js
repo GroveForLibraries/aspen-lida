@@ -21,7 +21,7 @@ import { Pressable } from '@/components/ui/pressable';
 import { ThemedText as Text } from '@/src/components/themed/ThemedText';
 import { VStack } from '@/components/ui/vstack';
 import { showILSMessage } from '../../components/Notifications';
-import { CheckoutsContext, HoldsContext, SystemMessagesContext } from '../../context/initialContext';
+import { SystemMessagesContext } from '../../context/initialContext';
 import {
      useCatalogStatus,
      useLibrary,
@@ -37,8 +37,8 @@ import { InvalidCredentials } from '../../screens/Auth/InvalidCredentials';
 import { getTermFromDictionary, LanguageSwitcher } from '../../translations/TranslationService';
 import { formatLists } from '../../util/api/listHelper';
 import { getLocations, getCatalogStatus, getSystemMessages } from '../../util/api/system';
-import { getILSMessages, refreshProfile, reloadProfile, validateSession, passUserToDiscovery, getPickupSublocations, getPatronHolds, getPatronCheckedOutItems, getPickupLocations, getLinkedAccounts } from '../../util/api/user';
-import { sortCheckouts, sortHolds, formatLinkedAccounts, formatHolds, formatPickupLocations } from '../../util/api/userHelper';
+import { getILSMessages, refreshProfile, reloadProfile, validateSession, passUserToDiscovery, getPickupSublocations, getPickupLocations, getLinkedAccounts } from '../../util/api/user';
+import { formatLinkedAccounts, formatPickupLocations } from '../../util/api/userHelper';
 import { getListGroups, getLists } from '../../util/api/list';
 import { GLOBALS } from '../../util/globals';
 import { stripHTML } from '../../helpers/helpers';

@@ -1,4 +1,4 @@
-import { filter, isEmpty, isObject } from '../../../helpers/helpers';
+import { filter, isEmpty, isObject } from '@/src/helpers/helpers';
 import { ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/ThemedMaterialIcons';
 import React from 'react';
 import { HStack } from '@/components/ui/hstack';

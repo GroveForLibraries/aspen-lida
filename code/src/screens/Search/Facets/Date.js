@@ -1,5 +1,5 @@
 import { useFocusEffect } from '@react-navigation/native';
-import { find, formatDateUs, formatFacetDateTime, parseToDate, split, trimEnd, trimStart } from '../../../helpers/helpers';
+import { find, formatDateUs, formatFacetDateTime, parseToDate, split, trimEnd, trimStart } from '@/src/helpers/helpers';
 import React from 'react';
 import { ThemedScrollView as ScrollView } from '@/src/components/themed/ThemedScrollView';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
@@ -22,8 +22,6 @@ import { ThemedText as Text } from '@/src/components/themed/ThemedText';
 export const Facet_Date = (props) => {
      const { data, category, updater } = props;
      const language = useActiveLanguage();
-
-     const {theme, textColor, colorMode } = useTheme();
 
      const { colorMode } = useTheme();
 

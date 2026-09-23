@@ -1,7 +1,7 @@
 import { ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/ThemedMaterialIcons';
 import React from 'react';
 import { getTermFromDictionary } from '@/src/translations/TranslationService';
-import { changeHoldPickUpLocation } from '@/src/util/api/user';
+import { changeHoldPickUpLocation, getPickupLocations } from '@/src/util/api/user';
 import {SelectExistingHoldSubLocation} from './SelectExistingHoldSubLocation';
 import { ThemedCloseIcon as CloseIcon, ThemedFormControl as FormControl, ThemedFormControlLabelText as FormControlLabelText, ThemedFormControlLabel as FormControlLabel } from '@/src/components/themed/ThemedFormControls';
 import { ThemedActionsheetItem as ActionsheetItem, ThemedActionsheetItemText as ActionsheetItemText } from '@/src/components/themed/ThemedActionsheet';
@@ -12,6 +12,8 @@ import { ThemedHeading as Heading } from '@/src/components/themed/ThemedHeading'
 import { ThemedModal as Modal, ThemedModalBackdrop as ModalBackdrop, ThemedModalBody as ModalBody, ThemedModalCloseButton as ModalCloseButton, ThemedModalContent as ModalContent, ThemedModalFooter as ModalFooter, ThemedModalHeader as ModalHeader } from '@/src/components/themed/ThemedModal';
 import { ThemedScrollView as ScrollView } from '@/src/components/themed/ThemedScrollView';
 import { ThemedSelect as Select, ThemedSelectBackdrop as SelectBackdrop, ThemedSelectContent as SelectContent, ThemedSelectDragIndicator as SelectDragIndicator, ThemedSelectDragIndicatorWrapper as SelectDragIndicatorWrapper, ThemedSelectInput as SelectInput, ThemedSelectItem as SelectItem, ThemedSelectPortal as SelectPortal, ThemedSelectTrigger as SelectTrigger } from '../../../components/themed/ThemedSelect';
+import { findByProperty } from '@/src/helpers/helpers';
+import { formatPickupLocations } from '@/src/util/api/userHelper';
 
 /**
  * SelectPickupLocation component that renders a modal for selecting a new pickup location for a hold. It displays a list of available locations and sublocations, allows the user to select one, and updates the hold's pickup location when confirmed.
@@ -20,10 +22,7 @@ import { ThemedSelect as Select, ThemedSelectBackdrop as SelectBackdrop, ThemedS
  * @constructor
  */
 export const SelectPickupLocation = (props) => {
-     const { locations, sublocations, onClose, currentPickupId, holdId, userId, libraryContext, holdsContext, resetGroup, language, textColor, colorMode, neutralPairs } = props;
-     let pickupLocation = _.findIndex(locations, function (o) {
-          return o.locationId === currentPickupId;
-     });
+     const { sublocations, onClose, currentPickupId, holdId, pickupRecordId, libraryContext, holdsContext, resetGroup, language, textColor, colorMode, neutralPairs, userId } = props;
 
      const [loading, setLoading] = React.useState(false);
      const [loadingLocations, setLoadingLocations] = React.useState(false);
@@ -33,13 +32,13 @@ export const SelectPickupLocation = (props) => {
      const [activeSublocation, setActiveSublocation] = React.useState(null);
 
      const buildInitialLocation = React.useCallback((allLocations) => {
-          const matchedLocation = _.find(allLocations, (item) => _.toString(item.locationId) === _.toString(currentPickupId));
+          const matchedLocation = findByProperty(allLocations, 'locationId', currentPickupId);
           if (!matchedLocation) {
                return '';
           }
 
-          const locationId = _.toString(matchedLocation.locationId ?? '');
-          const code = _.toString(matchedLocation.code ?? '');
+          const locationId = String(matchedLocation.locationId ?? '');
+          const code = String(matchedLocation.code ?? '');
           return `${locationId}_${code}`;
      }, [currentPickupId]);
 
@@ -97,8 +96,8 @@ export const SelectPickupLocation = (props) => {
 
                                              <SelectTrigger>
                                                   {locations.map((item, index) => {
-                                                       const locationId = _.toString(item.locationId ?? '');
-                                                       const code = _.toString(item.code ?? '');
+                                                       const locationId = String(item.locationId ?? '');
+                                                       const code = String(item.code ?? '');
                                                        const id = locationId.concat('_', code);
                                                        if (id === location) {
                                                             return <SelectInput key={index} value={item.name} />;
@@ -114,8 +113,8 @@ export const SelectPickupLocation = (props) => {
                                                        </SelectDragIndicatorWrapper>
                                                        <ScrollView className="max-h-100 min-w-full">
                                                             {locations.map((item, index) => {
-                                                                 const locationId = _.toString(item.locationId ?? '');
-                                                                 const code = _.toString(item.code ?? '');
+                                                                 const locationId = String(item.locationId ?? '');
+                                                                 const code = String(item.code ?? '');
                                                                  const id = locationId.concat('_', code);
                                                                  return (
                                                                      <SelectItem

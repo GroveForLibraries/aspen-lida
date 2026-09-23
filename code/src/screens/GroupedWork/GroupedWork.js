@@ -13,12 +13,10 @@ import { useUserState, useCards, useSublocations, useUpdateAccounts, useUpdateCa
 import { startSearch } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { getVariations } from '../../util/api/item';
-import { getLinkedAccounts, passUserToDiscovery } from '../../util/api/user';
-import { formatLinkedAccounts } from '../../util/api/userHelper';
+import { getLinkedAccounts, passUserToDiscovery, getPickupLocations, getPickupSublocations } from '../../util/api/user';
+import { formatLinkedAccounts, formatPickupLocations } from '../../util/api/userHelper';
 import { getGroupedWork } from '../../util/api/work';
 import { decodeHTML, isEmpty } from '../../helpers/helpers';
-import { getPickupLocations, getPickupSublocations } from '../../util/api/user';
-import { formatPickupLocations } from '../../util/api/userHelper';
 import AddToList from '../Search/AddToList';
 import Variations from './Variations';
 import { logDebugMessage, getErrorMessage } from '../../util/logging.js';

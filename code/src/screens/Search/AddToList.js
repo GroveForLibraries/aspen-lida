@@ -4,10 +4,9 @@ import { isEmpty, map } from '../../helpers/helpers';
 import React, { useState } from 'react';
 import { useUserState, useLists, useListGroups } from '../../hooks/useUserData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
-import { addTitlesToList, createListFromTitle } from '../../util/api/list';
+import { addTitlesToList, createListFromTitle, getListGroups } from '../../util/api/list';
 import { saveLastListUsed } from '../../util/db';
 import { LoadingSpinner } from '../../components/loadingSpinner';
-import { getListGroups } from '../../util/api/list';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useTheme } from '../../themes/theme';
@@ -336,7 +335,7 @@ const AddToList = (props) => {
                                                                                      </SelectDragIndicatorWrapper>
                                                                                      <SelectScrollView>
                                                                                           <SelectItem label={getTermFromDictionary(language, 'nest_within_group_no')} value="no" key={1} selectedValue={nestedGroup} />
-                                                                                          {_.map(Object.values(groups), function (item, index) {
+                                                                                          {map(Object.values(groups), function (item, index) {
                                                                                                return <SelectItem key={index} value={item.id} label={item.title} selectedValue={nestedGroup} />;
                                                                                           })}
                                                                                      </SelectScrollView>
@@ -360,7 +359,7 @@ const AddToList = (props) => {
                                                                  }}>
                                                                  <SelectTrigger>
                                                                       {existingGroupId && existingGroupId !== -1 ? (
-                                                                           _.map(Object.values(groups), function (group) {
+                                                                           map(Object.values(groups), function (group) {
                                                                                 if (group.id === existingGroupId) {
                                                                                      return <SelectInput key={group.id} value={group.title} />;
                                                                                 }

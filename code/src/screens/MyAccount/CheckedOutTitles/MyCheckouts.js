@@ -1,44 +1,6 @@
 import { ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/ThemedMaterialIcons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useIsFetching, useQuery, useQueryClient } from '@tanstack/react-query';
-import _ from 'lodash';
-import {
-     AlertDialog,
-     AlertDialogBackdrop,
-     AlertDialogContent,
-     AlertDialogHeader,
-     AlertDialogCloseButton,
-     AlertDialogBody,
-     AlertDialogFooter,
-     Box,
-     Button,
-     ButtonGroup,
-     ButtonText,
-     ButtonIcon,
-     Center,
-     CheckIcon,
-     FlatList,
-     FormControl,
-     HStack,
-     Icon,
-     ScrollView,
-     Select,
-     SelectTrigger,
-     SelectInput,
-     SelectIcon,
-     SelectPortal,
-     SelectBackdrop,
-     SelectContent,
-     SelectDragIndicatorWrapper,
-     SelectDragIndicator,
-     SelectItem,
-     SelectScrollView,
-     Text,
-     VStack,
-     CloseIcon,
-     Heading,
-     ChevronDownIcon
-} from '@gluestack-ui/themed';
 import React from 'react';
 import { FlatList } from 'react-native';
 import { ThemedAlertDialog as AlertDialog, ThemedAlertDialogBackdrop as AlertDialogBackdrop, ThemedAlertDialogBody as AlertDialogBody, ThemedAlertDialogCloseButton as AlertDialogCloseButton, ThemedAlertDialogFooter as AlertDialogFooter, ThemedAlertDialogHeader as AlertDialogHeader, ThemedAlertDialogContent as AlertDialogContent } from '@/src/components/themed/ThemedAlertDialog';
@@ -60,8 +22,7 @@ import { useUserState, useUpdateSortSettings, useUpdateUserProfile } from '@/src
 import { getTermFromDictionary, getTranslationsWithValues } from '@/src/translations/TranslationService';
 import { confirmRenewAllCheckouts, confirmRenewCheckout, renewAllCheckouts, getPatronCheckedOutItems, refreshProfile, setSortPreferences } from '@/src/util/api/user';
 import { sortCheckouts } from '@/src/util/api/userHelper';
-import { stripHTML } from '@/src/helpers/helpers';
-import { stripHTML, isArray, isEmpty, set } from '../../../helpers/helpers';
+import { stripHTML, isArray, isEmpty, set } from '@/src/helpers/helpers';
 import { MyCheckout } from './MyCheckout';
 import { logDebugMessage, logErrorMessage, getErrorMessage } from '@/src/util/logging';
 import { useActiveLanguage } from '@/src/hooks/useLanguageData';
@@ -441,7 +402,7 @@ export const MyCheckouts = () => {
                                                        message: result.api.message,
                                                        title: result.api.title,
                                                        confirmRenewalFee: result.confirmRenewalFee ?? false,
-                                                       recordId: record ?? null,
+                                                       recordId: null,
                                                        action: result.api.action,
                                                        renewType: 'all',
                                                   });

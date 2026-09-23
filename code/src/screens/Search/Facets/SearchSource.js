@@ -1,5 +1,5 @@
 import { ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/ThemedMaterialIcons';
-import { map } from '../../../helpers/helpers';
+import { map } from '@/src/helpers/helpers';
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { ThemedScrollView as ScrollView } from '@/src/components/themed/ThemedScrollView';

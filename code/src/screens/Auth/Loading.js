@@ -20,8 +20,7 @@ import {getHomeScreenFeed} from '../../util/api/search';
 import {
      refreshProfile
 } from '../../util/api/user';
-import {formatLinkedAccounts, formatNotificationHistory, formatPickupLocations} from '../../util/api/userHelper';
-import { GLOBALS, LIBRARY, isBrandedApp } from '../../util/globals';
+import { LIBRARY } from '../../util/globals';
 import {CatalogOffline} from './CatalogOffline';
 import {ForceLogout} from './ForceLogout';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -39,7 +38,6 @@ import {
      loadBrowseCategories,
      loadThemeState,
      saveThemeState,
-     isStoredThemeIdMatch,
      loadLocation,
      setCurrentUserId,
      setCurrentLocationId,
@@ -58,7 +56,7 @@ import {
      useUpdateDictionary,
      useUpdateLanguageDisplayName } from '../../hooks/useLanguageData';
 import {getErrorMessage, logDebugMessage, logErrorMessage, logWarnMessage} from '../../util/logging.js';
-import { isPlainObject, orderByFields, stripHTML, RemoveData, parseStoredNumber } from '../../helpers/helpers';
+import { isPlainObject, stripHTML, RemoveData, parseStoredNumber } from '../../helpers/helpers';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useDataSync } from '../../hooks/useDataSync';
 import { Box } from '@/components/ui/box';

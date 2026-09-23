@@ -6,7 +6,7 @@ import {
      updateBrowseCategoryVisibility,
      updateBrowseCategoryVisibilityBatch,
      saveAllBrowseCategoryData, loadAllBrowseCategoryData,
-     resetAllBrowseCategoryData, isCacheExpired,
+     resetAllBrowseCategoryData,
 } from '../util/db';
 import { logDebugMessage, logErrorMessage } from '../util/logging';
 

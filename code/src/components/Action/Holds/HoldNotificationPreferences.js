@@ -1,8 +1,5 @@
-import React from 'react';
-import { Platform } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { getTermFromDictionary } from '../../../translations/TranslationService';
-import { useTranslationWithValues } from '../../../hooks/useTranslationWithValues';
+import { getTermFromDictionary } from '@/src/translations/TranslationService';
+import { useTranslationWithValues } from '@/src/hooks/useTranslationWithValues';
 import { ThemedText as Text } from '@/src/components/themed/ThemedText';
 import { ThemedSelect as Select, ThemedSelectBackdrop as SelectBackdrop, ThemedSelectContent as SelectContent, ThemedSelectDragIndicator as SelectDragIndicator, ThemedSelectDragIndicatorWrapper as SelectDragIndicatorWrapper, ThemedSelectInput as SelectInput, ThemedSelectItem as SelectItem, ThemedSelectPortal as SelectPortal, ThemedSelectScrollView as SelectScrollView, ThemedSelectTrigger as SelectTrigger } from '../../themed/ThemedSelect';
 import { ThemedCheckbox as Checkbox, ThemedCheckboxIcon as CheckboxIcon, ThemedCheckboxIndicator as CheckboxIndicator, ThemedCheckboxLabel as CheckboxLabel } from '../../themed/ThemedCheckbox';

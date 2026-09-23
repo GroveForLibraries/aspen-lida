@@ -49,12 +49,10 @@ const Day = (data) => {
      return (
           <VStack className="mb-2 mx-4">
                <HStack justifyContent="space-between">
-                    <Text bold>
-                         {hours.dayName}
-                    </Text>
+                    <Text bold>{hours.dayName}</Text>
                     {!hours.isClosed ? (
                          <Text>
-                              {formatTime(hours.open)} - {formatTime(hours.close)}
+                              {formatHourLabel(hours.open)} - {formatHourLabel(hours.close)}
                          </Text>
                     ) : (
                          <Text>{getTermFromDictionary(language, 'location_closed')}</Text>

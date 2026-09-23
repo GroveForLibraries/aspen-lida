@@ -1,6 +1,4 @@
 import { useNavigation } from '@react-navigation/native';
-import _ from 'lodash';
-import { Box, Button, ButtonText, Center, FlatList, FormControl, Input, InputField, Text } from '@gluestack-ui/themed';
 import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLibrary } from '../../hooks/useLibrarySystemData';

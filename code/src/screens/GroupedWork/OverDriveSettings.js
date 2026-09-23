@@ -1,6 +1,5 @@
 import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../components/themed/ThemedButton';
 import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
-import React from 'react';
 import { updateOverDriveEmail } from '../../util/api/user';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { ThemedCheckbox as Checkbox, ThemedCheckboxIcon as CheckboxIcon, ThemedCheckboxIndicator as CheckboxIndicator, ThemedCheckboxLabel as CheckboxLabel } from '../../components/themed/ThemedCheckbox';

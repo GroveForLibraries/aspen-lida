@@ -1,4 +1,4 @@
-import { getCurrentDate, isEmpty, subtractYears, size } from '../../../helpers/helpers';
+import { getCurrentDate, isEmpty, subtractYears, size } from '@/src/helpers/helpers';
 import React from 'react';
 import { ThemedScrollView as ScrollView } from '@/src/components/themed/ThemedScrollView';
 import { LoadingSpinner } from '@/src/components/loadingSpinner';

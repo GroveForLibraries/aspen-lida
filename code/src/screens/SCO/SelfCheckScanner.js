@@ -1,7 +1,5 @@
 import { useNavigation, useIsFocused, useRoute } from '@react-navigation/native';
 import { useCameraPermissions, CameraView } from 'expo-camera';
-import _ from 'lodash';
-import { Button, ButtonText, View } from '@gluestack-ui/themed';
 import React, {useState} from 'react';
 import { StyleSheet } from 'react-native';
 import BarcodeMask from 'react-native-barcode-mask';

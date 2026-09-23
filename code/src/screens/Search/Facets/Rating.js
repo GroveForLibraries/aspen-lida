@@ -1,4 +1,4 @@
-import { find } from '../../../helpers/helpers';
+import { find } from '@/src/helpers/helpers';
 import { ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/ThemedMaterialIcons';
 import React from 'react';
 import { ThemedScrollView as ScrollView } from '@/src/components/themed/ThemedScrollView';

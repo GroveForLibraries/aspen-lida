@@ -5,7 +5,7 @@ import RenderHtml from 'react-native-render-html';
 import { useLibrary } from '@/src/hooks/useLibrarySystemData';
 import { useUserState, useAccounts, useLocations, useSublocations, useUpdateUserProfile } from '@/src/hooks/useUserData';
 import { refreshProfile, updateAlternateLibraryCard } from '@/src/util/api/user';
-import { decodeHTML } from '@/src/helpers/helpers';
+import { decodeHTML, filter, isArray, isEmpty, isNumber, isObject, merge, size } from '@/src/helpers/helpers';
 import { completeAction } from '@/src/util/api/userHelper';
 import { getTermFromDictionary } from '@/src/translations/TranslationService';
 import { getCopies } from '@/src/util/api/item';
@@ -469,9 +469,9 @@ export const HoldPrompt = (props) => {
                                         colorMode={colorMode}
                                    />
                               ) : null}
-                              {data !== undefined && !isFetching && _.isEmpty(volumeId) && (holdType === 'either' || holdType === 'item') ? <SelectItemHold neutralPairs={neutralPairs} brand={brand} colorMode={colorMode} id={id} item={item} setItem={setItem} language={language} data={data} holdType={holdType} setHoldType={setHoldType} holdTypeForFormat={holdTypeForFormat} url={library.baseUrl} showModal={showModal} textColor={textColor} /> : null}
-                              {promptForHoldType || (holdType === 'volume' && _.isEmpty(volumeId)) ? <SelectVolume neutralPairs={neutralPairs} brand={brand} id={id} language={language} volume={volume} setVolume={setVolume} promptForHoldType={promptForHoldType} holdType={holdType} setHoldType={setHoldType} showModal={showModal} url={library.baseUrl} textColor={textColor} colorMode={colorMode} /> : null}
-                              {(_.isArray(locations) && (_.size(locations) > 1 || !preferredPickupLocationIsValid) && !isEContent && !user.rememberHoldPickupLocation) || (_.isArray(locations) && _.size(locations) > 1 && !isEContent && _.size(accounts) > 0) ? (
+                              {data !== undefined && !isFetching && isEmpty(volumeId) && (holdType === 'either' || holdType === 'item') ? <SelectItemHold neutralPairs={neutralPairs} brand={brand} colorMode={colorMode} id={id} item={item} setItem={setItem} language={language} data={data} holdType={holdType} setHoldType={setHoldType} holdTypeForFormat={holdTypeForFormat} url={library.baseUrl} showModal={showModal} textColor={textColor} /> : null}
+                              {promptForHoldType || (holdType === 'volume' && isEmpty(volumeId)) ? <SelectVolume neutralPairs={neutralPairs} brand={brand} id={id} language={language} volume={volume} setVolume={setVolume} promptForHoldType={promptForHoldType} holdType={holdType} setHoldType={setHoldType} showModal={showModal} url={library.baseUrl} textColor={textColor} colorMode={colorMode} /> : null}
+                              {(isArray(locations) && (size(locations) > 1 || !preferredPickupLocationIsValid) && !isEContent && !user.rememberHoldPickupLocation) || (isArray(locations) && size(locations) > 1 && !isEContent && size(accounts) > 0) ? (
                                    <FormControl className="mt-1">
                                         <FormControlLabel>
                                              <FormControlLabelText size="sm">
@@ -506,7 +506,7 @@ export const HoldPrompt = (props) => {
                                    </FormControl>
                               ) : null}
                               {!user.rememberHoldPickupLocation ? <SelectNewHoldSublocation sublocations={sublocations ?? []} location={location} activeSublocation={sublocation} setActiveSublocation={setSublocation} language={language} textColor={textColor} neutralPairs={neutralPairs} brand={brand} colorMode={colorMode} /> : null}
-                              {_.size(locations) > 1 && _.size(accounts) === 0 && !isEContent && library.allowRememberPickupLocation && !user.rememberHoldPickupLocation ? (
+                              {size(locations) > 1 && size(accounts) === 0 && !isEContent && library.allowRememberPickupLocation && !user.rememberHoldPickupLocation ? (
                                    <FormControl className="mb-3">
                                         <Checkbox
                                              defaultIsChecked={rememberPickupLocation}

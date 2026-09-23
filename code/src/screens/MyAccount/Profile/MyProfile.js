@@ -1,5 +1,3 @@
-import _ from 'lodash';
-import { Box, Divider, ScrollView } from '@gluestack-ui/themed';
 import React from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigation } from '@react-navigation/native';

@@ -28,7 +28,6 @@ import { ThemedScrollView as ScrollView } from '@/src/components/themed/ThemedSc
 import { ThemedText as Text } from '@/src/components/themed/ThemedText';
 import { VStack } from '@/components/ui/vstack';
 import { ThemedCloseIcon as CloseIcon } from '../../components/themed/ThemedFormControls';
-import { screenContentContainerStyle } from '@/src/components/ScreenContainer';
 
 /**
  * MoreMenu component that displays a scrollable menu with library information, settings, and additional links. It fetches library menu links from the API and allows users to delete their account if self-registration is enabled. The component also handles modals for delete confirmation and results.

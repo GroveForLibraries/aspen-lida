@@ -3,10 +3,6 @@ import { useNavigation } from '@react-navigation/native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
 import * as WebBrowser from 'expo-web-browser';
-import _ from 'lodash';
-import moment from 'moment';
-import { Badge, BadgeText, Box, Button, ButtonText, ButtonGroup, ButtonIcon, Center, FlatList, HStack, Pressable, ScrollView, Text, useToken, VStack } from '@gluestack-ui/themed';
-import { useColorModeValue, useTheme } from '../../../themes/theme';
 import React from 'react';
 import { FlatList } from 'react-native';
 import { ThemedBadge as Badge, ThemedBadgeText as BadgeText } from '@/src/components/themed/ThemedBadge';
@@ -28,6 +24,7 @@ import { DisplaySystemMessage } from '@/src/components/Notifications';
 import { SystemMessagesContext } from '@/src/context/initialContext';
 import { useUserState, useSavedEvents, useUpdateSavedEvents, useUpdateUserProfile } from '@/src/hooks/useUserData';
 import { getCleanTitle } from '@/src/helpers/item';
+import { getEventDateDisplayData } from '@/src/helpers/helpers';
 import { navigate } from '@/src/helpers/RootNavigator';
 import { getTermFromDictionary } from '@/src/translations/TranslationService';
 import { fetchSavedEvents, removeSavedEvent } from '@/src/util/api/event';
@@ -35,19 +32,6 @@ import { refreshProfile } from '@/src/util/api/user';
 import {logDebugMessage, logErrorMessage, getErrorMessage, logWarnMessage} from '@/src/util/logging';
 import { useActiveLanguage } from '@/src/hooks/useLanguageData';
 import { useLibrary } from '@/src/hooks/useLibrarySystemData';
-
-import { loadingSpinner } from '../../../components/loadingSpinner';
-import { DisplaySystemMessage } from '../../../components/Notifications';
-import { SystemMessagesContext } from '../../../context/initialContext';
-import { useUserState, useSavedEvents, useUpdateSavedEvents, useUpdateUserProfile } from '../../../hooks/useUserData';
-import { getCleanTitle } from '../../../helpers/item';
-import { navigate } from '../../../helpers/RootNavigator';
-import { getTermFromDictionary } from '../../../translations/TranslationService';
-import { fetchSavedEvents, removeSavedEvent } from '../../../util/api/event';
-import { refreshProfile } from '../../../util/api/user';
-import {logDebugMessage, logErrorMessage, getErrorMessage, logWarnMessage} from '../../../util/logging';
-import { useActiveLanguage } from '../../../hooks/useLanguageData';
-import { useLibrary } from '../../../hooks/useLibrarySystemData';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 

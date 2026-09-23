@@ -5,28 +5,6 @@ import { Image } from 'expo-image';
 import * as Calendar from 'expo-calendar';
 import * as SecureStore from 'expo-secure-store';
 import * as WebBrowser from 'expo-web-browser';
-import _ from 'lodash';
-import moment from 'moment';
-import {
-     Box,
-     Divider,
-     Pressable,
-     ScrollView,
-     VStack,
-     Text,
-     Button,
-     ButtonGroup,
-     ButtonText,
-     Center,
-     Heading,
-     Icon,
-     Modal,
-     ModalContent,
-     ModalHeader,
-     ModalBody,
-     ModalFooter,
-     HStack,
-     CloseIcon, ModalCloseButton, ModalBackdrop } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
 import { showLocation } from 'react-native-map-link';

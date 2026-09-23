@@ -4,7 +4,6 @@ import { useCatalogStatus } from '../../hooks/useLibrarySystemData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { logInfoMessage } from '../../util/logging';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
-import { useTheme } from '../../themes/theme';
 import { ThemedAlertDialog as AlertDialog, ThemedAlertDialogBackdrop as AlertDialogBackdrop, ThemedAlertDialogBody as AlertDialogBody, ThemedAlertDialogFooter as AlertDialogFooter, ThemedAlertDialogHeader as AlertDialogHeader, ThemedAlertDialogContent as AlertDialogContent } from '@/src/components/themed/ThemedAlertDialog';
 import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../components/themed/ThemedButton';
 import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
@@ -27,7 +26,7 @@ export const CatalogOffline = () => {
 
      logInfoMessage('CatalogOffline: ' + catalogStatus);
 
-     if (catalogStatus > 0 && theme !== undefined) {
+     if (catalogStatus > 0) {
           return (
                <Center>
                     <AlertDialog leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={onClose}>

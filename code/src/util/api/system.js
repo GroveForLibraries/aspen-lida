@@ -1,6 +1,5 @@
-import { LIBRARY, isBrandedApp } from '../globals';
+import { LIBRARY, isBrandedApp, GLOBALS } from '../globals';
 import { logDebugMessage, logErrorMessage, logInfoMessage, logWarnMessage } from '../logging';
-import { GLOBALS } from '../globals';
 import { popToast } from '../../components/feedback';
 import { createApiClient } from './apiFactory';
 import { generateSwatches, buildSwatchFromThemeTokens } from '../../helpers/helpers';

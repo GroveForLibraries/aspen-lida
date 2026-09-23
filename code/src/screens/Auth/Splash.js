@@ -331,36 +331,37 @@ export const SplashScreen = ({ shouldInitializeTheme = false, forceRefreshTheme 
                          const currentLocationId = currentLocation?.locationId != null ? Number(currentLocation.locationId) : null;
                          const mode = currentThemeState?.colorMode === 'dark' ? 'dark' : 'light';
                          logDebugMessage(`Splash theme init: loaded state mode=${mode} hasColors=${Boolean(currentThemeState?.themeColors?.primary && currentThemeState?.themeColors?.secondary && currentThemeState?.themeColors?.tertiary)}`);
-                         await updateColorMode(mode);
+                              await updateColorMode(mode);
 
-                    const persistedLibraryUrl = await loadLibraryUrl();
-                    const themeUrl = LIBRARY.url || persistedLibraryUrl || GLOBALS.url || Constants.expoConfig.extra.apiUrl;
+                         const persistedLibraryUrl = await loadLibraryUrl();
+                         const themeUrl = LIBRARY.url || persistedLibraryUrl || GLOBALS.url || Constants.expoConfig.extra.apiUrl;
 
-                    if (!themeUrl) {
-                         logDebugMessage('Splash theme init: no URL available yet, applying cached theme if present and leaving defaults otherwise');
-                         if (currentThemeState?.themeColors?.primary && currentThemeState?.themeColors?.secondary && currentThemeState?.themeColors?.tertiary) {
-                              await updateTheme({
-                                   tokens: {
-                                        colors: currentThemeState.themeColors,
-                                   },
-                              }, currentThemeState.themeId, currentThemeState.locationId, currentThemeState.header);
+                         if (!themeUrl) {
+                              logDebugMessage('Splash theme init: no URL available yet, applying cached theme if present and leaving defaults otherwise');
+                              if (currentThemeState?.themeColors?.primary && currentThemeState?.themeColors?.secondary && currentThemeState?.themeColors?.tertiary) {
+                                   await updateTheme({
+                                        tokens: {
+                                             colors: currentThemeState.themeColors,
+                                        },
+                                   }, currentThemeState.themeId, currentThemeState.locationId, currentThemeState.header);
+                              }
+                              return;
                          }
-                         return;
-                    }
 
-                    logDebugMessage(`Splash theme init: fetching theme from API url=${themeUrl} forceRefresh=${forceRefreshTheme}`);
-                    const builtTheme = await buildThemeForLibrary(themeUrl, currentLocationId);
-                    await saveThemeState({
-                         themeId: builtTheme.themeId,
-                         locationId: builtTheme.locationId,
-                         colorMode: mode,
-                         textColor: mode === 'dark' ? 'textLight50' : 'textLight950',
-                         themeColors: builtTheme.themeColors,
-                         header: builtTheme.header,
+                         logDebugMessage(`Splash theme init: fetching theme from API url=${themeUrl} forceRefresh=${forceRefreshTheme}`);
+                         const builtTheme = await buildThemeForLibrary(themeUrl, currentLocationId);
+                         await saveThemeState({
+                              themeId: builtTheme.themeId,
+                              locationId: builtTheme.locationId,
+                              colorMode: mode,
+                              textColor: mode === 'dark' ? 'textLight50' : 'textLight950',
+                              themeColors: builtTheme.themeColors,
+                              header: builtTheme.header,
+                         });
+                         logDebugMessage(`Splash theme init: saved fetched theme themeId=${builtTheme.themeId}`);
+                         await updateTheme(builtTheme.theme, builtTheme.themeId, builtTheme.locationId, builtTheme.header);
+                         logDebugMessage('Splash theme init: complete');
                     });
-                    logDebugMessage(`Splash theme init: saved fetched theme themeId=${builtTheme.themeId}`);
-                    await updateTheme(builtTheme.theme, builtTheme.themeId, builtTheme.locationId, builtTheme.header);
-                    logDebugMessage('Splash theme init: complete');
                } catch (error) {
                     logErrorMessage('Splash theme initialization failed');
                     logErrorMessage(error);

@@ -100,7 +100,7 @@ export const LanguageSwitcher = () => {
                               return (
                                    <Button
                                         size="sm"
-                                        borderRadius="$full"
+                                        style={{ borderRadius: 9999 }}
                                         variant="ghost"
                                         colorScheme="primary"
                                         {...triggerProps}

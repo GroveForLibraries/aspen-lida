@@ -1,3 +1,4 @@
+import { useRoute } from '@react-navigation/native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import React from 'react';
 import { Dimensions } from 'react-native';
@@ -12,7 +13,9 @@ const Drawer = createDrawerNavigator();
  * @returns {React.JSX.Element}
  * @constructor
  */
-const AccountDrawer = () => {
+const AccountDrawer = ({ route }) => {
+     const startupCache = route?.params?.startupCache ?? null;
+
      return (
           <>
                <BackgroundCacheRefresher startupCache={startupCache} />

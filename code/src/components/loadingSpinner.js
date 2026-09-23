@@ -1,5 +1,5 @@
 import React from 'react';
-import {isEmpty, isUndefined} from 'lodash';
+import { isEmpty, isUndefined } from '@/src/helpers/helpers';
 import { Center } from '@/components/ui/center';
 import { ThemedHeading as Heading } from '@/src/components/themed/ThemedHeading';
 import { HStack } from '@/components/ui/hstack';

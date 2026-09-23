@@ -1,4 +1,3 @@
-import React from 'react';
 import { VStack } from '@/components/ui/vstack';
 import { logDebugMessage } from '../../util/logging.js';
 import { ThemedToast as Toast, ThemedToastTitle as ToastTitle, ThemedToastDescription as ToastDescription } from '../themed/ThemedToast';

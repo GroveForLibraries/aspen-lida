@@ -1,37 +1,39 @@
 import * as Device from 'expo-device';
 import * as Linking from 'expo-linking';
-import _ from 'lodash';
-import { Alert, Box, Center, HStack, Pressable, Text, VStack, ScrollView, Button, ButtonText, Divider, AlertText, CloseIcon } from '@gluestack-ui/themed';
 import React from 'react';
 import { Platform } from 'react-native';
 import { checkVersion } from 'react-native-check-version';
 import { ThemedAlert as Alert, ThemedAlertText as AlertText } from '@/src/components/themed/ThemedAlert';
 import { Box } from '@/components/ui/box';
 import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../../components/themed/ThemedButton';
+import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
 import { Center } from '@/components/ui/center';
 import { ThemedDivider as Divider } from '@/src/components/themed/ThemedDivider';
+import { ThemedCloseIcon as CloseIcon } from '@/src/components/themed/ThemedFormControls';
+import { ThemedHeading as Heading } from '@/src/components/themed/ThemedHeading';
 import { HStack } from '@/components/ui/hstack';
+import { ThemedModal as Modal, ThemedModalBackdrop as ModalBackdrop, ThemedModalBody as ModalBody, ThemedModalCloseButton as ModalCloseButton, ThemedModalContent as ModalContent, ThemedModalFooter as ModalFooter, ThemedModalHeader as ModalHeader } from '@/src/components/themed/ThemedModal';
+import { Pressable } from '@/components/ui/pressable';
 import { ThemedScrollView as ScrollView } from '@/src/components/themed/ThemedScrollView';
 import { ThemedText as Text } from '@/src/components/themed/ThemedText';
 import { VStack } from '@/components/ui/vstack';
 import { useAccounts, useDebugMessages, useUserState } from '@/src/hooks/useUserData';
 import { formatLinkedAccounts, formatNotificationHistory, formatPickupLocations } from '@/src/util/api/userHelper';
-import { getTermFromDictionary } from '@/src/translations/TranslationService';
-import { getTranslatedTermsForUserPreferredLanguage, setTranslationsLibrary, translationsLibrary } from '@/src/translations/TranslationService';
+import { getTermFromDictionary, getTranslatedTermsForUserPreferredLanguage, setTranslationsLibrary, translationsLibrary } from '@/src/translations/TranslationService';
 import { GLOBALS } from '@/src/util/globals';
 import { useNavigation } from '@react-navigation/native';
-import { logDebugMessage, logErrorMessage, dumpSQLiteTable} from '../../../util/logging';
-import { useActiveLanguage, useAllLanguageData, useLanguageUserStateQuery, useUpdateAvailableLanguages, useUpdateDictionary } from '../../../hooks/useLanguageData';
-import { buildThemeForLibrary, useTheme } from '../../../themes/theme';
-import { useAllLibrarySystemData, useLibraryQuery } from '../../../hooks/useLibrarySystemData';
-import { useAllLibraryBranchData, useLibraryLocationQuery } from '../../../hooks/useLibraryBranchData';
-import { useThemeStateQuery } from '../../../hooks/useThemeData';
-import { useAllBrowseCategoryData } from '../../../hooks/useBrowseCategoryData';
-import { fetchNotificationHistory, getAppPreferencesForUser, getLinkedAccounts, getPickupLocations, refreshProfile } from '../../../util/api/user';
-import { getCatalogStatus, getLibraryInfo, getLibraryLanguages, getLibraryLinks, getLocationInfo, getSelfCheckSettings, normalizeLibraryLanguagesPayload } from '../../../util/api/system';
-import { getBrowseCategoriesAndHomeLinks } from '../../../util/api/search';
-import { saveAccounts, saveAllLibraryBranchData, saveAllBrowseCategoryData, saveAppPreferences, saveCards, saveCatalogStatus, saveLibrary, saveLocations, saveMenu, saveNotificationHistory, saveUserProfile, saveThemeState } from '../../../util/db';
-import { orderByFields, stripHTML, set, size } from '../../../helpers/helpers';
+import { logDebugMessage, logErrorMessage, dumpSQLiteTable} from '@/src/util/logging';
+import { useActiveLanguage, useAllLanguageData, useLanguageUserStateQuery, useUpdateAvailableLanguages, useUpdateDictionary } from '@/src/hooks/useLanguageData';
+import { buildThemeForLibrary, useTheme } from '@/src/themes/theme';
+import { useAllLibrarySystemData, useLibraryQuery } from '@/src/hooks/useLibrarySystemData';
+import { useAllLibraryBranchData, useLibraryLocationQuery } from '@/src/hooks/useLibraryBranchData';
+import { useThemeStateQuery } from '@/src/hooks/useThemeData';
+import { useAllBrowseCategoryData } from '@/src/hooks/useBrowseCategoryData';
+import { fetchNotificationHistory, getAppPreferencesForUser, getLinkedAccounts, getPickupLocations, refreshProfile } from '@/src/util/api/user';
+import { getCatalogStatus, getLibraryInfo, getLibraryLanguages, getLibraryLinks, getLocationInfo, getSelfCheckSettings, normalizeLibraryLanguagesPayload } from '@/src/util/api/system';
+import { getBrowseCategoriesAndHomeLinks } from '@/src/util/api/search';
+import { saveAccounts, saveAllLibraryBranchData, saveAllBrowseCategoryData, saveAppPreferences, saveCards, saveCatalogStatus, saveLibrary, saveLocations, saveMenu, saveNotificationHistory, saveUserProfile, saveThemeState } from '@/src/util/db';
+import { stripHTML, set, size } from '@/src/helpers/helpers';
 
 function formatCachedDateTime(updatedAt) {
      if (!updatedAt) {
@@ -73,7 +75,7 @@ export const SupportScreen = () => {
      const updateLanguages = useUpdateAvailableLanguages();
      const updateDictionary = useUpdateDictionary();
      const { neutralPairs, textColor, colorMode } = useTheme();
-     const mutedTextColor = colorMode === 'light' ? neutralPairs.icon.light : neutralPairs.iconMuted.dark;
+     const mutedTextColor = colorMode === 'light' ? neutralPairs.textMuted.light : neutralPairs.white;
      const [refreshingCache, setRefreshingCache] = React.useState({});
      const [dumpingCache, setDumpingCache] = React.useState({});
      const isAnyCacheRefreshing = Object.values(refreshingCache).some(Boolean);
@@ -293,18 +295,19 @@ export const SupportScreen = () => {
                               themeColors: themeResponse.themeColors,
                          });
                     }
+               }
 
-                    if (cacheKey === 'browse_categories') {
-                         const browseCategoriesResp = await getBrowseCategoriesAndHomeLinks({ patronsLibrary: library }, userStateQuery.data?.user ?? {}, { valueUser: '', valueSecret: '' });
-                         if (browseCategoriesResp?.ok) {
-                              const browseData = browseCategoriesResp.data?.result ?? {};
-                              await saveAllBrowseCategoryData({
-                                   browseCategoriesData: browseData.browseCategoriesData ?? [],
-                                   categoryCounts: browseData.categoryCounts ?? {},
-                                   maxCategories: browseData.maxCategories ?? 10,
-                              });
-                         }
+               if (cacheKey === 'browse_categories') {
+                    const browseCategoriesResp = await getBrowseCategoriesAndHomeLinks({ patronsLibrary: library }, userStateQuery.data?.user ?? {}, { valueUser: '', valueSecret: '' });
+                    if (browseCategoriesResp?.ok) {
+                         const browseData = browseCategoriesResp.data?.result ?? {};
+                         await saveAllBrowseCategoryData({
+                              browseCategoriesData: browseData.browseCategoriesData ?? [],
+                              categoryCounts: browseData.categoryCounts ?? {},
+                              maxCategories: browseData.maxCategories ?? 10,
+                         });
                     }
+               }
 
                     await refetch();
                     await userStateQuery.refetch();
@@ -379,22 +382,22 @@ export const SupportScreen = () => {
           <Box className="flex-1">
                <Modal isOpen={pendingDumpCacheKey === 'accounts'} onClose={dismissDumpConfirm} closeOnOverlayClick={true} size="md">
                     <ModalBackdrop />
-                    <ModalContent maxWidth="90%" bg={colorMode === 'light' ? '$warmGray50' : '$coolGray800'}>
+                    <ModalContent>
                          <ModalHeader>
-                              <Heading size="$md" color={textColor}>
+                              <Heading>
                                    Confirm User Data Share
                               </Heading>
-                              <ModalCloseButton p="$3" onPress={dismissDumpConfirm}>
-                                   <Icon as={CloseIcon} color={textColor} />
+                              <ModalCloseButton onPress={dismissDumpConfirm}>
+                                   <CloseIcon color={textColor} />
                               </ModalCloseButton>
                          </ModalHeader>
                          <ModalBody>
-                              <Text color={colorMode === 'light' ? '$coolGray600' : '$warmGray400'} fontSize="$sm">
+                              <Text style={{ color: mutedTextColor }} size="sm">
                                    This data may include personally identifiable information, is strictly for diagnostic purposes, and is removed after 30 days. Only continue if you are being requested to do so.
                               </Text>
                          </ModalBody>
                          <ModalFooter>
-                              <ButtonGroup space={2} size="sm">
+                              <ButtonGroup space="sm" size="sm">
                                    <Button variant="outline" onPress={dismissDumpConfirm}>
                                         <ButtonText>Cancel</ButtonText>
                                    </Button>

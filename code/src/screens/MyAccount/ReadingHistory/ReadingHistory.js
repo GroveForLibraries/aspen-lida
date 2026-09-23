@@ -34,7 +34,7 @@ import { logDebugMessage, logErrorMessage, getErrorMessage } from '@/src/util/lo
 import { useActiveLanguage } from '@/src/hooks/useLanguageData';
 import { useTheme } from '@/src/themes/theme';
 import { useLibrary } from '@/src/hooks/useLibrarySystemData';
-import { ThemedFormControl as FormControl, ThemedInput as Input, ThemedInputField as InputField } from '@/src/components/themed/ThemedFormControls';
+import { ThemedInput as Input, ThemedInputField as InputField } from '@/src/components/themed/ThemedFormControls';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 

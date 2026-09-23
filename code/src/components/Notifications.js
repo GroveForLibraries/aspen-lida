@@ -1,7 +1,6 @@
 import Constants from 'expo-constants';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
-import React, {useContext} from 'react';
 import { Platform } from 'react-native';
 import { ThemedAlert as Alert, ThemedAlertIcon as AlertIcon, ThemedAlertText as AlertText } from './themed/ThemedAlert';
 import { ThemedButton as Button, ThemedButtonIcon as ButtonIcon } from './themed/ThemedButton';
@@ -14,6 +13,7 @@ import { getTermFromDictionary } from '../translations/TranslationService';
 import { dismissSystemMessage } from '../util/api/system';
 import { normalizeDisplayText, stripHTML } from '../helpers/helpers';
 import { logDebugMessage, logErrorMessage } from '../util/logging.js';
+import { useTheme } from '../themes/theme';
 
 /**
  * Registers the device for push notifications and returns the Expo push token.

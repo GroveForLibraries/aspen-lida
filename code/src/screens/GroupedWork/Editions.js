@@ -1,10 +1,8 @@
-import React, { useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/ThemedMaterialIcons';
 import { useNavigation } from '@react-navigation/native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-// custom components and helper files
 import { loadingSpinner } from '../../components/loadingSpinner';
 import { placeHold, confirmHold, refreshProfile } from '../../util/api/user';
 import { getRecords } from '../../util/api/item';
@@ -13,18 +11,16 @@ import { navigate, navigateStack } from '../../helpers/RootNavigator';
 import { stripHTML } from '../../helpers/helpers';
 import { getStatusIndicator } from './StatusIndicator';
 import { ActionButton } from '../../components/Action/ActionButton';
-
 import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useUserState, useUpdateUserProfile } from '../../hooks/useUserData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
-
 import { logDebugMessage, logWarnMessage, getErrorMessage } from '../../util/logging.js';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 import { useTheme } from '../../themes/theme';
 import { ThemedAlertDialog as AlertDialog, ThemedAlertDialogBackdrop as AlertDialogBackdrop, ThemedAlertDialogBody as AlertDialogBody, ThemedAlertDialogFooter as AlertDialogFooter, ThemedAlertDialogHeader as AlertDialogHeader, ThemedAlertDialogContent as AlertDialogContent } from '@/src/components/themed/ThemedAlertDialog';
 import { ThemedBadge as Badge, ThemedBadgeText as BadgeText } from '../../components/themed/ThemedBadge';
 import { Box } from '@/components/ui/box';
-import { ThemedButton as Button, ThemedButtonIcon as ButtonIcon, ThemedButtonText as ButtonText } from '../../components/themed/ThemedButton';
+import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../components/themed/ThemedButton';
 import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
 import { Center } from '@/components/ui/center';
 import { ThemedHeading as Heading } from '@/src/components/themed/ThemedHeading';

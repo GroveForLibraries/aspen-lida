@@ -118,7 +118,7 @@ export const SearchResultsForBrowseCategory = () => {
      const NoResults = () => {
           return (
                <>
-                    {size(systemMessagesForScreen) > 0 ? <Box p="$2">{showSystemMessage()}</Box> : null}
+                    {size(systemMessagesForScreen) > 0 ? <Box className="p-2">{showSystemMessage()}</Box> : null}
                     <Center className="flex-1">
                         <Heading className="pt-5">{getTermFromDictionary(language, 'no_results')}</Heading>
                     </Center>
@@ -128,7 +128,7 @@ export const SearchResultsForBrowseCategory = () => {
 
      return (
           <ScreenContainer safeArea style={{ flex: 1 }}>
-               {size(systemMessagesForScreen) > 0 ? <Box p="$2">{showSystemMessage()}</Box> : null}
+               {size(systemMessagesForScreen) > 0 ? <Box className="p-2">{showSystemMessage()}</Box> : null}
                {status === 'loading' || isFetching ? (
                     // TODO(translation): Replace hardcoded loading message with TranslationService-backed key.
                     loadingSpinner('Fetching results...')

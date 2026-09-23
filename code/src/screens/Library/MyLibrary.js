@@ -145,7 +145,7 @@ export const MyLibrary = () => {
                               {hasHours ? <Hours data={location} /> : null}
                               <AdditionalInformation data={location} />
                          </Box>
-                         {_.size(locations) > 1 ? (
+                         {size(locations) > 1 ? (
                               <>
                                    <Divider className="mt-5 mb-2" />
                                    <Button variant="ghost" size="sm" onPress={selectLocations} colorScheme="primary">

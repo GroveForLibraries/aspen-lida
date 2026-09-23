@@ -1,32 +1,3 @@
-import _ from 'lodash';
-import {
-     Button,
-     ButtonText,
-     ButtonGroup,
-     CheckIcon,
-     FormControl,
-     FormControlLabel,
-     FormControlLabelText,
-     Heading,
-     Modal,
-     ModalBackdrop,
-     ModalContent,
-     ModalHeader,
-     ModalBody,
-     ModalFooter,
-     ModalCloseButton,
-     Select,
-     SelectTrigger,
-     SelectInput,
-     SelectPortal,
-     SelectBackdrop,
-     SelectContent,
-     SelectDragIndicatorWrapper,
-     SelectDragIndicator,
-     SelectItem,
-     Icon,
-     ChevronDownIcon
-} from '@gluestack-ui/themed';
 import React, { useState } from 'react';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useUserState, useAccounts, useLocations, useUpdateUserProfile } from '../../hooks/useUserData';
@@ -35,6 +6,7 @@ import { refreshProfile } from '../../util/api/user';
 import { completeAction } from '../../util/api/userHelper';
 import { SelectVolume } from './SelectVolume';
 import { logDebugMessage, logWarnMessage, getErrorMessage } from '../../util/logging';
+import { isEmpty } from '../../helpers/helpers';
 import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../components/themed/ThemedButton';
 import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
 import { ThemedFormControl as FormControl, ThemedFormControlLabelText as FormControlLabelText, ThemedFormControlLabel as FormControlLabel } from '../../components/themed/ThemedFormControls';

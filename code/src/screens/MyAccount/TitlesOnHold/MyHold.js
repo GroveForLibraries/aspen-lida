@@ -1,28 +1,5 @@
 import { ThemedMaterialCommunityIcons as MaterialCommunityIcons, ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/ThemedMaterialIcons';
 import { Image } from 'expo-image';
-import _ from 'lodash';
-import {
-     Actionsheet,
-     ActionsheetItem,
-     ActionsheetBackdrop,
-     ActionsheetContent,
-     ActionsheetItemText,
-     ActionsheetDragIndicatorWrapper,
-     ActionsheetDragIndicator,
-     Box,
-     Button,
-     ButtonText,
-     Center,
-     Checkbox,
-     CheckboxIndicator,
-     CheckboxIcon,
-     CheckIcon,
-     HStack,
-     Icon,
-     Pressable,
-     ActionsheetIcon,
-     VStack
-} from '@gluestack-ui/themed';
 import React from 'react';
 import { ThemedActionsheet as Actionsheet, ThemedActionsheetBackdrop as ActionsheetBackdrop, ThemedActionsheetDragIndicator as ActionsheetDragIndicator, ThemedActionsheetDragIndicatorWrapper as ActionsheetDragIndicatorWrapper, ThemedActionsheetItem as ActionsheetItem, ThemedActionsheetContent as ActionsheetContent, ThemedActionsheetItemText as ActionsheetItemText } from '@/src/components/themed/ThemedActionsheet';
 import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../../components/themed/ThemedButton';
@@ -33,13 +10,11 @@ import { Pressable } from '@/components/ui/pressable';
 import { VStack } from '@/components/ui/vstack';
 import { popAlert } from '@/src/components/feedback';
 import { HoldsContext } from '@/src/context/initialContext';
-import { useUserState, useSublocations } from '@/src/hooks/useUserData';
+import { useUserState, useSublocations, useLocations } from '@/src/hooks/useUserData';
 import { getAuthor, getBadge, getCleanTitle, getExpirationDate, getFormat, getOnHoldFor, getPickupLocation, getPosition, getOutOfHoldGroupMessage, getTitle, getCallNumber, getVolume, getType, getCollectionName } from '@/src/helpers/item';
 import { navigateStack } from '@/src/helpers/RootNavigator';
 import { getTermFromDictionary } from '@/src/translations/TranslationService';
-import { cancelHold, cancelHolds, freezeHold, freezeHolds, thawHold, thawHolds } from '@/src/util/api/user';
-import { formatPickupLocations } from '@/src/util/api/userHelper';
-import { checkoutItem, getPickupLocations } from '@/src/util/api/user';
+import { cancelHold, cancelHolds, freezeHold, freezeHolds, thawHold, thawHolds, checkoutItem } from '@/src/util/api/user';
 import { formatDiscoveryVersion, isArray, map } from '../../../helpers/helpers';
 import { SelectPickupLocation } from './SelectPickupLocation';
 import { SelectThawDate } from './SelectThawDate.js';
@@ -60,6 +35,7 @@ export const MyHold = (props) => {
      const hold = props.data;
      const resetGroup = props.resetGroup;
      const { data: sublocations } = useSublocations();
+     const { data: pickupLocations } = useLocations();
      const section = props.section;
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};

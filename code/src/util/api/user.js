@@ -5,8 +5,7 @@ import { popAlert, popToast } from '../../components/feedback';
 import { getTermFromDictionary } from '../../translations/TranslationHelper';
 import {logDebugMessage, logErrorMessage, logInfoMessage, logWarnMessage} from '../logging.js';
 import * as WebBrowser from 'expo-web-browser';
-import { problemCodeMap, stripHTML } from '../../helpers/helpers';
-import { addDays, formatLocalDateYYYYMMDD, parseToDate } from '../../helpers/helpers';
+import { problemCodeMap, stripHTML, addDays, formatLocalDateYYYYMMDD, parseToDate } from '../../helpers/helpers';
 
 export function resolveReactivationDate(selectedReactivationDate, allowIndefinite = false) {
      const today = formatLocalDateYYYYMMDD();

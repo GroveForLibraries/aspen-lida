@@ -79,7 +79,7 @@ export const SearchResultsForList = () => {
      const NoResults = () => {
           return (
                <>
-                    {size(systemMessagesForScreen) > 0 ? <Box p="$2">{showSystemMessage()}</Box> : null}
+                    {size(systemMessagesForScreen) > 0 ? <Box className="p-2">{showSystemMessage()}</Box> : null}
                    <Center className="flex-1">
                         <Heading className="pt-5">{getTermFromDictionary(language, 'no_results')}</Heading>
                     </Center>

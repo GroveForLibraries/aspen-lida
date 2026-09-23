@@ -20,7 +20,7 @@ import { HStack } from '@/components/ui/hstack';
 import { Pressable } from '@/components/ui/pressable';
 import { ThemedText as Text } from '@/src/components/themed/ThemedText';
 import { ThemedBadge as Badge, ThemedBadgeText as BadgeText } from '../../components/themed/ThemedBadge';
-import { isValidUrl } from '../../helpers/helpers';
+import { isEqual, isValidUrl } from '../../helpers/helpers';
 
 const loggedEmptyCategoryKeys = new Set();
 
@@ -248,7 +248,7 @@ const DisplayBrowseCategoryRecord = ({record}) => {
      const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
      let imageUrl = library.baseUrl + '/bookcover.php?id=' + id + '&size=medium&type=' + type;
 
-     if (type === 'Event' || _.includes(type, '_event')) {
+     if (type === 'Event' || type.includes('_event')) {
           imageUrl = isValidUrl(record.image) ? record.image : (library.baseUrl + '/bookcover.php?id=' + id + '&size=medium&type=' + type);
      }
 
@@ -431,4 +431,4 @@ const DisplayMoreResultsButton = ({ category }) => {
 /**
  * Export the DisplayBrowseCategory component wrapped in React.memo to optimize rendering. The memoization checks if the category prop has changed, preventing unnecessary re-renders when the category data remains the same.
  */
-export default React.memo(DisplayBrowseCategory, (prevProps, nextProps) => _.isEqual(prevProps.category, nextProps.category));
+export default React.memo(DisplayBrowseCategory, (prevProps, nextProps) => isEqual(prevProps.category, nextProps.category));
