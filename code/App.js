@@ -102,7 +102,7 @@ if (__DEV__) {
  */
 export default function AppContainer() {
      const [isLoading, setLoading] = React.useState(true);
-     const { colorMode, themeVars } = useThemeForDisplay();
+     const { colorMode, themeVars, textColor } = useThemeForDisplay();
 
      const [dbReady, setDbReady] = React.useState(false);
      const persistTimeoutRef = React.useRef(null);
