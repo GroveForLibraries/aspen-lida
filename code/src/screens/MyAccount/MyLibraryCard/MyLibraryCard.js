@@ -1,5 +1,5 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect } from '@react-navigation/native';
 import * as Brightness from 'expo-brightness';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import { Box, Button, ButtonText, ButtonIcon, Center, HStack, VStack, Icon, Image, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Text, Heading, ModalBackdrop, CloseIcon, ModalCloseButton, Actionsheet, ActionsheetBackdrop, ActionsheetContent, ActionsheetDragIndicator, ActionsheetDragIndicatorWrapper } from '@gluestack-ui/themed';
@@ -24,8 +24,10 @@ import { useActiveLanguage } from '../../../hooks/useLanguageData';
 import { useTheme } from '../../../themes/theme';
 import { useTranslationWithValues } from '../../../hooks/useTranslationWithValues';
 
+// Guard against duplicate blur handlers firing across stacked/multiple instances.
+let lastLibraryCardBlurRunAt = 0;
+
 export const MyLibraryCard = () => {
-     const navigation = useNavigation();
      const [shouldRequestPermissions, setShouldRequestPermissions] = React.useState(false);
      const [previousBrightness, setPreviousBrightness] = React.useState();
      const [brightnessMode, setBrightnessMode] = React.useState(1);
@@ -37,6 +39,11 @@ export const MyLibraryCard = () => {
      const progressValue = useSharedValue(0);
      const carouselRef = React.useRef();
      const hasOpenModalRef = React.useRef(false);
+     const hasSentBlurUpdateRef = React.useRef(false);
+     const previousBrightnessRef = React.useRef();
+     const brightnessModeRef = React.useRef(1);
+     const isLandscapeRef = React.useRef(false);
+     const autoRotateRef = React.useRef(0);
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const { data: cards = [] } = useCards();
@@ -46,6 +53,7 @@ export const MyLibraryCard = () => {
      const { theme } = useTheme();
 
      let autoRotate = library.generalSettings?.autoRotateCard ?? 0;
+     autoRotateRef.current = autoRotate;
 
 
      const updateStatus = async () => {
@@ -56,23 +64,27 @@ export const MyLibraryCard = () => {
           }
      };
 
-     React.useEffect(() => {
-          const brightenScreen = navigation.addListener('focus', async () => {
-               const { status } = await Brightness.getPermissionsAsync();
-               if (status === 'undetermined') {
-                    if (user.shouldAskBrightness !== undefined && (user.shouldAskBrightness === 1 || user.shouldAskBrightness === '1')) {
-                         setShouldRequestPermissions(true);
-                    }
-               } else {
-                    if (status === 'granted') {
-                         await Brightness.getBrightnessAsync().then((level) => {
-                              logDebugMessage('Storing previous screen brightness for later: ' + level);
-                              setPreviousBrightness(level);
-                         });
-                         await Brightness.getSystemBrightnessModeAsync().then((mode) => {
-                              logDebugMessage('Storing system brightness mode for later: ' + mode);
-                              setBrightnessMode(mode);
-                         });
+     useFocusEffect(
+          React.useCallback(() => {
+               hasSentBlurUpdateRef.current = false;
+
+               const applyFocusState = async () => {
+                    const { status } = await Brightness.getPermissionsAsync();
+                    if (status === 'undetermined') {
+                         if (user.shouldAskBrightness !== undefined && (user.shouldAskBrightness === 1 || user.shouldAskBrightness === '1')) {
+                              setShouldRequestPermissions(true);
+                         }
+                    } else if (status === 'granted') {
+                         const level = await Brightness.getBrightnessAsync();
+                         logDebugMessage('Storing previous screen brightness for later: ' + level);
+                         setPreviousBrightness(level);
+                         previousBrightnessRef.current = level;
+
+                         const mode = await Brightness.getSystemBrightnessModeAsync();
+                         logDebugMessage('Storing system brightness mode for later: ' + mode);
+                         setBrightnessMode(mode);
+                         brightnessModeRef.current = mode;
+
                          logDebugMessage('Updating screen brightness');
                          try {
                               await Brightness.setSystemBrightnessAsync(1);
@@ -82,8 +94,6 @@ export const MyLibraryCard = () => {
                          await updateScreenBrightnessStatus(false, library.baseUrl, language);
                          setShouldRequestPermissions(false);
                     } else {
-                         // we were denied permissions
-                         await updateScreenBrightnessStatus(false, library.baseUrl, language);
                          setShouldRequestPermissions(false);
                          logDebugMessage('Unable to update screen brightness');
                     }
@@ -112,19 +122,34 @@ export const MyLibraryCard = () => {
                     case ScreenOrientation.Orientation.LANDSCAPE:
                          logDebugMessage('Screen orientation changed to landscape');
                          setIsLandscape(true);
-                         break;
-                    default:
-                         logDebugMessage('Screen orientation changed to portrait');
-                         setIsLandscape(false);
-                         break;
-               }
-          });
-          return () => {
-               brightenScreen();
-               updateOrientation();
-               changeOrientation.remove();
-          };
-     }, [navigation, autoRotate, library.baseUrl, language, user, library.barcodeStyle]);
+                         isLandscapeRef.current = true;
+                    } else {
+                         const result = await ScreenOrientation.getOrientationAsync();
+                         const isCurrentlyLandscape = result === ScreenOrientation.Orientation.LANDSCAPE_LEFT ||
+                              result === ScreenOrientation.Orientation.LANDSCAPE_RIGHT;
+                         setIsLandscape(isCurrentlyLandscape);
+                         isLandscapeRef.current = isCurrentlyLandscape;
+                    }
+               };
+
+               applyFocusState();
+
+               const orientationSub = ScreenOrientation.addOrientationChangeListener(({ orientationInfo }) => {
+                    switch (orientationInfo.orientation) {
+                         case ScreenOrientation.Orientation.LANDSCAPE_LEFT:
+                         case ScreenOrientation.Orientation.LANDSCAPE_RIGHT:
+                         case ScreenOrientation.Orientation.LANDSCAPE:
+                              logDebugMessage('Screen orientation changed to landscape');
+                              setIsLandscape(true);
+                              isLandscapeRef.current = true;
+                              break;
+                         default:
+                              logDebugMessage('Screen orientation changed to portrait');
+                              setIsLandscape(false);
+                              isLandscapeRef.current = false;
+                              break;
+                    }
+               });
 
      React.useEffect(() => {
           navigation.addListener('blur', () => {

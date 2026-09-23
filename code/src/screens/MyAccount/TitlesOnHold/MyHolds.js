@@ -10,11 +10,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LoadingSpinner } from '../../../components/loadingSpinner';
 import { DisplaySystemMessage } from '../../../components/Notifications';
 import { HoldsContext, SystemMessagesContext } from '../../../context/initialContext';
-import { useUserState, useLocations, useUpdateLocations, useUpdateSortSettings, useUpdateUserProfile } from '../../../hooks/useUserData';
+import { useUserState, useUpdateSortSettings, useUpdateUserProfile } from '../../../hooks/useUserData';
 import { getTermFromDictionary, getTranslationsWithValues } from '../../../translations/TranslationService';
 import { getPatronHolds, refreshProfile, setSortPreferences } from '../../../util/api/user';
-import { sortHolds, formatHolds, formatPickupLocations } from '../../../util/api/userHelper';
-import { getPickupLocations } from '../../../util/api/user';
+import { sortHolds, formatHolds } from '../../../util/api/userHelper';
 import { ManageAllHolds, ManageSelectedHolds, MyHold } from './MyHold';
 
 import { logDebugMessage, logErrorMessage, getErrorMessage } from '../../../util/logging.js';
@@ -34,8 +33,6 @@ export const MyHolds = () => {
      const updateSortSettings = useUpdateSortSettings();
      const updateUserHoldPendingSortMethod = (v) => updateSortSettings({ userHoldPendingSortMethod: v });
      const updateUserHoldReadySortMethod = (v) => updateSortSettings({ userHoldReadySortMethod: v });
-     const { data: locations } = useLocations();
-     const updatePickupLocations = useUpdateLocations();
      const library = useLibrary();
      const { holds, updateHolds } = React.useContext(HoldsContext);
      const language = useActiveLanguage();
@@ -43,7 +40,6 @@ export const MyHolds = () => {
      const [isLoading, setLoading] = React.useState(false);
      const [values, setGroupValues] = React.useState([]);
      const [date, setNewDate] = React.useState();
-     const [pickupLocations, setPickupLocations] = React.useState([]);
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
      const { theme, textColor, colorMode } = useTheme();
      const insets = useSafeAreaInsets();
@@ -140,15 +136,6 @@ export const MyHolds = () => {
      useFocusEffect(
           React.useCallback(() => {
                const update = async () => {
-                    await getPickupLocations(library.baseUrl).then((result) => {
-                         if(result.ok) {
-                              const pickupLocations = formatPickupLocations(result.data.result);
-                              if (locations !== pickupLocations.locations) {
-                                   updatePickupLocations(pickupLocations.locations);
-                              }
-                         }
-                    });
-
                     let tmp = sortBy;
                     let term = '';
 
@@ -684,7 +671,7 @@ export const MyHolds = () => {
                                         <SectionList
                                              style={{ width: '100%' }}
                                              sections={filteredSections}
-                                             renderItem={({ item, section: { title } }) => <MyHold data={item} resetGroup={resetGroup} language={language} pickupLocations={pickupLocations} section={title} />}
+                                             renderItem={({ item, section: { title } }) => <MyHold data={item} resetGroup={resetGroup} language={language} section={title} />}
                                              stickySectionHeadersEnabled={true}
                                              renderSectionHeader={({ section: { title } }) => displaySectionHeader(title)}
                                              renderSectionFooter={({ section: { title } }) => displaySectionFooter(title)}

@@ -47,6 +47,8 @@ export const DiscoverHomeScreen = () => {
      const updateMaxCategories = useUpdateMaxCategories();
      const { categoriesExpired } = useBrowseCategoryExpiration();
      const browseRefreshInFlightRef = React.useRef(false);
+     const hasInitializedSearchSettingsRef = React.useRef(false);
+     const hasLoadedInitialBrowseContentRef = React.useRef(false);
      const emptyRefreshAttemptedRef = React.useRef(false);
      const categoryRef = React.useRef(category);
      const homeScreenLinksRef = React.useRef(homeScreenLinks);
@@ -83,90 +85,100 @@ export const DiscoverHomeScreen = () => {
 
      useFocusEffect(
           React.useCallback(() => {
-               const checkSettings = async () => {
-                    logDebugMessage("Checking Settings from Home Screen");
-                    if (Platform.OS === 'android') {
-                         if (Device.platformApiLevel <= 30) {
-                              setShowAndroidEndSupportMessage(true);
-                              setAndroidEndSupportMessageIsOpen(true);
-                         }
-                    }
+               if (hasInitializedSearchSettingsRef.current) {
+                    return;
+               }
+               hasInitializedSearchSettingsRef.current = true;
 
-                    updateCurrentIndex('Keyword');
-                    updateCurrentSource('local');
-                    await getSearchIndexes(library.baseUrl, language, 'local').then((result) => {
-                         updateIndexes(result);
-                    });
-                    await getSearchSources(library.baseUrl, language).then((result) => {
-                         updateSources(result);
-                    });
+                const checkSettings = async () => {
+                     logDebugMessage("Checking Settings from Home Screen");
+                     if (Platform.OS === 'android') {
+                          if (Device.platformApiLevel <= 30) {
+                               setShowAndroidEndSupportMessage(true);
+                               setAndroidEndSupportMessageIsOpen(true);
+                          }
+                     }
 
-                    await getDefaultFacets(library.baseUrl, 5, language);
-               };
-               checkSettings();
-          }, [language])
-     );
+                     updateCurrentIndex('Keyword');
+                     updateCurrentSource('local');
+                     await getSearchIndexes(library.baseUrl, language, 'local').then((result) => {
+                          updateIndexes(result);
+                     });
+                     await getSearchSources(library.baseUrl, language).then((result) => {
+                          updateSources(result);
+                     });
 
-     // Refresh browse/home feed when user navigates to Home and only write if changed.
-     useFocusEffect(
-          React.useCallback(() => {
-                const refreshBrowseContentOnHomeFocus = async () => {
-                    if (!library.baseUrl) {
-                         return;
-                    }
+                     await getDefaultFacets(library.baseUrl, 5, language);
+                };
+                checkSettings();
+           }, [language])
+      );
 
-                     if (browseRefreshInFlightRef.current) {
-                         return;
-                    }
+      // Refresh browse/home feed when user navigates to Home and only write if changed.
+      useFocusEffect(
+           React.useCallback(() => {
+                if (hasLoadedInitialBrowseContentRef.current) {
+                     return;
+                }
 
-                    browseRefreshInFlightRef.current = true;
-                    const requestedMax = maxNum > 0 ? maxNum : 5;
+                 const refreshBrowseContentOnHomeFocus = async () => {
+                     if (!library.baseUrl) {
+                          return;
+                     }
 
-                    if (maxNum <= 0) {
-                         await updateMaxCategories(5);
-                    }
+                      if (browseRefreshInFlightRef.current) {
+                           return;
+                      }
 
-                     logDebugMessage("Home focus: refreshing browse categories/home links from API");
-                    try {
-                         const response = await getHomeScreenFeed(requestedMax, library.baseUrl);
-                         if (response?.ok) {
-                              const result = response.data.result;
-                               const nextBrowseCategories = result?.browseCategories ?? [];
-                               const nextHomeScreenLinks = result?.homeScreenLinks ?? [];
+                      browseRefreshInFlightRef.current = true;
+                      const requestedMax = maxNum > 0 ? maxNum : 5;
 
-                               const browseCategoriesChanged = JSON.stringify(categoryRef.current ?? []) !== JSON.stringify(nextBrowseCategories);
-                               const homeScreenLinksChanged = JSON.stringify(homeScreenLinksRef.current ?? []) !== JSON.stringify(nextHomeScreenLinks);
+                      if (maxNum <= 0) {
+                           await updateMaxCategories(5);
+                      }
 
-                               if (browseCategoriesChanged || homeScreenLinksChanged) {
-                                    if (browseCategoriesChanged) {
-                                         await updateBrowseCategories(nextBrowseCategories);
-                                    }
-                                    if (homeScreenLinksChanged) {
-                                         await updateHomeScreenLinks(nextHomeScreenLinks);
-                                    }
-                               }
+                       logDebugMessage("Home focus: refreshing browse categories/home links from API");
+                      try {
+                           const response = await getHomeScreenFeed(requestedMax, library.baseUrl);
+                           if (response?.ok) {
+                                const result = response.data.result;
+                                 const nextBrowseCategories = result?.browseCategories ?? [];
+                                 const nextHomeScreenLinks = result?.homeScreenLinks ?? [];
 
-                               if (Array.isArray(nextBrowseCategories) && nextBrowseCategories.length > 0) {
-                                   emptyRefreshAttemptedRef.current = false;
-                              }
-                               if (browseCategoriesChanged || homeScreenLinksChanged) {
-                                    logDebugMessage("Home focus: browse/home content updated");
-                               } else {
-                                    logDebugMessage("Home focus: browse/home content unchanged, skipped SQLite updates");
-                               }
-                         } else {
-                               logDebugMessage("Error refreshing browse categories/home links from API");
-                         }
-                    } catch (error) {
-                          logDebugMessage("Error refreshing browse categories/home links on Home focus: " + error.message);
-                    } finally {
-                         browseRefreshInFlightRef.current = false;
-                    }
-               };
+                                 const browseCategoriesChanged = JSON.stringify(categoryRef.current ?? []) !== JSON.stringify(nextBrowseCategories);
+                                 const homeScreenLinksChanged = JSON.stringify(homeScreenLinksRef.current ?? []) !== JSON.stringify(nextHomeScreenLinks);
 
-                refreshBrowseContentOnHomeFocus();
-           }, [maxNum, library.baseUrl, updateBrowseCategories, updateHomeScreenLinks, updateMaxCategories])
-     );
+                                 if (browseCategoriesChanged || homeScreenLinksChanged) {
+                                      if (browseCategoriesChanged) {
+                                           await updateBrowseCategories(nextBrowseCategories);
+                                      }
+                                      if (homeScreenLinksChanged) {
+                                           await updateHomeScreenLinks(nextHomeScreenLinks);
+                                      }
+                                 }
+
+                                 if (Array.isArray(nextBrowseCategories) && nextBrowseCategories.length > 0) {
+                                      emptyRefreshAttemptedRef.current = false;
+                                 }
+                                  if (browseCategoriesChanged || homeScreenLinksChanged) {
+                                       logDebugMessage("Home focus: browse/home content updated");
+                                  } else {
+                                       logDebugMessage("Home focus: browse/home content unchanged, skipped SQLite updates");
+                                  }
+                      } else {
+                           logDebugMessage("Error refreshing browse categories/home links from API");
+                      }
+                   } catch (error) {
+                        logDebugMessage("Error refreshing browse categories/home links on Home focus: " + error.message);
+                   } finally {
+                        browseRefreshInFlightRef.current = false;
+                        hasLoadedInitialBrowseContentRef.current = true;
+                   }
+                };
+
+                 refreshBrowseContentOnHomeFocus();
+            }, [maxNum, library.baseUrl, updateBrowseCategories, updateHomeScreenLinks, updateMaxCategories])
+      );
 
      const clearText = () => {
           setSearchTerm('');
