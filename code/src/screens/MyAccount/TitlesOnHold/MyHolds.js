@@ -659,7 +659,7 @@ export const MyHolds = () => {
                               onChange={(newValues) => {
                                    saveGroupValue(newValues);
                               }}>
-                              {isObject(holds) ? (
+                              {isArray(holds) ? (
                                    <SectionList
                                         className="w-full"
                                         sections={filteredSections}
