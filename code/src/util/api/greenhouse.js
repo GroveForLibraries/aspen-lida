@@ -7,6 +7,7 @@ import { getAppSettings } from './system';
 import { logDebugMessage } from '../logging';
 import { setCurrentLibraryId } from '../db';
 import { numberOrNull } from '../../helpers/helpers';
+import { useAppSettings } from '@/src/hooks/useLibrarySystemData';
 
 /**
  * Determines the appropriate Greenhouse API configuration based on the app's slug and release channel, and whether the app is branded or not
@@ -71,6 +72,7 @@ export async function updateAspenLiDABuild(updateId, updateChannel, updateDate) 
 export async function fetchNearbyLibrariesFromGreenhouse() {
      logDebugMessage("Getting nearby libraries from the greenhouse");
      const { url, channel, method, isBranded } = resolveGreenhouseConfig();
+
      let latitude = null;
      let longitude = null;
 
@@ -100,35 +102,22 @@ export async function fetchNearbyLibrariesFromGreenhouse() {
                return (a.librarySystem ?? '').localeCompare(b.librarySystem ?? '');
           });
 
-          let showSelectLibrary = data.count > 1;
-
           if (isBranded) {
-               logDebugMessage("Getting branded app settings");
+               logDebugMessage('Resolving library ID for branded app to ' + libraries?.[0]?.libraryId);
                const resolvedLibraryId = numberOrNull(libraries?.[0]?.libraryId);
-               if (resolvedLibraryId != null) {
+               if (resolvedLibraryId) {
                     setCurrentLibraryId(resolvedLibraryId);
-               }
-               const appSettings = await getAppSettings(GLOBALS.url, GLOBALS.timeoutAverage, GLOBALS.slug);
-               logDebugMessage(appSettings);
-
-               const autoPickUserHomeLocation = appSettings?.autoPickUserHomeLocation ?? false;
-               logDebugMessage(`autoPickUserHomeLocation: ${autoPickUserHomeLocation}`);
-
-               if (autoPickUserHomeLocation) {
-                    showSelectLibrary = false;
                }
           }
 
           return {
                success: true,
                libraries: libraries ?? [],
-               shouldShowSelectLibrary: showSelectLibrary,
           };
      }
 
      return {
           success: false,
-          shouldShowSelectLibrary: false,
           libraries: [],
      };
 }
