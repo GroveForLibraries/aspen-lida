@@ -154,21 +154,19 @@ export default function AppContainer() {
                if (!dbReady) {
                     return;
                }
-               logDebugMessage('3 Running buildThemeForLibrary...');
+               logDebugMessage('Running buildThemeForLibrary...');
                try {
                     await restorePersistedQueries();
                     await runExclusiveThemeInit(async () => {
                          const current = await loadThemeState();
                          const mode = current?.colorMode === 'dark' ? 'dark' : 'light';
-                         const hasStoredTheme = Boolean(current?.themeColors?.primary && current?.themeColors?.secondary && current?.themeColors?.tertiary);
-                         const hasMatchingThemeId = await isStoredThemeIdMatch(GLOBALS.themeId ?? 1);
                          const persistedLibraryUrl = await loadLibraryUrl();
                          const themeUrl = persistedLibraryUrl || GLOBALS.url || Constants.expoConfig.extra.apiUrl;
 
                          if (!themeUrl) {
-                              logDebugMessage('4 Skipping startup theme fetch because no library URL is available yet');
+                              logDebugMessage('Skipping startup theme fetch because no library URL is available yet');
                          } else {
-                              logDebugMessage(`4 Building theme for current launch using url=${themeUrl}`);
+                              logDebugMessage(`Building theme for current launch using url=${themeUrl}`);
                               const builtTheme = await buildThemeForLibrary(themeUrl);
                               await saveThemeState({
                                    themeId: builtTheme.themeId,
