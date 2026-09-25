@@ -7,11 +7,11 @@ import * as WebBrowser from 'expo-web-browser';
 import React from 'react';
 import { KeyboardAvoidingView, Platform } from 'react-native';
 import { navigate } from '../../helpers/RootNavigator';
-import { sortBy } from '../../helpers/helpers';
+import { isObject, sortBy } from '../../helpers/helpers';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { getLibraryInfo } from '../../util/api/system';
 import { saveLibrary, saveLibraryUrl, setCurrentLibraryId, setCurrentLocationId } from '../../util/db';
-import { GLOBALS, LIBRARY } from '../../util/globals';
+import { GLOBALS, isBrandedApp, LIBRARY } from '../../util/globals';
 import { fetchAllLibrariesFromGreenhouse, fetchNearbyLibrariesFromGreenhouse } from '../../util/api/greenhouse';
 import { ForgotBarcode } from './ForgotBarcode';
 import { GetLoginForm } from './LoginForm';
@@ -31,6 +31,7 @@ import { Image } from 'expo-image';
 import { ThemedModal as Modal, ThemedModalBackdrop as ModalBackdrop, ThemedModalBody as ModalBody, ThemedModalContent as ModalContent, ThemedModalFooter as ModalFooter, ThemedModalHeader as ModalHeader } from '@/src/components/themed/ThemedModal';
 import { Pressable } from '@/components/ui/pressable';
 import { ThemedText as Text } from '@/src/components/themed/ThemedText';
+import { useAppSettings } from '@/src/hooks/useLibrarySystemData';
 
 /**
  * LoginScreen component that handles the login process, including library selection, user authentication, and displaying relevant modals for forgotten credentials or API error logs.
@@ -68,14 +69,20 @@ export const LoginScreen = () => {
      const logoTapCountRef = React.useRef(0);
      const logoTapTimerRef = React.useRef(null);
      const { neutralPairs, brand, colorMode, textColor } = useTheme();
+     const appSettings = useAppSettings();
+     const appSettingsRef = React.useRef(appSettings);
+     React.useEffect(() => {
+          appSettingsRef.current = appSettings;
+     }, [appSettings]);
      const surfaceBg =
           colorMode === 'light'
                ? neutralPairs?.surface?.light ?? TOKENS.semanticTokens.light.surface
                : neutralPairs?.surface?.dark ?? TOKENS.semanticTokens.dark.surface;
 
      let isCommunity = true;
-     if (!GLOBALS.slug.startsWith('aspen-lida') || GLOBALS.slug === 'aspen-lida-bws') {
+     if (isBrandedApp()) {
           isCommunity = false;
+          setCurrentLibraryId(GLOBALS.libraryId);
      }
 
      const logoImage = Constants.expoConfig.extra.loginLogo;
@@ -112,11 +119,16 @@ export const LoginScreen = () => {
                     await fetchNearbyLibrariesFromGreenhouse().then((result) => {
                          if (result.success) {
                               setLibraries(result.libraries);
-                              if (!result.shouldShowSelectLibrary) {
-                                   setShowShouldSelectLibrary(result.shouldShowSelectLibrary);
-                                   logInfoMessage('Automatically selecting library ' + result.libraries[0].displayName + ' based on geolocation');
-                                   updateSelectedLibrary(result.libraries[0]);
-                              }else{
+                              let autoPickHomeUserLocation = appSettingsRef.current?.autoPickUserHomeLocation ?? 0;
+                              logInfoMessage('Should we log into user home location? ' + (autoPickHomeUserLocation ? 'Yes' : 'No'));
+                              if (autoPickHomeUserLocation || result.libraries.length === 1) {
+                                   setShowShouldSelectLibrary(false);
+                                   if (!autoPickHomeUserLocation) {
+                                        logInfoMessage('Automatically selecting library ' + result.libraries[0].displayName + ' because only one library being found and we should not log into user home location');
+                                        updateSelectedLibrary(result.libraries[0]);
+                                        setCurrentLibraryId(result.libraries[0].libraryId);
+                                   }
+                              } else {
                                    logInfoMessage('Found ' + result.libraries.length + ' libraries');
                                    setShowShouldSelectLibrary(true);
                               }
@@ -265,7 +277,7 @@ export const LoginScreen = () => {
                     </Pressable>
                     {isCommunity || shouldShowSelectLibrary ? <SelectYourLibrary updateSelectedLibrary={updateSelectedLibrary} selectedLibrary={selectedLibrary} query={query} setQuery={setQuery} showModal={showModal} setShowModal={setShowModal} isCommunity={isCommunity} setShouldRequestPermissions={setShouldRequestPermissions} shouldRequestPermissions={shouldRequestPermissions} permissionRequested={permissionRequested} libraries={libraries} allLibraries={allLibraries} /> : null}
                     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'padding'} className="w-full">
-                         {selectedLibrary ? <GetLoginForm selectedLibrary={selectedLibrary} usernameLabel={usernameLabel} passwordLabel={passwordLabel} allowBarcodeScanner={allowBarcodeScanner} allowCode39={allowCode39} updateSelectedLibrary={updateSelectedLibrary} /> : null}
+                         {selectedLibrary || !shouldShowSelectLibrary ? <GetLoginForm selectedLibrary={selectedLibrary} usernameLabel={usernameLabel} passwordLabel={passwordLabel} allowBarcodeScanner={allowBarcodeScanner} allowCode39={allowCode39} updateSelectedLibrary={updateSelectedLibrary} libraries={libraries} /> : null}
                          <ButtonGroup space="sm" className="justify-center pt-5 flex-wrap">
                               {enableForgotPasswordLink === '1' || enableForgotPasswordLink === 1 ? <ResetPassword ils={ils} enableForgotPasswordLink={enableForgotPasswordLink} usernameLabel={usernameLabel} passwordLabel={passwordLabel} forgotPasswordType={forgotPasswordType} showForgotPasswordModal={showForgotPasswordModal} setShowForgotPasswordModal={setShowForgotPasswordModal} /> : null}
                               {enableForgotBarcode === '1' || enableForgotBarcode === 1 ? <ForgotBarcode usernameLabel={usernameLabel} showForgotBarcodeModal={showForgotBarcodeModal} setShowForgotBarcodeModal={setShowForgotBarcodeModal} /> : null}
