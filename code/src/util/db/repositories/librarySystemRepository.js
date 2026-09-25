@@ -3,6 +3,7 @@ import { safeStringify } from '../serialize';
 import { getCurrentLibraryId, setCurrentLibraryId } from '../sessionContext';
 import { logDebugMessage } from '../../logging';
 import { numberOrNull, safeParse } from '../../../helpers/helpers';
+import { GLOBALS } from '@/src/util/globals';
 
 async function ensureLibrarySystemRow(db, now, libraryId) {
      if (libraryId == null) return;
@@ -343,10 +344,10 @@ export async function loadHomeScreenLinks() {
 }
 
 /**
- * Saves app settings with URL/slug cache for staleness checking.
+ * Saves app settings with slug cache for staleness checking.
  */
-export async function saveAppSettings(settings = {}, urlCache = '', slugCache = '') {
-     const libraryId = getCurrentLibraryId();
+export async function saveAppSettings(settings = {}, slugCache = '') {
+     const libraryId = getCurrentLibraryId() ?? GLOBALS.libraryId;
      if (libraryId == null) {
           logDebugMessage('saveAppSettings: no current library id, skipping save');
           return;
@@ -362,29 +363,24 @@ export async function saveAppSettings(settings = {}, urlCache = '', slugCache = 
                 app_settings_url_cache = ?,
                 app_settings_slug_cache = ?
            WHERE library_id = ?;`,
-          [now, safeStringify(settings), urlCache ?? null, slugCache ?? null, libraryId]
+          [now, safeStringify(settings), null, slugCache ?? null, libraryId]
      );
 }
 
 /**
  * Loads app settings with cache metadata from database.
+ * App settings aren't library-scoped (there's only ever one per app), so this
+ * reads whichever row has them populated first.
  */
 export async function loadAppSettings() {
-     const libraryId = getCurrentLibraryId();
-     if (libraryId == null) return null;
-
      const db = await getDb();
      const row = await db.getFirstAsync(
-          `SELECT app_settings_json, app_settings_url_cache, app_settings_slug_cache, updated_at FROM library_system_state WHERE library_id = ? LIMIT 1;`,
-          [libraryId]
+          `SELECT app_settings_json
+           FROM library_system_state
+           WHERE app_settings_json IS NOT NULL LIMIT 1;`
      );
      if (!row) return null;
-     return {
-          settings: safeParse(row.app_settings_json) ?? {},
-          urlCache: row.app_settings_url_cache ?? '',
-          slugCache: row.app_settings_slug_cache ?? '',
-          updatedAt: row.updated_at ?? 0,
-     };
+     return safeParse(row.app_settings_json) ?? {};
 }
 
 // ─── Utility functions ─────────────────────────────────────────────────────────
@@ -416,7 +412,6 @@ export async function saveAllLibrarySystemData(state = {}) {
      await saveHomeScreenLinks(state.homeScreenLinks ?? []);
      await saveAppSettings(
           state.appSettings ?? {},
-          state.appSettingsUrlCache ?? '',
           state.appSettingsSlugCache ?? ''
      );
 }
@@ -450,7 +445,6 @@ export async function loadAllLibrarySystemData() {
           catalogStatusMessage: row.catalog_status_message ?? '',
           homeScreenLinks: safeParse(row.home_screen_links_json) ?? [],
           appSettings: safeParse(row.app_settings_json) ?? {},
-          appSettingsUrlCache: row.app_settings_url_cache ?? '',
           appSettingsSlugCache: row.app_settings_slug_cache ?? '',
           updatedAt: row.updated_at ?? 0,
      };
