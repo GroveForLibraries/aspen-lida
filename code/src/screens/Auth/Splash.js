@@ -103,6 +103,11 @@ export async function evaluateStartupCache() {
           setCurrentLocationId(persistedLocationId);
      }
 
+     const persistedLibraryId = parseStoredNumber(await SecureStore.getItemAsync('library') ?? GLOBALS.libraryId);
+     if (persistedLibraryId != null) {
+          setCurrentLibraryId(persistedLibraryId);
+     }
+
      const [cachedUserState, cachedLibraryBranchState, cachedLibrarySystemState, cachedLanguageState] = await Promise.all([
           loadAllUserData(),
           loadAllLibraryBranchData(),
