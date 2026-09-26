@@ -23,7 +23,7 @@ import { navigateStack } from '@/src/helpers/RootNavigator';
 import { getTermFromDictionary } from '@/src/translations/TranslationService';
 import { refreshProfile, updateScreenBrightnessStatus } from '@/src/util/api/user';
 import { formatDiscoveryVersion, orderByFields, parseToDate } from '@/src/helpers/helpers';
-import { logDebugMessage } from '@/src/util/logging';
+import { logDebugMessage, logErrorMessage } from '@/src/util/logging';
 import { useActiveLanguage } from '@/src/hooks/useLanguageData';
 import { useTheme } from '@/src/themes/theme';
 import { useTranslationWithValues } from '@/src/hooks/useTranslationWithValues';
