@@ -144,12 +144,14 @@ const ContactButtons = (data) => {
      if (location.phone || location.email || location.homeLink || location.latitude !== 0) {
           return (
                <Box className="mb-4">
-                    <ButtonGroup size="sm" className="flex-wrap flex-row justify-between">
+                    <ButtonGroup size="sm" className="flex-wrap flex-row gap-2">
                          {location.phone ? (
                               <Button
                                    variant="outline"
                                    style={{
-                                        width: '23%',
+                                        maxWidth: '24%',
+                                        flexBasis: '24%',
+                                        minWidth: 0,
                                         borderColor: iconBorderColor,
                                         flexDirection: 'column',
                                         alignItems: 'center',
@@ -168,7 +170,9 @@ const ContactButtons = (data) => {
                               <Button
                                    variant="outline"
                                    style={{
-                                        width: '23%',
+                                        maxWidth: '24%',
+                                        flexBasis: '24%',
+                                        minWidth: 0,
                                         borderColor: iconBorderColor,
                                         flexDirection: 'column',
                                         alignItems: 'center',
@@ -187,7 +191,9 @@ const ContactButtons = (data) => {
                               <Button
                                    variant="outline"
                                    style={{
-                                        width: '23%',
+                                        maxWidth: '24%',
+                                        flexBasis: '24%',
+                                        minWidth: 0,
                                         borderColor: iconBorderColor,
                                         flexDirection: 'column',
                                         alignItems: 'center',
@@ -206,7 +212,9 @@ const ContactButtons = (data) => {
                               <Button
                                    variant="outline"
                                    style={{
-                                        width: '23%',
+                                        maxWidth: '24%',
+                                        flexBasis: '24%',
+                                        minWidth: 0,
                                         borderColor: iconBorderColor,
                                         flexDirection: 'column',
                                         alignItems: 'center',
