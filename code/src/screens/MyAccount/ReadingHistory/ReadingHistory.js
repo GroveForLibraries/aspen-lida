@@ -6,7 +6,7 @@ import { FlatList, Platform } from 'react-native';
 import { ThemedAccordion as Accordion, ThemedAccordionContent as AccordionContent, ThemedAccordionHeader as AccordionHeader, ThemedAccordionItem as AccordionItem, ThemedAccordionTrigger as AccordionTrigger, ThemedAccordionTitleText as AccordionTitleText, ThemedAccordionIcon as AccordionIcon } from '@/src/components/themed/ThemedAccordion';
 import { ThemedActionsheet as Actionsheet, ThemedActionsheetBackdrop as ActionsheetBackdrop, ThemedActionsheetItem as ActionsheetItem, ThemedActionsheetContent as ActionsheetContent, ThemedActionsheetItemText as ActionsheetItemText } from '@/src/components/themed/ThemedActionsheet';
 import { ThemedAlert as Alert, ThemedAlertIcon as AlertIcon, ThemedAlertText as AlertText } from '@/src/components/themed/ThemedAlert';
-import { ThemedAlertDialog as AlertDialog, ThemedAlertDialogBackdrop as AlertDialogBackdrop, ThemedAlertDialogBody as AlertDialogBody, ThemedAlertDialogFooter as AlertDialogFooter, ThemedAlertDialogHeader as AlertDialogHeader, ThemedAlertDialogContent as AlertDialogContent } from '@/src/components/themed/ThemedAlertDialog';
+import { ThemedModal as Modal, ThemedModalBackdrop as ModalBackdrop, ThemedModalBody as ModalBody, ThemedModalCloseButton as ModalCloseButton, ThemedModalContent as ModalContent, ThemedModalFooter as ModalFooter, ThemedModalHeader as ModalHeader } from '@/src/components/themed/ThemedModal';
 import { Box } from '@/components/ui/box';
 import { ScreenContainer, screenContentContainerStyle } from '@/src/components/ScreenContainer';
 import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../../components/themed/ThemedButton';
@@ -35,6 +35,7 @@ import { useActiveLanguage } from '@/src/hooks/useLanguageData';
 import { useTheme } from '@/src/themes/theme';
 import { useLibrary } from '@/src/hooks/useLibrarySystemData';
 import { ThemedInput as Input, ThemedInputField as InputField } from '@/src/components/themed/ThemedFormControls';
+import { ThemedCloseIcon as CloseIcon } from '@/src/components/themed/ThemedFormControls';
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
@@ -305,16 +306,19 @@ export const MyReadingHistory = () => {
                     </VStack>
 
                     <Center>
-                         <AlertDialog leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={onClose}>
-                              <AlertDialogBackdrop />
-                              <AlertDialogContent>
-                                   <AlertDialogHeader>
+                         <Modal leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={onClose}>
+                              <ModalBackdrop />
+                              <ModalContent>
+                                   <ModalHeader>
                                         <Heading>{getTermFromDictionary(language, 'reading_history_opt_out')}</Heading>
-                                   </AlertDialogHeader>
-                                   <AlertDialogBody>
+                                        <ModalCloseButton onPress={onClose}>
+                                             <CloseIcon />
+                                        </ModalCloseButton>
+                                   </ModalHeader>
+                                   <ModalBody>
                                         <Text>{getTermFromDictionary(language, 'reading_history_opt_out_warning')}</Text>
-                                   </AlertDialogBody>
-                                   <AlertDialogFooter>
+                                   </ModalBody>
+                                   <ModalFooter>
                                         <ButtonGroup space="sm">
                                              <Button style={{ borderColor }} variant="outline" onPress={onClose}>
                                                   <ButtonText style={{ color: textColor }}>{getTermFromDictionary(language, 'cancel')}</ButtonText>
@@ -323,22 +327,25 @@ export const MyReadingHistory = () => {
                                                   <ButtonText style={{ color: neutralPairs.white }}>{getTermFromDictionary(language, 'button_ok')}</ButtonText>
                                              </Button>
                                         </ButtonGroup>
-                                   </AlertDialogFooter>
-                              </AlertDialogContent>
-                         </AlertDialog>
+                                   </ModalFooter>
+                              </ModalContent>
+                         </Modal>
                     </Center>
 
                     <Center>
-                         <AlertDialog leastDestructiveRef={deleteAllCancelRef} isOpen={deleteAllIsOpen} onClose={onCloseDeleteAll}>
-                              <AlertDialogBackdrop />
-                              <AlertDialogContent>
-                                   <AlertDialogHeader>
+                         <Modal leastDestructiveRef={deleteAllCancelRef} isOpen={deleteAllIsOpen} onClose={onCloseDeleteAll}>
+                              <ModalBackdrop />
+                              <ModalContent>
+                                   <ModalHeader>
                                         <Heading>{getTermFromDictionary(language, 'reading_history_delete_all')}</Heading>
-                                   </AlertDialogHeader>
-                                   <AlertDialogBody>
+                                        <ModalCloseButton onPress={onCloseDeleteAll}>
+                                             <CloseIcon />
+                                        </ModalCloseButton>
+                                   </ModalHeader>
+                                   <ModalBody>
                                         <Text>{getTermFromDictionary(language, 'reading_history_delete_all_warning')}</Text>
-                                   </AlertDialogBody>
-                                   <AlertDialogFooter>
+                                   </ModalBody>
+                                   <ModalFooter>
                                         <ButtonGroup space="sm">
                                              <Button style={{ borderColor }} variant="outline" onPress={onCloseDeleteAll}>
                                                   <ButtonText style={{ color: textColor }}>{getTermFromDictionary(language, 'cancel')}</ButtonText>
@@ -347,9 +354,9 @@ export const MyReadingHistory = () => {
                                                   <ButtonText style={{ color: neutralPairs.white }}>{getTermFromDictionary(language, 'button_ok')}</ButtonText>
                                              </Button>
                                         </ButtonGroup>
-                                   </AlertDialogFooter>
-                              </AlertDialogContent>
-                         </AlertDialog>
+                                   </ModalFooter>
+                              </ModalContent>
+                         </Modal>
                     </Center>
                </Box>
           );

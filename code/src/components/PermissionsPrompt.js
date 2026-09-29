@@ -1,6 +1,5 @@
 import * as Linking from 'expo-linking';
 import React from 'react';
-import { ThemedAlertDialog as AlertDialog, ThemedAlertDialogBackdrop as AlertDialogBackdrop, ThemedAlertDialogBody as AlertDialogBody, ThemedAlertDialogFooter as AlertDialogFooter, ThemedAlertDialogHeader as AlertDialogHeader, ThemedAlertDialogContent as AlertDialogContent } from '@/src/components/themed/ThemedAlertDialog';
 import { ThemedButton as Button, ThemedButtonText as ButtonText } from './themed/ThemedButton';
 import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
 import { ThemedHeading as Heading } from '@/src/components/themed/ThemedHeading';
@@ -8,6 +7,8 @@ import { ThemedText as Text } from '@/src/components/themed/ThemedText';
 import { getTermFromDictionary } from '../translations/TranslationService';
 import { useActiveLanguage } from '../hooks/useLanguageData';
 import { useTheme } from '../themes/theme';
+import { ThemedModal as Modal, ThemedModalBackdrop as ModalBackdrop, ThemedModalBody as ModalBody, ThemedModalCloseButton as ModalCloseButton, ThemedModalContent as ModalContent, ThemedModalFooter as ModalFooter, ThemedModalHeader as ModalHeader } from '@/src/components/themed/ThemedModal';
+import { ThemedCloseIcon as CloseIcon } from '@/src/components/themed/ThemedFormControls';
 
 /**
  * PermissionsPrompt component for displaying a prompt to the user requesting permissions.
@@ -27,12 +28,19 @@ export const PermissionsPrompt = (data) => {
      };
      const cancelRef = React.useRef(null);
      return (
-          <AlertDialog leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={onClose}>
-               <AlertDialogBackdrop />
-               <AlertDialogContent>
-                    <AlertDialogHeader><Heading>{getTermFromDictionary(language, promptTitle)}</Heading></AlertDialogHeader>
-                    <AlertDialogBody><Text>{getTermFromDictionary(language, promptBody)}</Text></AlertDialogBody>
-                    <AlertDialogFooter>
+          <Modal leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={onClose}>
+               <ModalBackdrop />
+               <ModalContent>
+                    <ModalHeader>
+                         <Heading>{getTermFromDictionary(language, promptTitle)}</Heading>
+                         <ModalCloseButton onPress={onClose}>
+                              <CloseIcon />
+                         </ModalCloseButton>
+                    </ModalHeader>
+                    <ModalBody>
+                         <Text>{getTermFromDictionary(language, promptBody)}</Text>
+                    </ModalBody>
+                    <ModalFooter>
                          <ButtonGroup space="md">
                               <Button style={{ backgroundColor: neutralPairs.surface.light }} onPress={onClose} ref={cancelRef}>
                                    <ButtonText style={{ color: neutralPairs.textMain.light }}>{getTermFromDictionary(language, 'permissions_cancel')}</ButtonText>
@@ -46,8 +54,8 @@ export const PermissionsPrompt = (data) => {
                                    <ButtonText style={{ color: neutralPairs.white }}>{getTermFromDictionary(language, 'permissions_update_settings')}</ButtonText>
                               </Button>
                          </ButtonGroup>
-                    </AlertDialogFooter>
-               </AlertDialogContent>
-          </AlertDialog>
+                    </ModalFooter>
+               </ModalContent>
+          </Modal>
      );
 };

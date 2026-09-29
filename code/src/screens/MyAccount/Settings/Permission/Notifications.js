@@ -6,11 +6,11 @@ import { Platform } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { loadingSpinner } from '@/src/components/loadingSpinner';
 import { ThemedAccordion as Accordion, ThemedAccordionContent as AccordionContent, ThemedAccordionHeader as AccordionHeader, ThemedAccordionItem as AccordionItem, ThemedAccordionTrigger as AccordionTrigger, ThemedAccordionTitleText as AccordionTitleText, ThemedAccordionContentText as AccordionContentText, ThemedAccordionIcon as AccordionIcon } from '@/src/components/themed/ThemedAccordion';
-import { ThemedAlertDialog as AlertDialog, ThemedAlertDialogBackdrop as AlertDialogBackdrop, ThemedAlertDialogBody as AlertDialogBody, ThemedAlertDialogFooter as AlertDialogFooter, ThemedAlertDialogHeader as AlertDialogHeader, ThemedAlertDialogContent as AlertDialogContent } from '@/src/components/themed/ThemedAlertDialog';
 import { Box } from '@/components/ui/box';
 import { ThemedButton as Button, ThemedButtonIcon as ButtonIcon, ThemedButtonText as ButtonText } from '../../../../components/themed/ThemedButton';
 import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
 import { Center } from '@/components/ui/center';
+import { ThemedCloseIcon as CloseIcon } from '@/src/components/themed/ThemedFormControls';
 import { ThemedHeading as Heading } from '@/src/components/themed/ThemedHeading';
 import { HStack } from '@/components/ui/hstack';
 import { Pressable } from '@/components/ui/pressable';
@@ -28,6 +28,7 @@ import { useActiveLanguage } from '@/src/hooks/useLanguageData';
 import { useTheme } from '@/src/themes/theme';
 import { useLibrary } from '@/src/hooks/useLibrarySystemData';
 import { screenContentContainerStyle } from '@/src/components/ScreenContainer';
+import { ThemedModal as Modal, ThemedModalBackdrop as ModalBackdrop, ThemedModalBody as ModalBody, ThemedModalCloseButton as ModalCloseButton, ThemedModalContent as ModalContent, ThemedModalFooter as ModalFooter, ThemedModalHeader as ModalHeader } from '@/src/components/themed/ThemedModal';
 
 /**
  * NotificationPermissionStatus component that displays the current notification permission status and allows users to navigate to the permission description screen. It checks and updates the notification permissions on mount, when the screen comes into focus, and when the Expo token changes.
@@ -351,25 +352,28 @@ const NotificationPermissionUpdate = ({ permissionStatus, addNotificationPermiss
                 </ButtonText>
             </Button>
 
-            <AlertDialog
+            <Modal
                 isOpen={showAlertDialog}
                 onClose={() => setShowAlertDialog(false)}
             >
-                <AlertDialogBackdrop />
-                <AlertDialogContent>
-                    <AlertDialogHeader>
+                <ModalBackdrop />
+                <ModalContent>
+                    <ModalHeader>
                         <Heading>
                             {getTermFromDictionary(language, 'update_device_settings')}
                         </Heading>
-                    </AlertDialogHeader>
-                    <AlertDialogBody>
+                        <ModalCloseButton onPress={() => setShowAlertDialog(false)}>
+                            <CloseIcon />
+                        </ModalCloseButton>
+                    </ModalHeader>
+                    <ModalBody>
                         <Text>
                             {Platform.OS === 'android' ?
                                 getTermFromDictionary(language, 'update_notification_android') :
                                 getTermFromDictionary(language, 'update_notification_ios')}
                         </Text>
-                    </AlertDialogBody>
-                    <AlertDialogFooter>
+                    </ModalBody>
+                    <ModalFooter>
                         <ButtonGroup className="flex-col items-stretch w-full">
                             <Button
                                 onPress={() => {
@@ -391,9 +395,9 @@ const NotificationPermissionUpdate = ({ permissionStatus, addNotificationPermiss
                                 </ButtonText>
                             </Button>
                         </ButtonGroup>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
         </Center>
     );
 };

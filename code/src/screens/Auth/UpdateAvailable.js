@@ -2,12 +2,13 @@ import React from 'react';
 import * as Linking from 'expo-linking';
 import {getTermFromDictionary} from '../../translations/TranslationService';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
-import { ThemedAlertDialog as AlertDialog, ThemedAlertDialogBackdrop as AlertDialogBackdrop, ThemedAlertDialogBody as AlertDialogBody, ThemedAlertDialogFooter as AlertDialogFooter, ThemedAlertDialogHeader as AlertDialogHeader, ThemedAlertDialogContent as AlertDialogContent } from '@/src/components/themed/ThemedAlertDialog';
 import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../components/themed/ThemedButton';
 import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
 import { Center } from '@/components/ui/center';
 import { ThemedHeading as Heading } from '@/src/components/themed/ThemedHeading';
 import { ThemedText as Text } from '@/src/components/themed/ThemedText';
+import { ThemedModal as Modal, ThemedModalBackdrop as ModalBackdrop, ThemedModalBody as ModalBody, ThemedModalCloseButton as ModalCloseButton, ThemedModalContent as ModalContent, ThemedModalFooter as ModalFooter, ThemedModalHeader as ModalHeader } from '@/src/components/themed/ThemedModal';
+import { ThemedCloseIcon as CloseIcon } from '@/src/components/themed/ThemedFormControls';
 
 /**
  * UpdateAvailable component that displays an alert dialog informing the user about an available update and provides options to update or cancel.
@@ -32,16 +33,19 @@ export const UpdateAvailable = (props) => {
 
 	return (
 		<Center>
-			<AlertDialog isOpen={isOpen} onClose={onClose} finalFocusRef={cancelRef}>
-				<AlertDialogBackdrop />
-				<AlertDialogContent>
-					<AlertDialogHeader>
+			<Modal isOpen={isOpen} onClose={onClose} finalFocusRef={cancelRef}>
+				<ModalBackdrop />
+				<ModalContent>
+					<ModalHeader>
 						<Heading>{getTermFromDictionary(language, 'update_available')}</Heading>
-					</AlertDialogHeader>
-					<AlertDialogBody>
+						<ModalCloseButton onPress={onClose}>
+							<CloseIcon />
+						</ModalCloseButton>
+					</ModalHeader>
+					<ModalBody>
 						<Text size="sm">{getTermFromDictionary(language, 'update_message')}</Text>
-					</AlertDialogBody>
-					<AlertDialogFooter>
+					</ModalBody>
+					<ModalFooter>
 						<ButtonGroup space="md">
 							<Button variant="outline" colorScheme="secondary" onPress={onClose} ref={cancelRef}>
 								<ButtonText>{getTermFromDictionary(language, 'cancel')}</ButtonText>
@@ -50,9 +54,9 @@ export const UpdateAvailable = (props) => {
 								<ButtonText>{getTermFromDictionary(language, 'update_now')}</ButtonText>
 							</Button>
 						</ButtonGroup>
-					</AlertDialogFooter>
-				</AlertDialogContent>
-			</AlertDialog>
+					</ModalFooter>
+				</ModalContent>
+			</Modal>
 		</Center>
 	);
 };

@@ -1,6 +1,5 @@
 import React from 'react';
 import { ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/ThemedMaterialIcons';
-import { ThemedAlertDialog as AlertDialog, ThemedAlertDialogBackdrop as AlertDialogBackdrop, ThemedAlertDialogBody as AlertDialogBody, ThemedAlertDialogFooter as AlertDialogFooter, ThemedAlertDialogHeader as AlertDialogHeader, ThemedAlertDialogContent as AlertDialogContent } from '@/src/components/themed/ThemedAlertDialog';
 import { ThemedButton as Button, ThemedButtonIcon as ButtonIcon, ThemedButtonText as ButtonText } from './themed/ThemedButton';
 import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
 import { Center } from '@/components/ui/center';
@@ -10,6 +9,8 @@ import { ThemedText as Text } from '@/src/components/themed/ThemedText';
 import { getTermFromDictionary } from '../translations/TranslationHelper';
 import { useActiveLanguage } from '../hooks/useLanguageData';
 import { useTheme } from '../themes/theme';
+import { ThemedModal as Modal, ThemedModalBackdrop as ModalBackdrop, ThemedModalBody as ModalBody, ThemedModalCloseButton as ModalCloseButton, ThemedModalContent as ModalContent, ThemedModalFooter as ModalFooter, ThemedModalHeader as ModalHeader } from '@/src/components/themed/ThemedModal';
+import { ThemedCloseIcon as CloseIcon } from '@/src/components/themed/ThemedFormControls';
 
 /**
  * Catch an error and display it to the user
@@ -75,24 +76,27 @@ export const DisplayErrorAlertDialog = (props) => {
 
      return (
           <Center>
-               <AlertDialog leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={onClose}>
-                    <AlertDialogBackdrop />
-                    <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <Heading>{title}</Heading>
-                    </AlertDialogHeader>
-                    <AlertDialogBody>
-                        <Text>{message}</Text>
-                    </AlertDialogBody>
-                    <AlertDialogFooter>
-                        <ButtonGroup space="md">
-                            <Button onPress={onClose} colorScheme="primary" ref={cancelRef}>
-                                <ButtonText>{getTermFromDictionary(language, 'close_window')}</ButtonText>
-                            </Button>
-                        </ButtonGroup>
-                    </AlertDialogFooter>
-                    </AlertDialogContent>
-               </AlertDialog>
+               <Modal leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={onClose}>
+                    <ModalBackdrop />
+                    <ModalContent>
+                         <ModalHeader>
+                              <Heading>{title}</Heading>
+                              <ModalCloseButton onPress={onClose}>
+                                   <CloseIcon />
+                              </ModalCloseButton>
+                         </ModalHeader>
+                         <ModalBody>
+                              <Text>{message}</Text>
+                         </ModalBody>
+                         <ModalFooter>
+                              <ButtonGroup space="sm">
+                                   <Button onPress={onClose} colorScheme="primary" ref={cancelRef}>
+                                        <ButtonText>{getTermFromDictionary(language, 'close_window')}</ButtonText>
+                                   </Button>
+                              </ButtonGroup>
+                         </ModalFooter>
+                    </ModalContent>
+               </Modal>
           </Center>
      );
 }

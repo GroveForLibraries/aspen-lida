@@ -3,7 +3,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useIsFetching, useQuery, useQueryClient } from '@tanstack/react-query';
 import React from 'react';
 import { FlatList } from 'react-native';
-import { ThemedAlertDialog as AlertDialog, ThemedAlertDialogBackdrop as AlertDialogBackdrop, ThemedAlertDialogBody as AlertDialogBody, ThemedAlertDialogCloseButton as AlertDialogCloseButton, ThemedAlertDialogFooter as AlertDialogFooter, ThemedAlertDialogHeader as AlertDialogHeader, ThemedAlertDialogContent as AlertDialogContent } from '@/src/components/themed/ThemedAlertDialog';
+import { ThemedModal as Modal, ThemedModalBackdrop as ModalBackdrop, ThemedModalBody as ModalBody, ThemedModalCloseButton as ModalCloseButton, ThemedModalContent as ModalContent, ThemedModalFooter as ModalFooter, ThemedModalHeader as ModalHeader } from '@/src/components/themed/ThemedModal';
 import { Box } from '@/components/ui/box';
 import { screenContentContainerStyle } from '@/src/components/ScreenContainer';
 import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../../components/themed/ThemedButton';
@@ -527,19 +527,19 @@ export const MyCheckouts = () => {
                     <ScrollView horizontal>{actionButtons()}</ScrollView>
                </Box>
                <Center>
-                    <AlertDialog leastDestructiveRef={renewConfirmationRef} isOpen={renewConfirmationIsOpen} onClose={onRenewConfirmationClose}>
-                         <AlertDialogBackdrop />
-                         <AlertDialogContent>
-                              <AlertDialogHeader>
-                                   {/* TODO(translation): Replace hardcoded fallback title with TranslationService-backed key. */}
+                    <Modal leastDestructiveRef={renewConfirmationRef} isOpen={renewConfirmationIsOpen} onClose={onRenewConfirmationClose}>
+                         <ModalBackdrop />
+                         <ModalContent>
+                              <ModalHeader>
                                    <Heading>{renewConfirmationResponse?.title ? renewConfirmationResponse.title : 'Unknown Error'}</Heading>
-                                   <AlertDialogCloseButton>
+                                   <ModalCloseButton onPress={() => setRenewConfirmationIsOpen(false)}>
                                         <CloseIcon />
-                                   </AlertDialogCloseButton>
-                              </AlertDialogHeader>
-                              {/* TODO(translation): Replace hardcoded fallback error body with TranslationService-backed key. */}
-                              <AlertDialogBody><Text>{renewConfirmationResponse?.message ? decodeMessage(renewConfirmationResponse.message) : 'Unable to renew checkout for unknown error. Please contact the library.'}</Text></AlertDialogBody>
-                              <AlertDialogFooter>
+                                   </ModalCloseButton>
+                              </ModalHeader>
+                              <ModalBody>
+                                   <Text>{renewConfirmationResponse?.message ? decodeMessage(renewConfirmationResponse.message) : 'Unable to renew checkout for unknown error. Please contact the library.'}</Text>
+                              </ModalBody>
+                              <ModalFooter>
                                    <ButtonGroup space="md">
                                         <Button colorScheme="primary" variant="outline" onPress={() => setRenewConfirmationIsOpen(false)}>
                                              <ButtonText>{getTermFromDictionary(language, 'close_window')}</ButtonText>
@@ -570,9 +570,9 @@ export const MyCheckouts = () => {
                                              <ButtonText>{renewConfirmationResponse?.action ? renewConfirmationResponse.action : 'Renew Item'}</ButtonText>
                                         </Button>
                                    </ButtonGroup>
-                              </AlertDialogFooter>
-                         </AlertDialogContent>
-                    </AlertDialog>
+                              </ModalFooter>
+                         </ModalContent>
+                    </Modal>
                </Center>
                <FlatList
                     data={filteredCheckouts}

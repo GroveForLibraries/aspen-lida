@@ -17,14 +17,15 @@ import { getTermFromDictionary } from '../../translations/TranslationService';
 import { logDebugMessage, logWarnMessage, getErrorMessage } from '../../util/logging.js';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 import { useTheme } from '../../themes/theme';
-import { ThemedAlertDialog as AlertDialog, ThemedAlertDialogBackdrop as AlertDialogBackdrop, ThemedAlertDialogBody as AlertDialogBody, ThemedAlertDialogFooter as AlertDialogFooter, ThemedAlertDialogHeader as AlertDialogHeader, ThemedAlertDialogContent as AlertDialogContent } from '@/src/components/themed/ThemedAlertDialog';
 import { ThemedBadge as Badge, ThemedBadgeText as BadgeText } from '../../components/themed/ThemedBadge';
 import { Box } from '@/components/ui/box';
 import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../components/themed/ThemedButton';
 import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
 import { Center } from '@/components/ui/center';
+import { ThemedCloseIcon as CloseIcon } from '../../components/themed/ThemedFormControls';
 import { ThemedHeading as Heading } from '@/src/components/themed/ThemedHeading';
 import { HStack } from '@/components/ui/hstack';
+import { ThemedModal as Modal, ThemedModalBackdrop as ModalBackdrop, ThemedModalBody as ModalBody, ThemedModalCloseButton as ModalCloseButton, ThemedModalContent as ModalContent, ThemedModalFooter as ModalFooter, ThemedModalHeader as ModalHeader } from '@/src/components/themed/ThemedModal';
 import { ThemedScrollView as ScrollView } from '@/src/components/themed/ThemedScrollView';
 import { ThemedSelect as Select, ThemedSelectBackdrop as SelectBackdrop, ThemedSelectContent as SelectContent, ThemedSelectDragIndicator as SelectDragIndicator, ThemedSelectDragIndicatorWrapper as SelectDragIndicatorWrapper, ThemedSelectInput as SelectInput, ThemedSelectItem as SelectItem, ThemedSelectPortal as SelectPortal, ThemedSelectScrollView as SelectScrollView, ThemedSelectTrigger as SelectTrigger } from '../../components/themed/ThemedSelect';
 import { ThemedText as Text } from '@/src/components/themed/ThemedText';
@@ -190,16 +191,19 @@ export const Editions = () => {
                     </Box>
                </ScrollView>
                <Center>
-                    <AlertDialog leastDestructiveRef={cancelResponseRef} isOpen={responseIsOpen} onClose={onResponseClose} useRNModal={true}>
-                         <AlertDialogBackdrop />
-                         <AlertDialogContent>
-                              <AlertDialogHeader>
-                                   <Heading>{response?.title}</Heading>
-                              </AlertDialogHeader>
-                              <AlertDialogBody>
-                                   <Text>{response?.message}</Text>
-                              </AlertDialogBody>
-                              <AlertDialogFooter>
+                    <Modal leastDestructiveRef={cancelResponseRef} isOpen={responseIsOpen} onClose={onResponseClose} size="md">
+                         <ModalBackdrop />
+                         <ModalContent>
+                              <ModalHeader>
+                                   <Heading>{response?.title ? response.title : 'Unknown Error'}</Heading>
+                                   <ModalCloseButton onPress={() => setResponseIsOpen(false)}>
+                                        <CloseIcon />
+                                   </ModalCloseButton>
+                              </ModalHeader>
+                              <ModalBody>
+                                   <Text>{response?.message ? decodeMessage(response.message) : 'Unable to place hold for unknown error. Please contact the library.'}</Text>
+                              </ModalBody>
+                              <ModalFooter>
                                    <ButtonGroup space="sm">
                                         {response?.action ? (
                                              <Button onPress={() => handleNavigation(response.action)} variant="solid" colorScheme="primary">
@@ -210,21 +214,22 @@ export const Editions = () => {
                                              <ButtonText>{getTermFromDictionary(language, 'button_ok')}</ButtonText>
                                         </Button>
                                    </ButtonGroup>
-                              </AlertDialogFooter>
-                         </AlertDialogContent>
-                    </AlertDialog>
-                    <AlertDialog leastDestructiveRef={cancelHoldConfirmationRef} isOpen={holdConfirmationIsOpen} onClose={onHoldConfirmationClose} useRNModal={true}>
-                         <AlertDialogBackdrop />
-                         <AlertDialogContent>
-                              <AlertDialogHeader>
-                                   {/* TODO(translation): Replace hardcoded fallback title with TranslationService-backed key. */}
+                              </ModalFooter>
+                         </ModalContent>
+                    </Modal>
+                    <Modal leastDestructiveRef={cancelHoldConfirmationRef} isOpen={holdConfirmationIsOpen} onClose={onHoldConfirmationClose} size="md">
+                         <ModalBackdrop />
+                         <ModalContent>
+                              <ModalHeader>
                                    <Heading>{holdConfirmationResponse?.title ? holdConfirmationResponse.title : 'Unknown Error'}</Heading>
-                              </AlertDialogHeader>
-                              <AlertDialogBody>
-                                   {/* TODO(translation): Replace hardcoded fallback error body with TranslationService-backed key. */}
+                                   <ModalCloseButton onPress={() => setHoldConfirmationIsOpen(false)}>
+                                        <CloseIcon />
+                                   </ModalCloseButton>
+                              </ModalHeader>
+                              <ModalBody>
                                    <Text>{holdConfirmationResponse?.message ? decodeMessage(holdConfirmationResponse.message) : 'Unable to place hold for unknown error. Please contact the library.'}</Text>
-                              </AlertDialogBody>
-                              <AlertDialogFooter>
+                              </ModalBody>
+                              <ModalFooter>
                                    <ButtonGroup space="md">
                                         <Button colorScheme="primary" variant="link" onPress={() => setHoldConfirmationIsOpen(false)}>
                                              <ButtonText>{getTermFromDictionary(language, 'close_window')}</ButtonText>
@@ -259,23 +264,23 @@ export const Editions = () => {
                                              <ButtonText>{getTermFromDictionary(language, 'confirm_place_hold')}</ButtonText>
                                         </Button>
                                    </ButtonGroup>
-                              </AlertDialogFooter>
-                         </AlertDialogContent>
-                    </AlertDialog>
-                    <AlertDialog leastDestructiveRef={cancelHoldItemSelectRef} isOpen={holdItemSelectIsOpen} onClose={onHoldItemSelectClose} useRNModal={true}>
-                         <AlertDialogBackdrop />
-                         <AlertDialogContent>
-                              <AlertDialogHeader>
-                                        {/* TODO(translation): Replace hardcoded fallback title with TranslationService-backed key. */}
+                              </ModalFooter>
+                         </ModalContent>
+                    </Modal>
+                    <Modal leastDestructiveRef={cancelHoldItemSelectRef} isOpen={holdItemSelectIsOpen} onClose={onHoldItemSelectClose} size="md">
+                         <ModalBackdrop />
+                         <ModalContent>
+                              <ModalHeader>
                                    <Heading>{holdSelectItemResponse?.title ? holdSelectItemResponse.title : 'Unknown Error'}</Heading>
-                              </AlertDialogHeader>
-                              <AlertDialogBody>
-                                        {/* TODO(translation): Replace hardcoded fallback error body with TranslationService-backed key. */}
+                                   <ModalCloseButton onPress={() => setHoldItemSelectIsOpen(false)}>
+                                        <CloseIcon />
+                                   </ModalCloseButton>
+                              </ModalHeader>
+                              <ModalBody>
                                    <Text>{holdSelectItemResponse?.message ? decodeMessage(holdSelectItemResponse.message) : 'Unable to place hold for unknown error. Please contact the library.'}</Text>
                                    {holdSelectItemResponse?.items ? (
                                         <Select name="itemForHold" minWidth={200} accessibilityLabel={getTermFromDictionary(language, 'select_item')} className="mt-1 mb-2" onValueChange={(itemValue) => setSelectedItem(itemValue)}>
                                              <SelectTrigger>
-                                                       {/* TODO(translation): Replace hardcoded placeholder with TranslationService-backed key. */}
                                                   <SelectInput placeholder="Select option" />
                                              </SelectTrigger>
                                              <SelectPortal>
@@ -301,8 +306,8 @@ export const Editions = () => {
                                              </SelectPortal>
                                         </Select>
                                    ) : null}
-                              </AlertDialogBody>
-                              <AlertDialogFooter>
+                              </ModalBody>
+                              <ModalFooter>
                                    <ButtonGroup space="md">
                                         <Button colorScheme="primary" variant="link" onPress={() => setHoldItemSelectIsOpen(false)}>
                                              <ButtonText>{getTermFromDictionary(language, 'close_window')}</ButtonText>
@@ -336,9 +341,9 @@ export const Editions = () => {
                                              <ButtonText>{getTermFromDictionary(language, 'place_hold')}</ButtonText>
                                         </Button>
                                    </ButtonGroup>
-                              </AlertDialogFooter>
-                         </AlertDialogContent>
-                    </AlertDialog>
+                              </ModalFooter>
+                         </ModalContent>
+                    </Modal>
                </Center>
           </ScreenContainer>
      );
