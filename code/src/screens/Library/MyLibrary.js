@@ -154,14 +154,6 @@ export const MyLibrary = () => {
                               </>
                          ) : null}
                     </Box>
-                    {size(locations) > 1 ? (
-                         <>
-                              <Divider className="mt-5 mb-2" />
-                              <Button variant="ghost" size="sm" onPress={selectLocations} colorScheme="primary">
-                                   <ButtonText>{getTermFromDictionary(language, 'view_all_locations')}</ButtonText>
-                              </Button>
-                         </>
-                    ) : null}
                </ScreenContainer>
           </ScrollView>
      );
