@@ -163,7 +163,7 @@ export function useSelfCheckSettings(options) {
 
 export function useAvailableLocations(options) {
      const { data } = useSqliteReadQuery(LIBRARY_AVAILABLE_LOCATIONS_KEY, loadAvailableLocations, options);
-     return data ?? [];
+     return normalizeLocationsList(data);
 }
 
 // Full query-object variants for callers that need isLoading / refetch / etc.
@@ -196,7 +196,7 @@ export function useLibraryBranchData() {
           scope: data?.scope ?? '',
           selfCheckEnabled: data?.enableSelfCheck ?? false,
           selfCheckSettings: data?.selfCheckSettings ?? {},
-          availableLocations: data?.locations ?? [],
+          availableLocations: normalizeLocationsList(data?.locations ?? data),
      };
 }
 
@@ -283,7 +283,7 @@ export function prehydrateLibraryBranchSnapshotCache(allData) {
      libraryBranchSnapshotCache.set(JSON.stringify(LIBRARY_SCOPE_KEY), allData.scope ?? '');
      libraryBranchSnapshotCache.set(JSON.stringify(LIBRARY_SELF_CHECK_ENABLED_KEY), allData.enableSelfCheck ?? false);
      libraryBranchSnapshotCache.set(JSON.stringify(LIBRARY_SELF_CHECK_SETTINGS_KEY), allData.selfCheckSettings ?? {});
-     libraryBranchSnapshotCache.set(JSON.stringify(LIBRARY_AVAILABLE_LOCATIONS_KEY), allData.locations ?? []);
+     libraryBranchSnapshotCache.set(JSON.stringify(LIBRARY_AVAILABLE_LOCATIONS_KEY), normalizeLocationsList(allData.locations ?? []));
      libraryBranchSnapshotCache.set(JSON.stringify(LIBRARY_ALL_BRANCH_DATA_KEY), allData);
 }
 
@@ -303,5 +303,25 @@ export function invalidateSelfCheckSnapshot(enabled, settings) {
      notifyLibraryBranchChanged(LIBRARY_SELF_CHECK_ENABLED_KEY);
      notifyLibraryBranchChanged(LIBRARY_SELF_CHECK_SETTINGS_KEY);
      notifyLibraryBranchChanged(LIBRARY_ALL_BRANCH_DATA_KEY);
+}
+
+
+/**
+ * Normalizes a value into an array of locations.
+ * @param value
+ * @returns {*|unknown[]|*[]}
+ */
+function normalizeLocationsList(value) {
+     if (Array.isArray(value)) return value;
+
+     if (value == null) return [];
+
+     if (typeof value === 'object') {
+          if (Array.isArray(value.locations)) return value.locations;
+          if (Array.isArray(value.result?.locations)) return value.result.locations;
+          return Object.values(value);
+     }
+
+     return [];
 }
 
