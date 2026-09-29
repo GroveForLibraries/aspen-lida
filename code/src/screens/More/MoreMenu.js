@@ -448,12 +448,7 @@ const MenuLink = (payload) => {
                                         {/* gluestack-ui allows passing a function to dynamically check states like isExpanded */}
                                         {({ isExpanded }) => (
                                              <HStack space="sm" className="items-center">
-                                                  <Icon
-                                                       as={MaterialIcons}
-                                                       name={isExpanded ? 'expand-more' : 'chevron-right'}
-                                                       size="lg"
-                                                       style={{ color: neutrals.actionableIndicator }}
-                                                  />
+                                                  <MaterialIcons name={isExpanded ? 'expand-more' : 'chevron-right'} size={20} color={neutrals.actionableIndicator} />
                                                   <VStack className="w-full">
                                                        <Text className="font-medium">
                                                             {categoryLabel}
@@ -474,12 +469,7 @@ const MenuLink = (payload) => {
                                                   className="py-2"
                                              >
                                                   <HStack space="sm" className="items-center ml-4">
-                                                       <Icon
-                                                            as={MaterialIcons}
-                                                            name="chevron-right"
-                                                            size="lg"
-                                                            style={{ color: neutrals.actionableIndicator }}
-                                                       />
+                                                       <MaterialIcons name="chevron-right" size={20} color={neutrals.actionableIndicator} />
                                                        <VStack className="w-full">
                                                             <Text className="font-medium">
                                                                  {item.linkText}
