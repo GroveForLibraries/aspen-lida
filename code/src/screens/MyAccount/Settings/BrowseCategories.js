@@ -225,10 +225,6 @@ const DisplayCategory = (data) => {
                          }}
                          isDisabled={isUpdating}
                          value={isVisible}
-                         trackColor={{
-                              true: brand.primary[500],
-                              false: neutralPairs.surface,
-                         }}
                     />
                </HStack>
                {showErrorDialog && <DisplayErrorAlertDialog title={errorTitle} message={errorMessage} />}
