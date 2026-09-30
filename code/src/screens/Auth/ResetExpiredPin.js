@@ -17,7 +17,6 @@ import { logDebugMessage, logInfoMessage, getErrorMessage } from '../../util/log
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 import { useTheme } from '../../themes/theme';
 import { ThemedCloseIcon as CloseIcon, ThemedFormControl as FormControl, ThemedInput as Input, ThemedInputField as InputField, ThemedFormControlLabelText as FormControlLabelText, ThemedFormControlError as FormControlError, ThemedFormControlErrorIcon as FormControlErrorIcon, ThemedFormControlErrorText as FormControlErrorText, ThemedFormControlLabel as FormControlLabel, ThemedInputSlot as InputSlot } from '../../components/themed/ThemedFormControls';
-import { ThemedAlertDialog as AlertDialog, ThemedAlertDialogBackdrop as AlertDialogBackdrop, ThemedAlertDialogBody as AlertDialogBody, ThemedAlertDialogCloseButton as AlertDialogCloseButton, ThemedAlertDialogFooter as AlertDialogFooter, ThemedAlertDialogHeader as AlertDialogHeader, ThemedAlertDialogContent as AlertDialogContent } from '@/src/components/themed/ThemedAlertDialog';
 import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../components/themed/ThemedButton';
 import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
 import { Center } from '@/components/ui/center';
@@ -25,6 +24,7 @@ import { ThemedHeading as Heading } from '@/src/components/themed/ThemedHeading'
 import { Spinner } from '@/components/ui/spinner';
 import { ThemedText as Text } from '@/src/components/themed/ThemedText';
 import { VStack } from '@/components/ui/vstack';
+import { ThemedModal as Modal, ThemedModalBackdrop as ModalBackdrop, ThemedModalBody as ModalBody, ThemedModalCloseButton as ModalCloseButton, ThemedModalContent as ModalContent, ThemedModalFooter as ModalFooter, ThemedModalHeader as ModalHeader } from '@/src/components/themed/ThemedModal';
 
 /**
  * ResetExpiredPin component that displays an alert dialog when the user's pin has expired, allowing the user to reset their pin.
@@ -164,29 +164,29 @@ export const ResetExpiredPin = (props) => {
 
      return (
           <Center>
-               <AlertDialog leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={onClose} avoidKeyboard>
-                    <AlertDialogBackdrop />
-                    <AlertDialogContent>
-                         <AlertDialogHeader>
+               <Modal leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={onClose} avoidKeyboard>
+                    <ModalBackdrop />
+                    <ModalContent>
+                         <ModalHeader>
                               <Heading>{resetSuccessful ? getTermFromDictionary(language, 'pin_updated') : getTermFromDictionary(language, 'reset_my_pin')}</Heading>
-                              <AlertDialogCloseButton>
+                              <ModalCloseButton onPress={onClose}>
                                    <CloseIcon />
-                              </AlertDialogCloseButton>
-                         </AlertDialogHeader>
+                              </ModalCloseButton>
+                         </ModalHeader>
                          {resetSuccessful ? (
                               <>
-                                   <AlertDialogBody>
+                                   <ModalBody>
                                         <Center>
                                              <VStack>
                                                   <Text>{resetMessage}. Logging you in...</Text>
                                                   <Spinner style={{ color: brand.primary[500] }} />
                                              </VStack>
                                         </Center>
-                                   </AlertDialogBody>
+                                   </ModalBody>
                               </>
                          ) : (
                               <>
-                                   <AlertDialogBody>
+                                   <ModalBody>
                                        <Text>{getTermFromDictionary(language, 'pin_has_expired')}</Text>
                                        <FormControl isRequired isInvalid={'pin' in errors} className="mt-3">
                                              <FormControlLabel>
@@ -248,9 +248,9 @@ export const ResetExpiredPin = (props) => {
                                                   </FormControlError>
                                              ) : null}
                                         </FormControl>
-                                   </AlertDialogBody>
+                                   </ModalBody>
 
-                                   <AlertDialogFooter>
+                                   <ModalFooter>
                                        <ButtonGroup space="md">
                                             <Button colorScheme="primary" variant="outline" onPress={onClose}>
                                                  <ButtonText>{getTermFromDictionary(language, 'cancel')}</ButtonText>
@@ -259,11 +259,11 @@ export const ResetExpiredPin = (props) => {
                                                  <ButtonText>{getTermFromDictionary(language, 'update')}</ButtonText>
                                              </Button>
                                         </ButtonGroup>
-                                   </AlertDialogFooter>
+                                   </ModalFooter>
                               </>
                          )}
-                    </AlertDialogContent>
-               </AlertDialog>
+                    </ModalContent>
+               </Modal>
           </Center>
      );
 };

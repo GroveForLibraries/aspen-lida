@@ -6,7 +6,6 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import {logDebugMessage} from "../../util/logging";
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 import { useTheme } from '../../themes/theme';
-import { ThemedAlertDialogContent as AlertDialogContent, ThemedAlertDialog as AlertDialog, ThemedAlertDialogBackdrop as AlertDialogBackdrop, ThemedAlertDialogBody as AlertDialogBody, ThemedAlertDialogFooter as AlertDialogFooter, ThemedAlertDialogHeader as AlertDialogHeader } from '@/src/components/themed/ThemedAlertDialog';
 import { Box } from '@/components/ui/box';
 import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../components/themed/ThemedButton';
 import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
@@ -14,6 +13,8 @@ import { Center } from '@/components/ui/center';
 import { ThemedFormControl as FormControl, ThemedFormControlLabelText as FormControlLabelText, ThemedFormControlLabel as FormControlLabel } from '../../components/themed/ThemedFormControls';
 import { ThemedHeading as Heading } from '@/src/components/themed/ThemedHeading';
 import { ThemedSelect as Select, ThemedSelectBackdrop as SelectBackdrop, ThemedSelectContent as SelectContent, ThemedSelectDragIndicator as SelectDragIndicator, ThemedSelectDragIndicatorWrapper as SelectDragIndicatorWrapper, ThemedSelectInput as SelectInput, ThemedSelectItem as SelectItem, ThemedSelectPortal as SelectPortal, ThemedSelectScrollView as SelectScrollView, ThemedSelectTrigger as SelectTrigger } from '../../components/themed/ThemedSelect';
+import { ThemedModal as Modal, ThemedModalBackdrop as ModalBackdrop, ThemedModalBody as ModalBody, ThemedModalCloseButton as ModalCloseButton, ThemedModalContent as ModalContent, ThemedModalFooter as ModalFooter, ThemedModalHeader as ModalHeader } from '@/src/components/themed/ThemedModal';
+import { ThemedCloseIcon as CloseIcon } from '@/src/components/themed/ThemedFormControls';
 
 /**
  * StartCheckOutSession component that displays an alert dialog for starting a new checkout session. It allows the user to select an account and either start a new session or cancel and go back home.
@@ -63,19 +64,6 @@ export const StartCheckOutSession = () => {
                activeAccount: activeAccount });
      };
 
-     /*useFocusEffect(
-          React.useCallback(() => {
-               const resubscribe = () => {
-                    if (!isOpen) {
-                         setIsOpen(true);
-                    }
-               };
-
-               return () => resubscribe();
-          }, [isFocused])
-     );
-     */
-
      logDebugMessage("Active account is " + activeAccount);
      logDebugMessage("User dispaly name is " + user.displayName);
 
@@ -85,11 +73,16 @@ export const StartCheckOutSession = () => {
 
      return (
           <Center>
-               <AlertDialog leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={() => GoBackHome()}>
-                    <AlertDialogBackdrop />
-                    <AlertDialogContent>
-                         <AlertDialogHeader><Heading>{getTermFromDictionary(language, 'start_checkout_session')}</Heading></AlertDialogHeader>
-                         <AlertDialogBody>
+               <Modal leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={() => GoBackHome()}>
+                    <ModalBackdrop />
+                    <ModalContent>
+                         <ModalHeader>
+                              <Heading>{getTermFromDictionary(language, 'start_checkout_session')}</Heading>
+                              <ModalCloseButton onPress={() => GoBackHome()}>
+                                   <CloseIcon />
+                              </ModalCloseButton>
+                         </ModalHeader>
+                         <ModalBody>
                               <FormControl>
                                    <FormControlLabel>
                                         <FormControlLabelText>{getTermFromDictionary(language, 'select_an_account')}</FormControlLabelText>
@@ -103,7 +96,6 @@ export const StartCheckOutSession = () => {
                                         <SelectTrigger>
                                              <SelectInput
                                                   value={
-                                                       // Find the displayName of the selected account or use placeholder
                                                        (() => {
                                                             if (activeAccount === (user.ils_barcode ?? user.cat_username)) {
                                                                  return user.displayName;
@@ -133,8 +125,8 @@ export const StartCheckOutSession = () => {
                                         </SelectPortal>
                                    </Select>
                               </FormControl>
-                         </AlertDialogBody>
-                         <AlertDialogFooter>
+                         </ModalBody>
+                         <ModalFooter>
                               <ButtonGroup space="sm">
                                    <Button ref={cancelRef} onPress={() => GoBackHome()} colorScheme="primary">
                                         <ButtonText>{getTermFromDictionary(language, 'cancel')}</ButtonText>
@@ -143,9 +135,9 @@ export const StartCheckOutSession = () => {
                                         <ButtonText>{getTermFromDictionary(language, 'button_start')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
-                         </AlertDialogFooter>
-                    </AlertDialogContent>
-               </AlertDialog>
+                         </ModalFooter>
+                    </ModalContent>
+               </Modal>
           </Center>
      );
 };

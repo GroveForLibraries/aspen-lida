@@ -31,8 +31,10 @@ export const ThemedToastTitle = React.forwardRef(({ action, variant, className, 
 });
 
 /** Themed wrapper around ToastDescription. Passes className/style through unchanged. */
-export const ThemedToastDescription = React.forwardRef(({ className, ...props }, ref) => {
-     return <ToastDescription ref={ref} className={className} {...props} />;
+export const ThemedToastDescription = React.forwardRef(({ action, variant, className, style, ...props }, ref) => {
+     const { brand, neutrals } = useTheme();
+     const colors = resolveAlertColors(action, brand, neutrals);
+     return <ToastDescription ref={ref} className={className} style={[{ color: colors.text }, style]} {...props} />;
 });
 
 ThemedToast.displayName = 'ThemedToast';

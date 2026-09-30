@@ -16,7 +16,6 @@ import { useActiveLanguage } from '../../hooks/useLanguageData';
 import { useTheme } from '../../themes/theme';
 import { ThemedAlert as Alert, ThemedAlertText as AlertText } from '../../components/themed/ThemedAlert';
 import { ThemedCloseIcon as CloseIcon, ThemedFormControl as FormControl, ThemedInput as Input, ThemedInputField as InputField, ThemedFormControlLabelText as FormControlLabelText, ThemedFormControlLabel as FormControlLabel } from '../../components/themed/ThemedFormControls';
-import { ThemedAlertDialog as AlertDialog, ThemedAlertDialogBackdrop as AlertDialogBackdrop, ThemedAlertDialogBody as AlertDialogBody, ThemedAlertDialogFooter as AlertDialogFooter, ThemedAlertDialogHeader as AlertDialogHeader, ThemedAlertDialogContent as AlertDialogContent } from '@/src/components/themed/ThemedAlertDialog';
 import { Box } from '@/components/ui/box';
 import { ScreenContainer } from '@/src/components/ScreenContainer';
 import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../components/themed/ThemedButton';
@@ -300,11 +299,11 @@ export const SelfCheckOut = () => {
                                             <Button onPress={() => openScanner()} colorScheme="secondary">
                                                  <MaterialCommunityIcons name="barcode" size={18} color={brand.secondary['500-text']} />
                                                  <ButtonText>{getTermFromDictionary(language, 'scan')}</ButtonText>
-                                             </Button>
+                                            </Button>
                                             <Button onPress={toggle} colorScheme="secondary">
                                                  <MaterialIcons name="dialpad" size={18} color={brand.secondary['500-text']} />
                                                  <ButtonText>{getTermFromDictionary(language, 'type')}</ButtonText>
-                                             </Button>
+                                            </Button>
                                         </ButtonGroup>
                                    </Center>
                               </FormControl>
@@ -370,35 +369,39 @@ export const SelfCheckOut = () => {
                     </Button>
                </Center>
                <Center>
-                    <AlertDialog leastDestructiveRef={cancelRefConfirm} isOpen={openConfirmAlert} onClose={onCloseConfirm} closeOnOverlayClick={false} useRNModal={true}>
-                         <AlertDialogBackdrop />
-                         <AlertDialogContent>
-                              <AlertDialogHeader>
+                    <Modal leastDestructiveRef={cancelRefConfirm} isOpen={openConfirmAlert} onClose={onCloseConfirm} closeOnOverlayClick={false} useRNModal={true}>
+                         <ModalBackdrop />
+                         <ModalContent>
+                              <ModalHeader>
                                    <Heading>{getTermFromDictionary(language, 'notice_about_item')}</Heading>
-                              </AlertDialogHeader>
-                              <AlertDialogBody>
+                                   <ModalCloseButton onPress={onCloseConfirm}>
+                                        <CloseIcon />
+                                   </ModalCloseButton>
+                              </ModalHeader>
+                              <ModalBody>
                                    <Text>{confirmMessage}</Text>
-                              </AlertDialogBody>
-                              <AlertDialogFooter>
+                              </ModalBody>
+                              <ModalFooter>
                                    <ButtonGroup space="sm">
                                         <Button colorScheme="primary" variant="outline" onPress={() => setOpenConfirmAlert(false)}>
                                              <ButtonText>{getTermFromDictionary(language, 'button_ok')}</ButtonText>
                                         </Button>
                                    </ButtonGroup>
-                              </AlertDialogFooter>
-                         </AlertDialogContent>
-                    </AlertDialog>
+                              </ModalFooter>
+                         </ModalContent>
+                    </Modal>
                </Center>
                <Center>
-                    <AlertDialog leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={onClose} useRNModal={true}>
-                         <AlertDialogBackdrop />
-                         <AlertDialogContent>
-                              <AlertDialogHeader>
-                                   <Heading>
-                                        {errorTitle}
-                                   </Heading>
-                              </AlertDialogHeader>
-                              <AlertDialogBody>
+                    <Modal leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={onClose} useRNModal={true}>
+                         <ModalBackdrop />
+                         <ModalContent>
+                              <ModalHeader>
+                                   <Heading>{errorTitle}</Heading>
+                                   <ModalCloseButton onPress={onClose}>
+                                        <CloseIcon />
+                                   </ModalCloseButton>
+                              </ModalHeader>
+                              <ModalBody>
                                    <Text>{errorBody}</Text>
                                    {itemNotFound && tempBarcode ? (
                                         <>
@@ -412,8 +415,8 @@ export const SelfCheckOut = () => {
                                              </FormControl>
                                         </>
                                    ) : null}
-                              </AlertDialogBody>
-                              <AlertDialogFooter>
+                              </ModalBody>
+                              <ModalFooter>
                                    <ButtonGroup space="sm">
                                         <Button colorScheme="primary" variant="outline" onPress={() => setIsOpen(false)}>
                                              <ButtonText>{getTermFromDictionary(language, 'button_ok')}</ButtonText>
@@ -434,35 +437,35 @@ export const SelfCheckOut = () => {
                                              </Button>
                                         ) : null}
                                    </ButtonGroup>
-                              </AlertDialogFooter>
-                         </AlertDialogContent>
-                    </AlertDialog>
+                              </ModalFooter>
+                         </ModalContent>
+                    </Modal>
                </Center>
                <Center>
-                    <AlertDialog leastDestructiveRef={cancelRef} isOpen={showFinishModal} onClose={() => startNewSession()} size="lg" useRNModal={true}>
-                         <AlertDialogBackdrop />
-                         <AlertDialogContent>
-                              <AlertDialogHeader>
+                    <Modal leastDestructiveRef={cancelRef} isOpen={showFinishModal} onClose={() => startNewSession()} size="lg" useRNModal={true}>
+                         <ModalBackdrop />
+                         <ModalContent>
+                              <ModalHeader>
                                    <Heading>{getTermFromDictionary(language, 'finish_checkout_session')}</Heading>
-                                   <Button variant="link" onPress={() => setShowFinishModal(false)} style={{ position: 'absolute', right: 12, top: 4, backgroundColor: 'transparent' }}>
+                                   <ModalCloseButton onPress={() => setShowFinishModal(false)}>
                                         <CloseIcon />
-                                   </Button>
-                              </AlertDialogHeader>
-                              <AlertDialogBody>
+                                   </ModalCloseButton>
+                              </ModalHeader>
+                              <ModalBody>
                                    <Text>{getTermFromDictionary(language, 'finish_checkout_session_body')}</Text>
-                              </AlertDialogBody>
-                              <AlertDialogFooter>
-                                   <HStack className="w-full justify-center">
-                                        <Button size="sm" onPress={() => startNewSession()} colorScheme="primary" className="mr-5">
+                              </ModalBody>
+                              <ModalFooter>
+                                   <ButtonGroup space="sm">
+                                        <Button onPress={() => startNewSession()} colorScheme="primary" className="mr-5">
                                              <ButtonText>{getTermFromDictionary(language, 'start_new_session')}</ButtonText>
                                         </Button>
-                                        <Button size="sm" colorScheme="primary" onPress={() => goToCheckouts()}>
+                                        <Button colorScheme="primary" onPress={() => goToCheckouts()}>
                                              <ButtonText>{getTermFromDictionary(language, 'view_checkouts')}</ButtonText>
                                         </Button>
-                                   </HStack>
-                              </AlertDialogFooter>
-                         </AlertDialogContent>
-                    </AlertDialog>
+                                   </ButtonGroup>
+                              </ModalFooter>
+                         </ModalContent>
+                    </Modal>
                </Center>
           </ScreenContainer>
      );

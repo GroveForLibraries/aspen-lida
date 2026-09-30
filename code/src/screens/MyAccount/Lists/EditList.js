@@ -11,7 +11,6 @@ import { toArray } from '@/src/helpers/helpers';
 import { useActiveLanguage } from '@/src/hooks/useLanguageData';
 import { useTheme } from '@/src/themes/theme';
 import { ThemedCloseIcon as CloseIcon, ThemedFormControl as FormControl, ThemedInput as Input, ThemedInputField as InputField, ThemedFormControlLabelText as FormControlLabelText, ThemedFormControlLabel as FormControlLabel } from '@/src/components/themed/ThemedFormControls';
-import { ThemedAlertDialog as AlertDialog, ThemedAlertDialogBackdrop as AlertDialogBackdrop, ThemedAlertDialogBody as AlertDialogBody, ThemedAlertDialogCloseButton as AlertDialogCloseButton, ThemedAlertDialogFooter as AlertDialogFooter, ThemedAlertDialogHeader as AlertDialogHeader, ThemedAlertDialogContent as AlertDialogContent } from '@/src/components/themed/ThemedAlertDialog';
 import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../../components/themed/ThemedButton';
 import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
 import { Center } from '@/components/ui/center';
@@ -97,7 +96,7 @@ const EditList = (props) => {
                               </FormControl>
                               <FormControl>
                                    <FormControlLabel>
-                                     <FormControlLabelText>{getTermFromDictionary(language, 'access')}</FormControlLabelText>
+                                        <FormControlLabelText>{getTermFromDictionary(language, 'access')}</FormControlLabelText>
                                    </FormControlLabel>
                                    <RadioGroup
                                         value={isPublic ? "true" : "false"}
@@ -218,18 +217,16 @@ const DeleteList = (props) => {
                     <MaterialIcons name="delete" size={18} color={neutralPairs.white} className="mr-1" />
                     <ButtonText style={{ color: neutralPairs.white }}>Delete List</ButtonText>
                </Button>
-               <AlertDialog leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={onClose}>
-                    <AlertDialogBackdrop />
-                    <AlertDialogContent>
-                         <AlertDialogHeader>
-                              <Heading>
-                                   {getTermFromDictionary(language, 'delete_list')}
-                              </Heading>
-                              <AlertDialogCloseButton>
+               <Modal leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={onClose}>
+                    <ModalBackdrop />
+                    <ModalContent>
+                         <ModalHeader>
+                              <Heading>{getTermFromDictionary(language, 'delete_list')}</Heading>
+                              <ModalCloseButton onPress={onClose}>
                                    <CloseIcon />
-                              </AlertDialogCloseButton>
-                         </AlertDialogHeader>
-                         <AlertDialogBody>
+                              </ModalCloseButton>
+                         </ModalHeader>
+                         <ModalBody>
                               <Text>{user.hideSoftDeleteListUI ? getTermFromDictionary(language, 'delete_list_confirmation_no_restore') : getTermFromDictionary(language, 'delete_list_confirmation')}</Text>
                               {!user.hideSoftDeleteListUI && (
                                    <FormControl className="pt-3">
@@ -241,8 +238,8 @@ const DeleteList = (props) => {
                                         </Checkbox>
                                    </FormControl>
                               )}
-                         </AlertDialogBody>
-                         <AlertDialogFooter>
+                         </ModalBody>
+                         <ModalFooter>
                               <ButtonGroup space="sm">
                                    <Button variant="link" onPress={onClose} ref={cancelRef}>
                                         <ButtonText style={{ color: textColor }}>{getTermFromDictionary(language, 'cancel')}</ButtonText>
@@ -281,9 +278,9 @@ const DeleteList = (props) => {
                                         <ButtonText style={{ color: neutralPairs.white }}>{getTermFromDictionary(language, 'delete')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
-                         </AlertDialogFooter>
-                    </AlertDialogContent>
-               </AlertDialog>
+                         </ModalFooter>
+                    </ModalContent>
+               </Modal>
           </Center>
      );
 };

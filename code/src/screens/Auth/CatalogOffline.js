@@ -4,12 +4,13 @@ import { useCatalogStatus } from '../../hooks/useLibrarySystemData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { logInfoMessage } from '../../util/logging';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
-import { ThemedAlertDialog as AlertDialog, ThemedAlertDialogBackdrop as AlertDialogBackdrop, ThemedAlertDialogBody as AlertDialogBody, ThemedAlertDialogFooter as AlertDialogFooter, ThemedAlertDialogHeader as AlertDialogHeader, ThemedAlertDialogContent as AlertDialogContent } from '@/src/components/themed/ThemedAlertDialog';
 import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../components/themed/ThemedButton';
 import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
 import { Center } from '@/components/ui/center';
 import { ThemedHeading as Heading } from '@/src/components/themed/ThemedHeading';
 import { ThemedText as Text } from '@/src/components/themed/ThemedText';
+import { ThemedModal as Modal, ThemedModalBackdrop as ModalBackdrop, ThemedModalBody as ModalBody, ThemedModalCloseButton as ModalCloseButton, ThemedModalContent as ModalContent, ThemedModalFooter as ModalFooter, ThemedModalHeader as ModalHeader } from '@/src/components/themed/ThemedModal';
+import { ThemedCloseIcon as CloseIcon } from '@/src/components/themed/ThemedFormControls';
 
 /**
  * CatalogOffline component that displays an alert dialog when the catalog is offline, allowing the user to sign out.
@@ -29,25 +30,27 @@ export const CatalogOffline = () => {
      if (catalogStatus > 0) {
           return (
                <Center>
-                    <AlertDialog leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={onClose}>
-                         <AlertDialogBackdrop />
-
-                         <AlertDialogContent>
-                              <AlertDialogHeader>
+                    <Modal leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={onClose}>
+                         <ModalBackdrop />
+                         <ModalContent>
+                              <ModalHeader>
                                   <Heading>{getTermFromDictionary(language, 'catalog_offline')}</Heading>
-                              </AlertDialogHeader>
-                              <AlertDialogBody>
+                                  <ModalCloseButton onPress={onClose}>
+                                       <CloseIcon />
+                                  </ModalCloseButton>
+                              </ModalHeader>
+                              <ModalBody>
                                   <Text>{catalogStatusMessage ? catalogStatusMessage : getTermFromDictionary(language, 'catalog_offline_message')}</Text>
-                              </AlertDialogBody>
-                              <AlertDialogFooter>
+                              </ModalBody>
+                              <ModalFooter>
                                    <ButtonGroup space="md">
                                        <Button onPress={signOut} colorScheme="primary" ref={cancelRef}>
                                             <ButtonText>{getTermFromDictionary(language, 'button_ok')}</ButtonText>
                                         </Button>
                                    </ButtonGroup>
-                              </AlertDialogFooter>
-                         </AlertDialogContent>
-                    </AlertDialog>
+                              </ModalFooter>
+                         </ModalContent>
+                    </Modal>
                </Center>
           );
      }
@@ -55,25 +58,27 @@ export const CatalogOffline = () => {
      if (catalogStatus > 0) {
           return (
                <Center>
-                    <AlertDialog leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={onClose}>
-                         <AlertDialogBackdrop />
-
-                         <AlertDialogContent>
-                              <AlertDialogHeader>
+                    <Modal leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={onClose}>
+                         <ModalBackdrop />
+                         <ModalContent>
+                              <ModalHeader>
                                    <Heading>{getTermFromDictionary(language, 'catalog_offline')}</Heading>
-                              </AlertDialogHeader>
-                              <AlertDialogBody>
+                                   <ModalCloseButton onPress={onClose}>
+                                        <CloseIcon />
+                                   </ModalCloseButton>
+                              </ModalHeader>
+                              <ModalBody>
                                    <Text>{catalogStatusMessage ? catalogStatusMessage : getTermFromDictionary(language, 'catalog_offline_message')}</Text>
-                              </AlertDialogBody>
-                              <AlertDialogFooter>
+                              </ModalBody>
+                              <ModalFooter>
                                    <ButtonGroup space="md">
                                         <Button onPress={signOut} ref={cancelRef}>
                                              <ButtonText>{getTermFromDictionary(language, 'button_ok')}</ButtonText>
                                         </Button>
                                    </ButtonGroup>
-                              </AlertDialogFooter>
-                         </AlertDialogContent>
-                    </AlertDialog>
+                              </ModalFooter>
+                         </ModalContent>
+                    </Modal>
                </Center>
           );
      }

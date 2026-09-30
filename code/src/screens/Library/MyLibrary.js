@@ -119,23 +119,22 @@ export const MyLibrary = () => {
                               transition={1000}
                               contentFit="cover"
                          />
-
                     </>
                ) : null}
-               <ScreenContainer safeArea>
+               <ScreenContainer>
                     <Box style={{ marginTop: location.locationImage ? 160 : 0, zIndex: 200 }}>
                          {showSystemMessage()}
                          {library.displayName !== location.displayName ? <Heading className="mb-2">{location.displayName}</Heading> : <Heading className="mb-4">{library.displayName}</Heading>}
                          {location.address ? <Text>{location.address}</Text> : null}
                          {location.phone ? (
-                              <Text>{getTermFromDictionary(language, 'phone')}: {location.phone}</Text>
+                              <Text>
+                                   {getTermFromDictionary(language, 'phone')}: {location.phone}
+                              </Text>
                          ) : null}
                          {hasHours ? (
                               <Text className="mt-4 mb-2">
                                    <Badge colorScheme={isClosedToday ? 'error' : 'success'} className="self-start">
-                                        <BadgeText colorScheme={isClosedToday ? 'error' : 'success'}>
-                                             {hoursLabel}
-                                        </BadgeText>
+                                        <BadgeText colorScheme={isClosedToday ? 'error' : 'success'}>{hoursLabel}</BadgeText>
                                    </Badge>
                               </Text>
                          ) : null}
@@ -154,14 +153,6 @@ export const MyLibrary = () => {
                               </>
                          ) : null}
                     </Box>
-                    {size(locations) > 1 ? (
-                         <>
-                              <Divider className="mt-5 mb-2" />
-                              <Button variant="ghost" size="sm" onPress={selectLocations} colorScheme="primary">
-                                   <ButtonText>{getTermFromDictionary(language, 'view_all_locations')}</ButtonText>
-                              </Button>
-                         </>
-                    ) : null}
                </ScreenContainer>
           </ScrollView>
      );

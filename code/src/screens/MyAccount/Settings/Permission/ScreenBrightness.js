@@ -4,11 +4,11 @@ import * as Brightness from 'expo-brightness';
 import * as Linking from 'expo-linking';
 import { AppState, Platform } from 'react-native';
 import { ThemedAccordion as Accordion, ThemedAccordionContent as AccordionContent, ThemedAccordionHeader as AccordionHeader, ThemedAccordionItem as AccordionItem, ThemedAccordionTrigger as AccordionTrigger, ThemedAccordionTitleText as AccordionTitleText, ThemedAccordionContentText as AccordionContentText, ThemedAccordionIcon as AccordionIcon } from '@/src/components/themed/ThemedAccordion';
-import { ThemedAlertDialog as AlertDialog, ThemedAlertDialogBackdrop as AlertDialogBackdrop, ThemedAlertDialogBody as AlertDialogBody, ThemedAlertDialogFooter as AlertDialogFooter, ThemedAlertDialogHeader as AlertDialogHeader, ThemedAlertDialogContent as AlertDialogContent } from '@/src/components/themed/ThemedAlertDialog';
 import { Box } from '@/components/ui/box';
 import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../../../components/themed/ThemedButton';
 import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
 import { Center } from '@/components/ui/center';
+import { ThemedCloseIcon as CloseIcon } from '@/src/components/themed/ThemedFormControls';
 import { ThemedHeading as Heading } from '@/src/components/themed/ThemedHeading';
 import { HStack } from '@/components/ui/hstack';
 import { Pressable } from '@/components/ui/pressable';
@@ -22,6 +22,7 @@ import Constants from 'expo-constants';
 import { useActiveLanguage } from '@/src/hooks/useLanguageData';
 import { useTheme } from '@/src/themes/theme';
 import { screenContentContainerStyle } from '@/src/components/ScreenContainer';
+import { ThemedModal as Modal, ThemedModalBackdrop as ModalBackdrop, ThemedModalBody as ModalBody, ThemedModalCloseButton as ModalCloseButton, ThemedModalContent as ModalContent, ThemedModalFooter as ModalFooter, ThemedModalHeader as ModalHeader } from '@/src/components/themed/ThemedModal';
 
 /**
  * ScreenBrightnessPermissionStatus component that displays the current permission status for screen brightness control and allows the user to navigate to a description screen for more information. It manages the permission status state and updates it when the app state changes.
@@ -170,20 +171,23 @@ const ScreenBrightnessPermissionUpdate = (payload) => {
                     colorScheme="primary">
                     <ButtonText>{getTermFromDictionary(language, 'update_device_settings')}</ButtonText>
                </Button>
-               <AlertDialog
+               <Modal
                     isOpen={showAlertDialog}
                     onClose={() => {
                          setShowAlertDialog(false);
                     }}>
-                    <AlertDialogBackdrop />
-                    <AlertDialogContent>
-                         <AlertDialogHeader>
+                    <ModalBackdrop />
+                    <ModalContent>
+                         <ModalHeader>
                               <Heading>{getTermFromDictionary(language, 'update_device_settings')}</Heading>
-                         </AlertDialogHeader>
-                         <AlertDialogBody>
+                              <ModalCloseButton onPress={() => setShowAlertDialog(false)}>
+                                   <CloseIcon />
+                              </ModalCloseButton>
+                         </ModalHeader>
+                         <ModalBody>
                               <Text>{Platform.OS === 'android' ? getTermFromDictionary(language, 'update_screen_brightness_android') : getTermFromDictionary(language, 'update_screen_brightness_ios')}</Text>
-                         </AlertDialogBody>
-                         <AlertDialogFooter>
+                         </ModalBody>
+                         <ModalFooter>
                               <ButtonGroup className="flex-col items-stretch w-full">
                                    <Button
                                         onPress={() => {
@@ -197,9 +201,9 @@ const ScreenBrightnessPermissionUpdate = (payload) => {
                                         <ButtonText style={{ color: textColor }}>{getTermFromDictionary(language, 'not_now')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
-                         </AlertDialogFooter>
-                    </AlertDialogContent>
-               </AlertDialog>
+                         </ModalFooter>
+                    </ModalContent>
+               </Modal>
           </Center>
      );
 };

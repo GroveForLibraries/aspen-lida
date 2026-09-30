@@ -19,7 +19,7 @@ function buildToastRenderer(prefix, actionType, title, description) {
                <Toast nativeID={uniqueToastId} action={actionType} variant="accent" zIndex={9999} elevation={9999}>
                     <VStack space="xs">
                          <ToastTitle action={actionType}>{title}</ToastTitle>
-                         {description && <ToastDescription>{description}</ToastDescription>}
+                         {description && <ToastDescription action={actionType}>{description}</ToastDescription>}
                     </VStack>
                </Toast>
           );
