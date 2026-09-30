@@ -149,8 +149,8 @@ const ContactButtons = (data) => {
                               <Button
                                    variant="outline"
                                    style={{
-                                        maxWidth: '24%',
-                                        flexBasis: '24%',
+                                        maxWidth: '23%',
+                                        flexBasis: '23%',
                                         minWidth: 0,
                                         borderColor: iconBorderColor,
                                         flexDirection: 'column',
@@ -170,8 +170,8 @@ const ContactButtons = (data) => {
                               <Button
                                    variant="outline"
                                    style={{
-                                        maxWidth: '24%',
-                                        flexBasis: '24%',
+                                        maxWidth: '23%',
+                                        flexBasis: '23%',
                                         minWidth: 0,
                                         borderColor: iconBorderColor,
                                         flexDirection: 'column',
@@ -191,8 +191,8 @@ const ContactButtons = (data) => {
                               <Button
                                    variant="outline"
                                    style={{
-                                        maxWidth: '24%',
-                                        flexBasis: '24%',
+                                        maxWidth: '23%',
+                                        flexBasis: '23%',
                                         minWidth: 0,
                                         borderColor: iconBorderColor,
                                         flexDirection: 'column',
@@ -212,8 +212,8 @@ const ContactButtons = (data) => {
                               <Button
                                    variant="outline"
                                    style={{
-                                        maxWidth: '24%',
-                                        flexBasis: '24%',
+                                        maxWidth: '23%',
+                                        flexBasis: '23%',
                                         minWidth: 0,
                                         borderColor: iconBorderColor,
                                         flexDirection: 'column',
