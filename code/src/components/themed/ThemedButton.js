@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 import { useStyleContext } from '@gluestack-ui/utils/nativewind-utils';
 import { Button, ButtonGroup, ButtonIcon, ButtonSpinner, ButtonText } from '@/components/ui/button';
 import { useTheme } from '../../themes/theme';
@@ -28,11 +28,11 @@ function resolveActionColors(brand, colorScheme, variant) {
 // icon size for ThemedButtonText/ThemedButtonIcon. minHeight (rather than a fixed height) lets
 // the button grow taller when its text wraps onto multiple lines.
 const BUTTON_SIZE_STYLES = {
-     xs: { container: { paddingHorizontal: 14, paddingVertical: 4, minHeight: 32 }, text: 'text-2xs', icon: '2xs' },
-     sm: { container: { paddingHorizontal: 16, paddingVertical: 6, minHeight: 36 }, text: 'text-xs', icon: 'sm' },
-     md: { container: { paddingHorizontal: 20, paddingVertical: 8, minHeight: 40 }, text: 'text-sm', icon: 'md' },
-     lg: { container: { paddingHorizontal: 24, paddingVertical: 10, minHeight: 44 }, text: 'text-base', icon: 'md' },
-     xl: { container: { paddingHorizontal: 28, paddingVertical: 12, minHeight: 48 }, text: 'text-lg', icon: 'lg' },
+     xs: { container: { paddingHorizontal: 14, paddingVertical: 4, minHeight: 32 }, text: 'text-xs', icon: '2xs' },
+     sm: { container: { paddingHorizontal: 16, paddingVertical: 6, minHeight: 36 }, text: 'text-sm', icon: 'sm' },
+     md: { container: { paddingHorizontal: 20, paddingVertical: 8, minHeight: 40 }, text: 'text-base', icon: 'md' },
+     lg: { container: { paddingHorizontal: 24, paddingVertical: 10, minHeight: 44 }, text: 'text-lg', icon: 'md' },
+     xl: { container: { paddingHorizontal: 28, paddingVertical: 12, minHeight: 48 }, text: 'text-xl', icon: 'lg' },
 };
 
 function resolveButtonSizeStyle(size) {
@@ -110,9 +110,11 @@ export const ThemedButtonText = React.forwardRef(({ className, style, ...props }
      const { brand } = useTheme();
      const actionColors = resolveActionColors(brand, colorScheme, variant);
 
+     const fontWeight = Platform.OS === 'android' ? '700' : '600';
+
      const mergedTextStyle = Array.isArray(style)
-          ? Object.assign({ flexShrink: 1, textAlign: 'center' }, actionColors ? { color: actionColors.textColor } : null, ...style.filter(Boolean))
-          : { flexShrink: 1, textAlign: 'center', ...(actionColors ? { color: actionColors.textColor } : null), ...style };
+          ? Object.assign({ flexShrink: 1, textAlign: 'center', fontWeight }, actionColors ? { color: actionColors.textColor } : null, ...style.filter(Boolean))
+          : { flexShrink: 1, textAlign: 'center', fontWeight, ...(actionColors ? { color: actionColors.textColor } : null), ...style };
 
      return <ButtonText ref={ref} className={[sizeStyle.text, className].filter(Boolean).join(' ')} style={mergedTextStyle} {...props} />;
 });
