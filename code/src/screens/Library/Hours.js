@@ -1,13 +1,21 @@
 import { formatTime as formatDisplayTime, isArray, parseTimeOnDate } from '../../helpers/helpers';
-import { Box, FlatList, Heading, HStack, Text, VStack } from '@gluestack-ui/themed';
 import React from 'react';
-
-// custom components and helper files
-
+import { Box } from '@/components/ui/box';
+import { FlatList } from '@/components/ui/flat-list';
+import { ThemedHeading as Heading } from '@/src/components/themed/ThemedHeading';
+import { HStack } from '@/components/ui/hstack';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
+import { VStack } from '@/components/ui/vstack';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 import { useTheme } from '../../themes/theme';
 
+/**
+ * Hours component that displays the library hours for a given location if available.
+ * @param data
+ * @returns {React.JSX.Element|null}
+ * @constructor
+ */
 const Hours = (data) => {
      const language = useActiveLanguage();
      const { textColor } = useTheme();
@@ -19,7 +27,7 @@ const Hours = (data) => {
           if (isArray(location.hours)) {
                return (
                     <Box>
-                         <Heading color={textColor} mb="$2" mx="$2">{getTermFromDictionary(language, 'library_hours')}</Heading>
+                         <Heading className="mb-2 mx-2">{getTermFromDictionary(language, 'library_hours')}</Heading>
                          <FlatList data={location.hours} renderItem={({ item }) => <Day hours={item} textColor={textColor} />} />
                     </Box>
                );
@@ -39,21 +47,19 @@ const Day = (data) => {
      }
 
      return (
-          <VStack mb="$2" mx="$4">
+          <VStack className="mb-2 mx-4">
                <HStack justifyContent="space-between">
-                    <Text color={textColor} bold>
-                         {hours.dayName}
-                    </Text>
+                    <Text bold>{hours.dayName}</Text>
                     {!hours.isClosed ? (
-                         <Text color={textColor}>
+                         <Text>
                               {formatHourLabel(hours.open)} - {formatHourLabel(hours.close)}
                          </Text>
                     ) : (
-                         <Text color={textColor}>{getTermFromDictionary(language, 'location_closed')}</Text>
+                         <Text>{getTermFromDictionary(language, 'location_closed')}</Text>
                     )}
                </HStack>
                {hours.notes !== '' ? (
-                    <Text color={textColor} fontSize="$xs" italic>
+                    <Text size="xs" italic>
                          {hours.notes}
                     </Text>
                ) : null}

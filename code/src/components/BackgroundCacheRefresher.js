@@ -1,6 +1,6 @@
 import React from 'react';
 import { useDataSync } from '../hooks/useDataSync';
-import { useLibrary } from '../hooks/useLibrarySystemData';
+import { useLibrary, useUpdateLibraryVersion } from '../hooks/useLibrarySystemData';
 import {
      useActiveLanguage,
      useAvailableLanguages,
@@ -8,7 +8,6 @@ import {
      useUpdateAvailableLanguages,
      useUpdateDictionary,
      useUpdateLanguageDisplayName } from '../hooks/useLanguageData';
-import { useUpdateLibraryVersion } from '../hooks/useLibrarySystemData';
 
 /**
  * Mounted once on the startup-cache-bypass path (see navigation.js/Splash.js's

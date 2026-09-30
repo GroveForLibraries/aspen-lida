@@ -1,8 +1,11 @@
-import React from 'react';
 import { useRoute, useNavigation, StackActions } from '@react-navigation/native';
-import { getCleanTitle } from '../../../helpers/item';
-import { useLibrary } from '../../../hooks/useLibrarySystemData';
+import { getCleanTitle } from '@/src/helpers/item';
+import { useLibrary } from '@/src/hooks/useLibrarySystemData';
 
+/**
+ * LoadSavedSearch component that navigates to the MySavedSearch screen with the provided search ID and title. It retrieves the search ID and title from the route parameters and constructs a navigation action to push the MySavedSearch screen onto the navigation stack.
+ * @constructor
+ */
 export const LoadSavedSearch = () => {
      const navigation = useNavigation();
      const id = useRoute().params.search ?? 0;

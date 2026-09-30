@@ -11,6 +11,11 @@ import { getCurrentUserId, getCurrentLocationId, getCurrentLibraryId } from './d
  * 3 -> Warning and higher
  * 4 -> Error and higher
  */
+
+/**
+ * Does logging of messages to console.log depending on the value of logLevel within the app config.
+ * @param message
+ */
 export function logDebugMessage(message) {
      if (__DEV__) {
           if (GLOBALS.logLevel === 1) {
@@ -19,6 +24,10 @@ export function logDebugMessage(message) {
      }
 }
 
+/**
+ * Does logging of messages to console.log depending on the value of logLevel within the app config.
+ * @param message
+ */
 export function logInfoMessage(message) {
      if (__DEV__) {
           if (GLOBALS.logLevel === 1 || GLOBALS.logLevel === 2) {
@@ -27,6 +36,10 @@ export function logInfoMessage(message) {
      }
 }
 
+/**
+ * Does logging of messages to console.log depending on the value of logLevel within the app config.
+ * @param message
+ */
 export function logWarnMessage(message, error) {
      if (__DEV__) {
           if (GLOBALS.logLevel >= 1 && GLOBALS.logLevel <=3) {
@@ -40,6 +53,10 @@ export function logWarnMessage(message, error) {
      }
 }
 
+/**
+ * Does logging of messages to console.log depending on the value of logLevel within the app config.
+ * @param message
+ */
 export function logErrorMessage(message, error) {
      if (__DEV__) {
           if (GLOBALS.logLevel >= 1 && GLOBALS.logLevel <=4) {
@@ -53,6 +70,11 @@ export function logErrorMessage(message, error) {
      }
 }
 
+/**
+ * Does logging of messages to console.log depending on the value of logLevel within the app config.
+ * @param type
+ * @param message
+ */
 function logMessage(type, message) {
      if (message instanceof Error) {
           const errorLog = {
@@ -94,25 +116,27 @@ export function logSentryMessage(message, level = 'error', error) {
                level,
                extra: contextLabel !== undefined ? { context: contextLabel } : undefined,
           });
+        
      } else {
           const normalizedMessage = typeof message === 'string' ? message : JSON.stringify(message);
-          Sentry.captureMessage(
-               normalizedMessage,
-               {
-                    level,
-                    // logSentryMessage is always the closest in-app frame on the
-                    // synthetic stack trace Sentry builds for plain-string
-                    // messages, so every call site would otherwise group/title
-                    // as "logSentryMessage" regardless of the actual message.
-                    // Fingerprinting on the message text itself keeps distinct
-                    // messages as distinct, filterable issues.
-                    fingerprint: [normalizedMessage],
-                    extra: error !== undefined ? { error } : undefined,
-               }
-          );
+          const syntheticError = new Error(normalizedMessage);
+
+          Sentry.captureException(syntheticError, {
+               level,
+               // For non-Error payloads, fingerprint on the message text so distinct logged messages stay distinct and filterable.
+               fingerprint: [normalizedMessage],
+               extra: error !== undefined ? { error } : undefined,
+          });
      }
 }
 
+/**
+ * Returns an error message object based on the provided arguments. The function can handle both object and non-object arguments, extracting relevant information to construct a user-friendly error message. It also sends the error details to Sentry for monitoring and debugging purposes.
+ * @param arg1
+ * @param arg2
+ * @param arg3
+ * @returns {{title: string, message: string, code: string}|{title: string, message: string, code: string}|{title: string, message: string, code: string}|{title: string, message: string, code: string|*}|{title: string, message: string, code: number}|{title: string, message: string, code: number}|{title: string, message: string, code: number}|{title: string, message: string, code: number}|{title: string, message: string, code: number}|{title: string, message: string, code: number}|{title: string, message: string, code: number}|{title: string, message: string, code: number}|{title: string, message: string, code: number}|{title: string, message: string, code: number}|{title: string, message: string, code: number}|{title: string, message: string, code: number}|{title: string, message: string, code: number}|{title: string, message: string, code: number}|{title: string, message: string, code: number}|{title: string, message: string, code: number}|{title: string, message: string, code: number}|{title: string, message: string, code: number}|{title: string, message: string, code: number}}
+ */
 export function getErrorMessage(arg1, arg2, arg3 = false) {
      const isObjectArg = arg1 !== null && typeof arg1 === 'object' && !Array.isArray(arg1);
      const statusCode = isObjectArg ? (arg1.statusCode ?? null) : (arg1 ?? null);
@@ -298,16 +322,10 @@ export function getErrorMessage(arg1, arg2, arg3 = false) {
 
      // Always send the error to Sentry unless in DEV environment
      if (!__DEV__ || (__DEV__ && sendToSentry)) {
-          Sentry.captureMessage(`[${errorDetails.title}] ${errorDetails.message}`, {
+          const sentryError = new Error(`[${errorDetails.title}] ${errorDetails.message}`);
+          Sentry.captureException(sentryError, {
                level: 'error',
-               // getErrorMessage is always the closest in-app frame on the
-               // synthetic stack trace for these calls, so without an explicit
-               // fingerprint every status code/problem would otherwise group
-               // together under that shared call site. Fingerprint on the
-               // status code + problem type so different error kinds stay
-               // distinct, filterable issues (note: this still merges the same
-               // status/problem across different endpoints, since the endpoint
-               // isn't passed into getErrorMessage).
+               // Fingerprint on the status code + problem type so different error kinds stay distinct and filterable.
                fingerprint: [String(statusCode ?? 'none'), String(problem ?? 'none')],
                extra: { code: errorDetails.code, problem, statusCode },
           });

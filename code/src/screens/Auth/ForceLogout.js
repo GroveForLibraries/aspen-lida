@@ -1,16 +1,23 @@
-import { Center, AlertDialog, AlertDialogBackdrop, AlertDialogContent, AlertDialogHeader, AlertDialogBody, AlertDialogFooter, Button, ButtonGroup, ButtonText, Heading, Text } from '@gluestack-ui/themed';
-
 import React from 'react';
-
 import { AuthContext } from '../../context/AuthContext';
-
 import {getTermFromDictionary} from '../../translations/TranslationService';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
-import { useTheme } from '../../themes/theme';
+import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../components/themed/ThemedButton';
+import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
+import { Center } from '@/components/ui/center';
+import { ThemedHeading as Heading } from '@/src/components/themed/ThemedHeading';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
+import { ThemedModal as Modal, ThemedModalBackdrop as ModalBackdrop, ThemedModalBody as ModalBody, ThemedModalCloseButton as ModalCloseButton, ThemedModalContent as ModalContent, ThemedModalFooter as ModalFooter, ThemedModalHeader as ModalHeader } from '@/src/components/themed/ThemedModal';
+import { ThemedCloseIcon as CloseIcon } from '@/src/components/themed/ThemedFormControls';
 
+/**
+ * ForceLogout component that displays an alert dialog when the user is forced to log out, allowing the user to sign out.
+ * @param props
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const ForceLogout = (props) => {
      const { title, reason } = props;
-	const { theme, colorMode, textColor } = useTheme();
 	const language = useActiveLanguage();
 	const { signOut } = React.useContext(AuthContext);
 	const [isOpen, setIsOpen] = React.useState(true);
@@ -19,20 +26,27 @@ export const ForceLogout = (props) => {
 
 	return (
 		<Center>
-			<AlertDialog leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={onClose}>
-				<AlertDialogBackdrop/>
-				<AlertDialogContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
-					<AlertDialogHeader><Heading color={textColor}>{title ?? getTermFromDictionary(language, 'error')}</Heading></AlertDialogHeader>
-					<AlertDialogBody><Text color={textColor}>{reason ?? getTermFromDictionary(language, 'error_invalid_session')}</Text></AlertDialogBody>
-					<AlertDialogFooter>
+			<Modal leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={onClose}>
+				<ModalBackdrop/>
+				<ModalContent>
+					<ModalHeader>
+						<Heading>{title ?? getTermFromDictionary(language, 'error')}</Heading>
+						<ModalCloseButton onPress={onClose}>
+							<CloseIcon />
+						</ModalCloseButton>
+					</ModalHeader>
+					<ModalBody>
+						<Text>{reason ?? getTermFromDictionary(language, 'error_invalid_session')}</Text>
+					</ModalBody>
+					<ModalFooter>
 						<ButtonGroup space="sm">
-							<Button bgColor={theme.tokens.colors.primary['500']} onPress={signOut} ref={cancelRef}>
-								<ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'button_ok')}</ButtonText>
+							<Button colorScheme="primary" onPress={signOut} ref={cancelRef}>
+								<ButtonText>{getTermFromDictionary(language, 'button_ok')}</ButtonText>
 							</Button>
 						</ButtonGroup>
-					</AlertDialogFooter>
-				</AlertDialogContent>
-			</AlertDialog>
+					</ModalFooter>
+				</ModalContent>
+			</Modal>
 		</Center>
 	);
 };

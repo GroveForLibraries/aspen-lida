@@ -8,6 +8,10 @@ const iOSBundle = Constants.expoConfig.ios.bundleIdentifier;
 const androidBundle = Constants.expoConfig.android.package;
 const releaseChannel = Updates.channel ?? Updates.releaseChannel;
 
+/**
+ * Global constants and configuration for the application, including timeouts, app version, build information, session ID, patch and stage information, library settings, theme settings, and other global variables used throughout the app.
+ * @type {{timeoutAverage: number, timeoutSlow: number, timeoutFast: number, appVersion: string, appBuild: number|string, appSessionId: *, appPatch: any, appStage: any, showSelectLibrary: boolean, runGreenhouse: boolean, slug: string, url: any, releaseChannel: string|string|*, language: string, country: string, lastSeen: null, prevLaunched: boolean, pendingSearchFilters: *[], availableFacetClusters: *[], hasPendingChanges: boolean, solrScope: string, libraryId: any, themeId: any, bundleId: string, greenhouse: any, privacyPolicy: string, iosStoreUrl: any, androidStoreUrl: any, logLevel: number|number}}
+ */
 export const GLOBALS = {
      timeoutAverage: 60000,
      timeoutSlow: 100000,
@@ -40,6 +44,10 @@ export const GLOBALS = {
      logLevel: !Constants.expoConfig.extra.logLevel ? 0 : parseInt(Constants.expoConfig.extra.logLevel)
 };
 
+/**
+ * Global login data and state for the application, including flags for showing the library selection, running Greenhouse, the number of libraries, nearby and all locations, extra data, pending changes, initial data loading status, and theme saving status.
+ * @type {{showSelectLibrary: boolean, runGreenhouse: boolean, num: number, nearbyLocations: *[], allLocations: *[], extra: *[], hasPendingChanges: boolean, loadedInitialData: boolean, themeSaved: boolean}}
+ */
 export const LOGIN_DATA = {
      showSelectLibrary: true,
      runGreenhouse: true,
@@ -52,7 +60,10 @@ export const LOGIN_DATA = {
      themeSaved: false,
 };
 
-
+/**
+ * Global search state and parameters for the application, including the search term, ID, pending changes, sort method, applied filters, sort list, available facets, default facets, pending filters, appended parameters, pending parameters, search source, and search index.
+ * @type {{term: null, id: null, hasPendingChanges: boolean, sortMethod: string, appliedFilters: *[], sortList: *[], availableFacets: *[], defaultFacets: *[], pendingFilters: *[], appendedParams: string, pendingParams: *[], searchSource: string, searchIndex: string}}
+ */
 export const SearchGlobal = {
      term: null,
      id: null,
@@ -69,20 +80,10 @@ export const SearchGlobal = {
      searchIndex: 'Keyword',
 };
 
-export function resetSearchGlobals() {
-     SearchGlobal.term = null;
-     SearchGlobal.id = null;
-     SearchGlobal.hasPendingChanges = false;
-     SearchGlobal.sortMethod = 'relevance';
-     SearchGlobal.appliedFilters = [];
-     SearchGlobal.sortList = [];
-     SearchGlobal.availableFacets = [];
-     SearchGlobal.pendingFilters = [];
-     SearchGlobal.appendedParams = '';
-     SearchGlobal.pendingParams = [];
-     //logDebugMessage('Reset global search variables'); // this creates a require cycle even though we aren't even using it
-}
-
+/**
+ * Global library information and settings for the application, including the library URL, name, favicon, supported languages, local illustrations, ID, version, app settings URL, app settings slug, and app settings.
+ * @type {{url: string, name: string, favicon: string, languages: *[], localIll: *[], id: number, version: null, appSettingsUrl: null, appSettingsSlug: null, appSettings: null}}
+ */
 export const LIBRARY = {
      url: '',
      name: '',
@@ -96,16 +97,6 @@ export const LIBRARY = {
      appSettings: null,
 };
 
-export const BRANCH = {
-     name: '',
-     localIllFormId: null,
-};
-
-export const ALL_LOCATIONS = {
-     branches: [],
-};
-
-export const ALL_BRANCHES = {};
 
 /**
  * Whether this app build is a branded (library-specific) app rather than the generic Aspen LiDA app.

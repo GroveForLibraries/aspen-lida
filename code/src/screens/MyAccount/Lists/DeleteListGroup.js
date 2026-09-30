@@ -1,26 +1,38 @@
 import React from 'react';
+import { useListGroups, useUpdateUserProfile, useUpdateListGroups, useUpdateLists } from '@/src/hooks/useUserData';
+import { ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/ThemedMaterialIcons';
+import { getTermFromDictionary } from '@/src/translations/TranslationService';
+import { deleteListGroup, getLists, getListGroups } from '@/src/util/api/list';
+import { refreshProfile } from '@/src/util/api/user';
+import { popAlert } from '@/src/components/feedback';
+import { navigateStack } from '@/src/helpers/RootNavigator';
+import { useActiveLanguage } from '@/src/hooks/useLanguageData';
+import { useTheme } from '@/src/themes/theme';
+import { useLibrary } from '@/src/hooks/useLibrarySystemData';
+import { ThemedCloseIcon as CloseIcon } from '@/src/components/themed/ThemedFormControls';
+import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../../components/themed/ThemedButton';
+import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
+import { Center } from '@/components/ui/center';
+import { ThemedHeading as Heading } from '@/src/components/themed/ThemedHeading';
+import { ThemedModal as Modal, ThemedModalBackdrop as ModalBackdrop, ThemedModalBody as ModalBody, ThemedModalCloseButton as ModalCloseButton, ThemedModalContent as ModalContent, ThemedModalFooter as ModalFooter, ThemedModalHeader as ModalHeader } from '@/src/components/themed/ThemedModal';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
 
-import { useUserState, useListGroups, useUpdateUserProfile, useUpdateListGroups, useUpdateLists } from '../../../hooks/useUserData';
-import { Center, Button, ButtonIcon, ButtonText, ButtonGroup, Modal, ModalBackdrop, ModalContent, ModalHeader, ModalBody, ModalFooter, Heading, ModalCloseButton, Icon, CloseIcon, Text } from '@gluestack-ui/themed';
-import { MaterialIcons } from '@expo/vector-icons';
-import { getTermFromDictionary } from '../../../translations/TranslationService';
-import { deleteListGroup, getLists, getListGroups } from '../../../util/api/list';
-import { refreshProfile } from '../../../util/api/user';
-import { popAlert } from '../../../components/feedback';
-import { navigateStack } from '../../../helpers/RootNavigator';
-import { useActiveLanguage } from '../../../hooks/useLanguageData';
-import { useTheme } from '../../../themes/theme';
-import { useLibrary } from '../../../hooks/useLibrarySystemData';
-
+/**
+ * DeleteListGroup component that allows users to delete a list group. It displays a button that opens a confirmation modal where users can confirm the deletion. The component handles API calls to delete the list group and provides feedback on the deletion process, including refreshing the user's profile and updating the list groups and lists in the local state.
+ * @param param0
+ * @param param0.id
+ * @param param0.handleUpdate
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const DeleteListGroup = ({id, handleUpdate}) => {
-      const { data: userState } = useUserState();
       const updateUserProfile = useUpdateUserProfile();
       const { data: listGroups } = useListGroups();
       const updateLists = useUpdateLists();
       const updateListGroups = useUpdateListGroups();
       const library = useLibrary();
       const language = useActiveLanguage();
-      const { textColor, theme, colorMode } = useTheme();
+      const { neutralPairs } = useTheme();
       const [showModal, setShowModal] = React.useState(false);
       const [loading, setLoading] = React.useState(false);
 
@@ -30,28 +42,28 @@ export const DeleteListGroup = ({id, handleUpdate}) => {
 
      return (
           <Center>
-               <Button onPress={toggle} size="xs" bgColor="$error500">
-                    <ButtonIcon color="$white" as={MaterialIcons} name="delete" mr="$1" />
-                    <ButtonText color="$white">{getTermFromDictionary(language, 'delete_list_group')}</ButtonText>
+               <Button onPress={toggle} size="xs" style={{ backgroundColor: neutralPairs.danger }}>
+                   <MaterialIcons name="delete" size={18} color={neutralPairs.white} className="mr-1" />
+                   <ButtonText style={{ color: neutralPairs.white }}>{getTermFromDictionary(language, 'delete_list_group')}</ButtonText>
                </Button>
-               <Modal isOpen={showModal} onClose={toggle} size="full" avoidKeyboard>
+               <Modal isOpen={showModal} onClose={toggle} size="full">
                     <ModalBackdrop />
-                    <ModalContent maxWidth="90%"  bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
+                    <ModalContent className="max-w-[90%]">
                          <ModalHeader>
-                              <Heading size="md" color={textColor}>{getTermFromDictionary(language, 'delete_list_group')}</Heading>
-                              <ModalCloseButton p="$3" onPress={toggle}>
-                                   <Icon as={CloseIcon} color={textColor} />
+                              <Heading>{getTermFromDictionary(language, 'delete_list_group')}</Heading>
+                              <ModalCloseButton onPress={toggle}>
+                                   <CloseIcon />
                               </ModalCloseButton>
                          </ModalHeader>
                          <ModalBody>
-                              <Text color={textColor}>{getTermFromDictionary(language, 'delete_list_group_confirmation')}</Text>
+                              <Text>{getTermFromDictionary(language, 'delete_list_group_confirmation')}</Text>
                          </ModalBody>
                          <ModalFooter>
                               <ButtonGroup>
-                                   <Button variant="outline" onPress={toggle} borderColor={theme.tokens.colors.primary['500']}>
-                                        <ButtonText color={theme.tokens.colors.primary['500']}>{getTermFromDictionary(language, 'cancel')}</ButtonText>
+                                   <Button colorScheme="primary" variant="outline" onPress={toggle}>
+                                       <ButtonText>{getTermFromDictionary(language, 'cancel')}</ButtonText>
                                    </Button>
-                                   <Button bgColor="$error500"
+                                   <Button style={{ backgroundColor: neutralPairs.danger }}
                                            isLoading={loading}
                                            isLoadingText={getTermFromDictionary(language, 'deleting', true)}
                                             onPress={() => {
@@ -88,7 +100,7 @@ export const DeleteListGroup = ({id, handleUpdate}) => {
                                                  });
                                             }}
                                    >
-                                        <ButtonText color="$white">{getTermFromDictionary(language, 'delete')}</ButtonText>
+                                        <ButtonText style={{ color: neutralPairs.white }}>{getTermFromDictionary(language, 'delete')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </ModalFooter>

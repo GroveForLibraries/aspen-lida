@@ -1,18 +1,28 @@
 import React from 'react';
-import { Button, ButtonText, Center } from '@gluestack-ui/themed';
-
+import { ThemedButton as Button, ThemedButtonText as ButtonText } from './themed/ThemedButton';
+import { Center } from '@/components/ui/center';
 import { useTheme } from '../themes/theme';
 import { loadLibraryUrl } from '../util/db';
 import { GLOBALS, LIBRARY } from '../util/globals';
 import { logDebugMessage, logErrorMessage } from '../util/logging';
 
+/**
+ * ThemeRefreshButton component for refreshing the theme.
+ * @param param0
+ * @param param0.label
+ * @param param0.refreshingLabel
+ * @param param0.onRefreshed
+ * @param param0.buttonProps
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const ThemeRefreshButton = ({
      label = 'Refresh Theme',
      refreshingLabel = 'Refreshing Theme...',
      onRefreshed,
      ...buttonProps
 }) => {
-     const { forceRefreshTheme, theme } = useTheme();
+     const { forceRefreshTheme } = useTheme();
      const [isRefreshing, setIsRefreshing] = React.useState(false);
 
      const onPress = React.useCallback(async () => {
@@ -39,10 +49,15 @@ export const ThemeRefreshButton = ({
 
      return (
           <Center>
-               <Button bgColor={theme.tokens.colors.primary['500']} onPress={onPress} isDisabled={isRefreshing} {...buttonProps}>
-                    <ButtonText color={theme.tokens.colors.primary['500-text']}>{isRefreshing ? refreshingLabel : label}</ButtonText>
+               <Button
+                    onPress={onPress}
+                    isDisabled={isRefreshing}
+                    colorScheme="primary"
+                    {...buttonProps}>
+                    <ButtonText>
+                         {isRefreshing ? refreshingLabel : label}
+                    </ButtonText>
                </Button>
           </Center>
      );
 };
-

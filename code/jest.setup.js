@@ -189,3 +189,203 @@ jest.mock('@sentry/react-native', () => {
     ReactNativeTracing: jest.fn().mockImplementation(() => ({})),
   };
 });
+
+jest.mock('react-native-css-interop', () => {
+  return {
+    __esModule: true,
+    createInteropElement: jest.fn(),
+    cssInterop: jest.fn(),
+  };
+});
+
+jest.mock('nativewind', () => {
+  return {
+    __esModule: true,
+    cssInterop: jest.fn(),
+    useColorScheme: jest.fn(() => ({
+      colorScheme: 'light',
+      setColorScheme: jest.fn(),
+    })),
+    vars: jest.fn((value) => value),
+  };
+}, { virtual: true });
+
+jest.mock('uniwind', () => {
+  return {
+    __esModule: true,
+    withUniwind: (component) => component,
+    Uniwind: {
+      setTheme: jest.fn(),
+    },
+  };
+}, { virtual: true });
+
+jest.mock('@gluestack-ui/core/overlay/creator', () => ({
+  __esModule: true,
+  OverlayProvider: ({ children }) => children,
+}), { virtual: true });
+
+jest.mock('@gluestack-ui/core/toast/creator', () => ({
+  __esModule: true,
+  ToastProvider: ({ children }) => children,
+  createToastHook: () => () => ({
+    show: jest.fn(),
+    close: jest.fn(),
+    closeAll: jest.fn(),
+    isActive: jest.fn(() => false),
+  }),
+}), { virtual: true });
+
+jest.mock('react-native-reanimated', () => {
+  const { View } = require('react-native');
+
+  return {
+    __esModule: true,
+    default: {
+      createAnimatedComponent: () => View,
+    },
+    SlideInUp: {
+      duration: () => 'slide-in-up',
+    },
+    FadeOut: {
+      duration: () => 'fade-out',
+    },
+    FadeIn: {
+      duration: () => 'fade-in',
+    },
+    ZoomIn: {
+      duration: () => 'zoom-in',
+    },
+    ZoomOut: {
+      duration: () => 'zoom-out',
+    },
+    useSharedValue: jest.fn((value) => ({ value })),
+    useAnimatedStyle: jest.fn((factory) => factory()),
+    withTiming: jest.fn((value) => value),
+    runOnJS: jest.fn((fn) => fn),
+  };
+}, { virtual: true });
+
+jest.mock('@/components/feedback', () => ({
+  __esModule: true,
+  popToast: jest.fn(),
+  popAlert: jest.fn(),
+  ToastRegistrar: () => null,
+}), { virtual: true });
+
+jest.mock('@/components/feedback/toastService', () => ({
+  __esModule: true,
+  popToast: jest.fn(),
+}), { virtual: true });
+
+jest.mock('@/components/ui/alert-dialog', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+
+  const passthrough = React.forwardRef(({ children, ...props }, ref) => (
+    <View ref={ref} {...props}>{children}</View>
+  ));
+
+  return {
+    __esModule: true,
+    AlertDialog: passthrough,
+    AlertDialogBackdrop: passthrough,
+    AlertDialogBody: passthrough,
+    AlertDialogCloseButton: passthrough,
+    AlertDialogContent: passthrough,
+    AlertDialogFooter: passthrough,
+    AlertDialogHeader: passthrough,
+  };
+}, { virtual: true });
+
+jest.mock('@/components/ui/button', () => {
+  const React = require('react');
+  const { Pressable, Text, View } = require('react-native');
+
+  const Button = React.forwardRef(({ children, ...props }, ref) => (
+    <Pressable ref={ref} {...props}>{children}</Pressable>
+  ));
+  const ButtonText = React.forwardRef(({ children, ...props }, ref) => (
+    <Text ref={ref} {...props}>{children}</Text>
+  ));
+  const ButtonIcon = React.forwardRef((props, ref) => <View ref={ref} {...props} />);
+  const ButtonGroup = React.forwardRef(({ children, ...props }, ref) => (
+    <View ref={ref} {...props}>{children}</View>
+  ));
+
+  return {
+    __esModule: true,
+    Button,
+    ButtonText,
+    ButtonIcon,
+    ButtonGroup,
+  };
+}, { virtual: true });
+
+jest.mock('@/components/ui/center', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  const Center = React.forwardRef(({ children, ...props }, ref) => (
+    <View ref={ref} {...props}>{children}</View>
+  ));
+  return { __esModule: true, Center };
+}, { virtual: true });
+
+jest.mock('@/components/ui/heading', () => {
+  const React = require('react');
+  const { Text } = require('react-native');
+  const Heading = React.forwardRef(({ children, ...props }, ref) => (
+    <Text ref={ref} {...props}>{children}</Text>
+  ));
+  return { __esModule: true, Heading };
+}, { virtual: true });
+
+jest.mock('@/components/ui/text', () => {
+  const React = require('react');
+  const { Text } = require('react-native');
+  const MockText = React.forwardRef(({ children, ...props }, ref) => (
+    <Text ref={ref} {...props}>{children}</Text>
+  ));
+  return { __esModule: true, Text: MockText };
+}, { virtual: true });
+
+jest.mock('@/components/ui/box', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  const Box = React.forwardRef(({ children, ...props }, ref) => (
+    <View ref={ref} {...props}>{children}</View>
+  ));
+  return { __esModule: true, Box };
+}, { virtual: true });
+
+jest.mock('@/components/ui/menu', () => {
+  const React = require('react');
+  const { Pressable, Text, View } = require('react-native');
+
+  const Menu = ({ children, trigger, ...props }) => (
+    <View {...props}>
+      {typeof trigger === 'function' ? trigger({}) : null}
+      {children}
+    </View>
+  );
+  const MenuItem = React.forwardRef(({ children, ...props }, ref) => (
+    <Pressable ref={ref} {...props}>{children}</Pressable>
+  ));
+  const MenuItemLabel = React.forwardRef(({ children, ...props }, ref) => (
+    <Text ref={ref} {...props}>{children}</Text>
+  ));
+
+  return {
+    __esModule: true,
+    Menu,
+    MenuItem,
+    MenuItemLabel,
+  };
+}, { virtual: true });
+
+jest.mock('@/components/ui/spinner', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  const Spinner = React.forwardRef((props, ref) => <View ref={ref} {...props} />);
+  return { __esModule: true, Spinner };
+}, { virtual: true });

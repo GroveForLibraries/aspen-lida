@@ -1,6 +1,5 @@
 import { getCurrentDate } from '../helpers/helpers';
 
-
 /**
  * Has the last updated time as well as an array per language of all translations
  * @type {{lastUpdated: Date}}
@@ -9,6 +8,14 @@ export let translationsLibrary = {
      lastUpdated: getCurrentDate(),
 };
 
+/**
+ * Gets a term from the translations library or defaults.json if not found
+ * @param language
+ * @param key
+ * @param ellipsis
+ * @param dictionaryOverride
+ * @returns {*|string}
+ */
 export const getTermFromDictionary = (language = 'en', key, ellipsis = false, dictionaryOverride = undefined) => {
     if (language && key) {
          let tmpDictionary = dictionaryOverride || translationsLibrary;

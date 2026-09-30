@@ -10,7 +10,7 @@ export { saveLocation, loadLocation, saveScope, loadScope, saveSelfCheckEnabled,
 export { saveBrowseCategories, loadBrowseCategories, saveBrowseCategoryList, loadBrowseCategoryList, updateBrowseCategoryVisibility, updateBrowseCategoryVisibilityBatch, saveMaxCategories, loadMaxCategories, saveAllBrowseCategoryData, loadAllBrowseCategoryData, resetAllBrowseCategoryData, isCacheExpired, backfillLegacyScope as backfillLegacyBrowseCategoryScope } from './repositories/browseCategoryRepository';
 export { saveLibraryUrl, loadLibraryUrl, saveLibraryVersion, loadLibraryVersion, saveLibraryLanguages, loadLibraryLanguages, saveLibraryMetadata, loadLibraryMetadata, saveLibrary, loadLibrary, saveMenu, loadMenu, saveCatalogStatus, loadCatalogStatus, saveHomeScreenLinks, loadHomeScreenLinks, saveAppSettings, loadAppSettings, saveAllLibrarySystemData, loadAllLibrarySystemData, resetAllLibrarySystemData } from './repositories/librarySystemRepository';
 export { saveAvailableLanguages, loadAvailableLanguages, saveDictionary, loadDictionary, loadDictionaryForLanguage, saveAllLanguageData, loadAllLanguageData, resetLanguageData } from './repositories/languageRepository';
-export { saveThemeState, loadThemeState, saveThemeColors, saveThemeColorMode, saveThemeTextColor, resetThemeState, isStoredThemeIdMatch, saveThemeCatalog, loadThemeCatalog } from './repositories/themeRepository';
+export { saveThemeState, loadThemeState, saveThemeColors, saveThemeColorMode, resetThemeState, isStoredThemeIdMatch, saveThemeCatalog, loadThemeCatalog } from './repositories/themeRepository';
 export {
      saveUserProfile,
      saveUserSettings,

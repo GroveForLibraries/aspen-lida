@@ -1,9 +1,9 @@
 import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
-import { Center, Image, Spinner, VStack } from '@gluestack-ui/themed';
 import React from 'react';
+import { Image } from 'expo-image';
 import { getTermFromDictionary, ensureTranslationsLibraryHydrated, setTranslationsLibrary } from '../../translations/TranslationService';
-import { buildThemeForLibrary, useTheme } from '../../themes/theme';
+import { buildThemeForLibrary, useTheme, runExclusiveThemeInit } from '../../themes/theme';
 import {
      loadAllLanguageData,
      loadAllLibraryBranchData,
@@ -29,6 +29,9 @@ import { prehydrateLanguageSnapshotCache } from '../../hooks/useLanguageData';
 import { prehydrateUserDataSnapshotCache } from '../../hooks/useUserData';
 import { saveSelfCheckEnabled, saveSelfCheckSettings } from '../../util/db';
 import { getSelfCheckSettings } from '../../util/api/system';
+import { Center } from '@/components/ui/center';
+import { Spinner } from '@/components/ui/spinner';
+import { VStack } from '@/components/ui/vstack';
 
 const splashImage = Constants.expoConfig.extra.loginLogo;
 const splashBackgroundColor = Constants.expoConfig.splash.backgroundColor;
@@ -45,6 +48,7 @@ function isCacheStale(updatedAt, thresholdMs) {
      }
      return Date.now() - Number(updatedAt) > thresholdMs;
 }
+
 
 function resolveSelfCheckEnabled(result = {}) {
      const candidates = [
@@ -72,6 +76,10 @@ function resolveSelfCheckEnabled(result = {}) {
      return undefined;
 }
 
+/**
+ * Evaluates the startup cache to determine if the app can bypass loading and whether background refreshes are needed for user, library branch, library system, and language data.
+ * @returns {Promise<{canBypassLoading: false|*, hasUsableUserCache: boolean, hasUsableLibraryBranchCache: boolean, hasUsableLibrarySystemCache: boolean, hasUsableLanguageCache: false|*, shouldRefreshUserInBackground: boolean, shouldRefreshLibraryBranchInBackground: boolean, shouldRefreshLibrarySystemInBackground, shouldRefreshLanguageInBackground: *|boolean}>}
+ */
 export async function evaluateStartupCache() {
      // Resolve the current user/location/library identity before loading any cache.
      // locationId/libraryId are already persisted as numbers; the logged-in
@@ -93,6 +101,11 @@ export async function evaluateStartupCache() {
      const persistedLocationId = parseStoredNumber(await SecureStore.getItemAsync('locationId'));
      if (persistedLocationId != null) {
           setCurrentLocationId(persistedLocationId);
+     }
+
+     const persistedLibraryId = parseStoredNumber(await SecureStore.getItemAsync('library') ?? GLOBALS.libraryId);
+     if (persistedLibraryId != null) {
+          setCurrentLibraryId(persistedLibraryId);
      }
 
      const [cachedUserState, cachedLibraryBranchState, cachedLibrarySystemState, cachedLanguageState] = await Promise.all([
@@ -292,8 +305,18 @@ export async function evaluateStartupCache() {
 
 export const SplashScreen = ({ shouldInitializeTheme = false, forceRefreshTheme = false, onThemeInitialized }) => {
      const { updateTheme, updateColorMode } = useTheme();
+     const hasRunInitRef = React.useRef(false);
+     const initializedCallbackRef = React.useRef(false);
 
      React.useEffect(() => {
+          if (hasRunInitRef.current) {
+               if (!initializedCallbackRef.current && typeof onThemeInitialized === 'function') {
+                    initializedCallbackRef.current = true;
+                    onThemeInitialized();
+               }
+               return;
+          }
+          hasRunInitRef.current = true;
           let active = true;
 
           const initializeTheme = async () => {
@@ -307,49 +330,52 @@ export const SplashScreen = ({ shouldInitializeTheme = false, forceRefreshTheme 
                }
 
                try {
-                    const currentThemeState = await loadThemeState();
-                    const currentLocation = await loadLocation();
-                    const currentLocationId = currentLocation?.locationId != null ? Number(currentLocation.locationId) : null;
-                    const mode = currentThemeState?.colorMode === 'dark' ? 'dark' : 'light';
-                    logDebugMessage(`Splash theme init: loaded state mode=${mode} hasColors=${Boolean(currentThemeState?.themeColors?.primary && currentThemeState?.themeColors?.secondary && currentThemeState?.themeColors?.tertiary)}`);
-                    await updateColorMode(mode);
+                    await runExclusiveThemeInit(async () => {
+                         const currentThemeState = await loadThemeState();
+                         const currentLocation = await loadLocation();
+                         const currentLocationId = currentLocation?.locationId != null ? Number(currentLocation.locationId) : null;
+                         const mode = currentThemeState?.colorMode === 'dark' ? 'dark' : 'light';
+                         logDebugMessage(`Splash theme init: loaded state mode=${mode} hasColors=${Boolean(currentThemeState?.themeColors?.primary && currentThemeState?.themeColors?.secondary && currentThemeState?.themeColors?.tertiary)}`);
+                              await updateColorMode(mode);
 
-                    const persistedLibraryUrl = await loadLibraryUrl();
-                    const themeUrl = LIBRARY.url || persistedLibraryUrl || GLOBALS.url || Constants.expoConfig.extra.apiUrl;
+                         const persistedLibraryUrl = await loadLibraryUrl();
+                         const themeUrl = LIBRARY.url || persistedLibraryUrl || GLOBALS.url || Constants.expoConfig.extra.apiUrl;
 
-                    if (!themeUrl) {
-                         logDebugMessage('Splash theme init: no URL available yet, applying cached theme if present and leaving defaults otherwise');
-                         if (currentThemeState?.themeColors?.primary && currentThemeState?.themeColors?.secondary && currentThemeState?.themeColors?.tertiary) {
-                              await updateTheme({
-                                   tokens: {
-                                        colors: currentThemeState.themeColors,
-                                   },
-                              }, currentThemeState.themeId, currentThemeState.locationId, currentThemeState.header);
+                         if (!themeUrl) {
+                              logDebugMessage('Splash theme init: no URL available yet, applying cached theme if present and leaving defaults otherwise');
+                              if (currentThemeState?.themeColors?.primary && currentThemeState?.themeColors?.secondary && currentThemeState?.themeColors?.tertiary) {
+                                   await updateTheme({
+                                        tokens: {
+                                             colors: currentThemeState.themeColors,
+                                        },
+                                   }, currentThemeState.themeId, currentThemeState.locationId, currentThemeState.header);
+                              }
+                              return;
                          }
-                         return;
-                    }
 
-                    logDebugMessage(`Splash theme init: fetching theme from API url=${themeUrl} forceRefresh=${forceRefreshTheme}`);
-                    const builtTheme = await buildThemeForLibrary(themeUrl, currentLocationId);
-                    await saveThemeState({
-                         themeId: builtTheme.themeId,
-                         locationId: builtTheme.locationId,
-                         colorMode: mode,
-                         textColor: mode === 'dark' ? 'textLight50' : 'textLight950',
-                         themeColors: builtTheme.themeColors,
-                         header: builtTheme.header,
+                         logDebugMessage(`Splash theme init: fetching theme from API url=${themeUrl} forceRefresh=${forceRefreshTheme}`);
+                         const builtTheme = await buildThemeForLibrary(themeUrl, currentLocationId);
+                         await saveThemeState({
+                              themeId: builtTheme.themeId,
+                              locationId: builtTheme.locationId,
+                              colorMode: mode,
+                              textColor: mode === 'dark' ? 'textLight50' : 'textLight950',
+                              themeColors: builtTheme.themeColors,
+                              header: builtTheme.header,
+                         });
+                         logDebugMessage(`Splash theme init: saved fetched theme themeId=${builtTheme.themeId}`);
+                         await updateTheme(builtTheme.theme, builtTheme.themeId, builtTheme.locationId, builtTheme.header);
+                         logDebugMessage('Splash theme init: complete');
                     });
-                    logDebugMessage(`Splash theme init: saved fetched theme themeId=${builtTheme.themeId}`);
-                    await updateTheme(builtTheme.theme, builtTheme.themeId, builtTheme.locationId, builtTheme.header);
-                    logDebugMessage('Splash theme init: complete');
                } catch (error) {
                     logErrorMessage('Splash theme initialization failed');
                     logErrorMessage(error);
                } finally {
                     logDebugMessage('Splash theme init: finalize callback');
-                    if (typeof onThemeInitialized === 'function' && active) {
-                         onThemeInitialized();
-                    }
+                   if (!initializedCallbackRef.current && typeof onThemeInitialized === 'function' && active) {
+                        initializedCallbackRef.current = true;
+                        onThemeInitialized();
+                   }
                }
           };
 
@@ -362,9 +388,9 @@ export const SplashScreen = ({ shouldInitializeTheme = false, forceRefreshTheme 
      }, [forceRefreshTheme, onThemeInitialized, shouldInitializeTheme, updateColorMode, updateTheme]);
 
      return (
-          <Center testID="splash-center" flex={1} px="$3" style={{ backgroundColor: splashBackgroundColor }}>
-               <VStack space="md" alignItems="center">
-                    <Image source={{ uri: splashImage }} size="2xl" alt={getTermFromDictionary('en', 'app_name')} />
+          <Center testID="splash-center" className="px-3" style={{ flex: 1, backgroundColor: splashBackgroundColor }}>
+               <VStack space="md" className="items-center">
+                    <Image source={{ uri: splashImage }} style={{ width: 192.0, height: 192.0 }} contentFit="contain" alt={getTermFromDictionary('en', 'app_name')} />
                     <Spinner size="small" />
                </VStack>
           </Center>

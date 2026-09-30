@@ -8,29 +8,26 @@ import { LoadOverDriveSample } from './LoadOverDriveSample';
 import { MoreInfo } from './MoreInfo';
 import { OnHoldForYou } from './OnHoldForYou';
 import { OpenSideLoad } from './OpenSideLoad';
-import {
-     Button,
-     ButtonText,
-     CloseIcon,
-     Heading,
-     Icon,
-     Modal,
-     ModalBackdrop,
-     ModalContent,
-     ModalBody,
-     ModalHeader,
-     ModalCloseButton,
-     Text } from '@gluestack-ui/themed';
-import React, { useContext, useState } from 'react';
-
+import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../themed/ThemedButton';
+import React, { useState } from 'react';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useUserState } from '../../hooks/useUserData';
 import * as WebBrowser from 'expo-web-browser';
 import { useTheme } from '../../themes/theme';
 import { passUserToDiscovery } from '../../util/api/user';
+import { ThemedHeading as Heading } from '@/src/components/themed/ThemedHeading';
+import { ThemedModal as Modal, ThemedModalBackdrop as ModalBackdrop, ThemedModalBody as ModalBody, ThemedModalCloseButton as ModalCloseButton, ThemedModalContent as ModalContent, ThemedModalHeader as ModalHeader } from '@/src/components/themed/ThemedModal';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
+import { ThemedCloseIcon as CloseIcon } from '../themed/ThemedFormControls';
 
+/**
+ * ActionButton component for rendering different types of action buttons based on the provided data.
+ * @param data
+ * @returns {React.JSX.Element|null}
+ * @constructor
+ */
 export const ActionButton = (data) => {
-     const {theme, textColor, backgroundColor, colorMode} = useTheme();
+     const { textColor } = useTheme();
      const library = useLibrary();
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
@@ -151,15 +148,13 @@ export const ActionButton = (data) => {
                return (
                     <Button
                          size="md"
-                         bgColor={theme.tokens.colors.primary['500']}
                          variant="solid"
-                         minWidth="100%"
-                         maxWidth="100%"
+                         colorScheme="primary" className="min-w-full max-w-full"
                          onPress={async () =>
                            await passUserToDiscovery(library?.baseUrl ?? '', 'NewMaterialRequest', user.id, backgroundColor, textColor, null, action.redirectParams)
                          }
                     >
-                         <ButtonText color={theme.tokens.colors.primary['500-text']}>{action.title}</ButtonText>
+                        <ButtonText>{action.title}</ButtonText>
                     </Button>
                );
           } else if (action.type === 'local_ill_request_material_request_ils') {
@@ -167,15 +162,13 @@ export const ActionButton = (data) => {
                return (
                     <Button
                          size="md"
-                         bgColor={theme.tokens.colors.primary['500']}
                          variant="solid"
-                         minWidth="100%"
-                         maxWidth="100%"
+                         colorScheme="primary" className="min-w-full max-w-full"
                          onPress={async () =>
                            await passUserToDiscovery(library?.baseUrl ?? '', 'NewMaterialRequestIls', user.id, backgroundColor, textColor, null, action.redirectParams)
                          }
                     >
-                         <ButtonText color={theme.tokens.colors.primary['500-text']}>{action.title}</ButtonText>
+                        <ButtonText>{action.title}</ButtonText>
                     </Button>
                );
           } else if (action.type === 'local_ill_request_external_request') {
@@ -184,10 +177,8 @@ export const ActionButton = (data) => {
                return (
                     <Button
                          size="md"
-                         bgColor={theme.tokens.colors.primary['500']}
                          variant="solid"
-                         minWidth="100%"
-                         maxWidth="100%"
+                         colorScheme="primary" className="min-w-full max-w-full"
                          onPress={async () =>
                               {
                                    const browserParams = {
@@ -201,7 +192,7 @@ export const ActionButton = (data) => {
                               }
                          }
                     >
-                         <ButtonText color={theme.tokens.colors.primary['500-text']}>{action.title}</ButtonText>
+                        <ButtonText>{action.title}</ButtonText>
                     </Button>
                );
           } else if (action.type === 'local_ill_request_email') {
@@ -224,25 +215,23 @@ export const ActionButton = (data) => {
                     <>
                          <Button
                               size="md"
-                              bgColor={theme.tokens.colors.primary['500']}
                               variant="solid"
-                              minWidth="100%"
-                              maxWidth="100%"
+                              colorScheme="primary" className="min-w-full max-w-full"
                               onPress={async () => {setShowIllUnavailableModal(true)}}
                          >
-                              <ButtonText color={theme.tokens.colors.primary['500-text']}>{action.title}</ButtonText>
+                              <ButtonText>{action.title}</ButtonText>
                          </Button>
-                         <Modal isOpen={showIllUnavailableModal} size="lg" avoidKeyboard={true} onClose={() => setShowIllUnavailableModal(false)}>
+                         <Modal isOpen={showIllUnavailableModal} size="lg" onClose={() => setShowIllUnavailableModal(false)}>
                               <ModalBackdrop />
-                              <ModalContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
+                              <ModalContent>
                                    <ModalHeader>
-                                        <Heading size="md" color={textColor}>{action.title}</Heading>
-                                        <ModalCloseButton p="$3" onPress={() => { setShowIllUnavailableModal(false); }}>
-                                             <Icon as={CloseIcon} color={textColor} />
+                                        <Heading>{action.title}</Heading>
+                                        <ModalCloseButton onPress={() => { setShowIllUnavailableModal(false); }}>
+                                             <CloseIcon />
                                         </ModalCloseButton>
                                    </ModalHeader>
 
-                                   <ModalBody><Text color={textColor}>{action.message}</Text></ModalBody>
+                                   <ModalBody><Text>{action.message}</Text></ModalBody>
                               </ModalContent>
                          </Modal>
                     </>

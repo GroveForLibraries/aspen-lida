@@ -1,34 +1,35 @@
 import { useNavigation } from '@react-navigation/native';
 import { useQueryClient } from '@tanstack/react-query';
-import {
-     Box,
-     Button,
-     ButtonText,
-     Divider,
-     FlatList,
-     Heading,
-     HStack,
-     ScrollView,
-     Text
-} from '@gluestack-ui/themed';
 import React, { useContext, useLayoutEffect, useState } from 'react';
-
-import { DisplayMessage, DisplaySystemMessage } from '../../../components/Notifications';
-import { SystemMessagesContext } from '../../../context/initialContext';
-import { useUserState, useAccounts, useViewers, useCards, useUpdateAccounts, useUpdateViewers, useUpdateCards, useUpdateUserProfile } from '../../../hooks/useUserData';
-import { getTermFromDictionary } from '../../../translations/TranslationService';
-import { toArray } from '../../../helpers/helpers';
-import { getLinkedAccounts, getViewerAccounts, refreshProfile, removeLinkedAccount, removeViewerAccount } from '../../../util/api/user';
-import { formatLinkedAccounts } from '../../../util/api/userHelper';
-
+import { Box } from '@/components/ui/box';
+import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../../components/themed/ThemedButton';
+import { ThemedDivider as Divider } from '@/src/components/themed/ThemedDivider';
+import { FlatList } from '@/components/ui/flat-list';
+import { ThemedHeading as Heading } from '@/src/components/themed/ThemedHeading';
+import { HStack } from '@/components/ui/hstack';
+import { ThemedScrollView as ScrollView } from '@/src/components/themed/ThemedScrollView';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
+import { screenContentContainerStyle } from '@/src/components/ScreenContainer';
+import { DisplayMessage, DisplaySystemMessage } from '@/src/components/Notifications';
+import { SystemMessagesContext } from '@/src/context/initialContext';
+import { useUserState, useAccounts, useViewers, useUpdateAccounts, useUpdateViewers, useUpdateUserProfile } from '@/src/hooks/useUserData';
+import { getTermFromDictionary } from '@/src/translations/TranslationService';
+import { toArray } from '@/src/helpers/helpers';
+import { getLinkedAccounts, getViewerAccounts, refreshProfile, removeLinkedAccount, removeViewerAccount } from '@/src/util/api/user';
+import { formatLinkedAccounts } from '@/src/util/api/userHelper';
 import AddLinkedAccount from './AddLinkedAccount';
 import DisableAccountLinking from './DisableAccountLinking';
 import EnableAccountLinking from './EnableAccountLinking';
-import { logErrorMessage } from '../../../util/logging';
-import { useActiveLanguage } from '../../../hooks/useLanguageData';
-import { useTheme } from '../../../themes/theme';
-import { useLibrary } from '../../../hooks/useLibrarySystemData';
+import { logErrorMessage } from '@/src/util/logging';
+import { useActiveLanguage } from '@/src/hooks/useLanguageData';
+import { useTheme } from '@/src/themes/theme';
+import { useLibrary } from '@/src/hooks/useLibrarySystemData';
 
+/**
+ * MyLinkedAccounts component that displays the user's linked accounts and viewers. It allows users to add, remove, and manage their linked accounts based on their permissions. The component fetches the user's linked accounts and viewers from the API and displays them in a list format. It also handles system messages and provides feedback on actions taken by the user.
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const MyLinkedAccounts = () => {
      const navigation = useNavigation();
      const { data: userState } = useUserState();
@@ -37,7 +38,7 @@ export const MyLinkedAccounts = () => {
      const { data: viewers } = useViewers();
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { textColor } = useTheme();
+     const {  } = useTheme();
      const queryClient = useQueryClient();
      const { systemMessages, updateSystemMessages } = useContext(SystemMessagesContext);
 
@@ -60,8 +61,8 @@ export const MyLinkedAccounts = () => {
 
      const Empty = () => {
           return (
-               <Box pt="$3" pb="$5">
-                    <Text bold color={textColor}>{getTermFromDictionary(language, 'none')}</Text>
+               <Box className="pt-3 pb-5">
+                    <Text bold>{getTermFromDictionary(language, 'none')}</Text>
                </Box>
           );
      };
@@ -92,7 +93,7 @@ export const MyLinkedAccounts = () => {
 
      if (!canUserLinkAccounts) {
           return (
-               <ScrollView p="$5" flex={1}>
+               <ScrollView contentContainerStyle={{ ...screenContentContainerStyle, paddingVertical: 20, flexGrow: 1 }}>
                     {showSystemMessage()}
                     {ptypeDisabledLinking ? (
                          <DisplayMessage type="info" message={getTermFromDictionary(language, 'linked_account_disabled_by_ptype')} />
@@ -107,16 +108,16 @@ export const MyLinkedAccounts = () => {
      }
 
      return (
-          <ScrollView p="$2" flex={1}>
+          <ScrollView contentContainerStyle={{ ...screenContentContainerStyle, paddingVertical: 8, flexGrow: 1 }}>
                {showSystemMessage()}
                <DisplayMessage type="info" message={getTermFromDictionary(language, 'linked_info_message')} />
 
                {user.addLinkedAccountRule !== 1 ? (
                     <Box>
-                         <Heading size="lg" pb="$2" color={textColor}>
+                         <Heading size="lg" className="pb-2">
                               {getTermFromDictionary(language, 'linked_additional_accounts')}
                          </Heading>
-                         <Text fontSize="$sm" color={textColor}>
+                         <Text size="sm">
                               {getTermFromDictionary(language, 'linked_following_accounts_can_manage')}
                          </Text>
                          <FlatList
@@ -126,16 +127,16 @@ export const MyLinkedAccounts = () => {
                               keyExtractor={(item, index) => index.toString()}
                          />
                          <AddLinkedAccount />
-                         <Divider my="$4" />
+                         <Divider className="my-4" />
                     </Box>
                ) : null}
 
                {user.addLinkedAccountRule !== 2 ? (
                     <Box>
-                         <Heading size="lg" pb="$2" color={textColor}>
+                         <Heading size="lg" className="pb-2">
                               {getTermFromDictionary(language, 'linked_other_accounts')}
                          </Heading>
-                         <Text fontSize="$sm" color={textColor}>
+                         <Text size="sm">
                               {getTermFromDictionary(language, 'linked_following_accounts_can_view')}
                          </Text>
                          <FlatList
@@ -148,8 +149,8 @@ export const MyLinkedAccounts = () => {
                ) : null}
 
                {user.addLinkedAccountRule !== 2 && user.removeLinkedAccountRule !== 0 ? (
-                    <Box pb="$5">
-                         <Divider my="$4" />
+                    <Box className="pb-5">
+                         <Divider className="my-4" />
                          <DisableAccountLinking />
                     </Box>
                ) : null}
@@ -157,6 +158,14 @@ export const MyLinkedAccounts = () => {
      );
 };
 
+/**
+ * Account component that displays an individual linked or viewer account with the option to remove it. It handles the removal process and updates the account list accordingly.
+ * @param param0
+ * @param param0.account
+ * @param param0.type
+ * @returns {React.JSX.Element|null}
+ * @constructor
+ */
 const Account = ({ account, type }) => {
      const [isRemoving, setIsRemoving] = useState(false);
      const { data: userState } = useUserState();
@@ -166,7 +175,7 @@ const Account = ({ account, type }) => {
      const updateUserProfile = useUpdateUserProfile();
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { textColor } = useTheme();
+     const { neutralPairs } = useTheme();
 
      const refreshLinkedAccounts = async () => {
           const linkedResponse = await getLinkedAccounts(library.baseUrl, language);
@@ -206,19 +215,19 @@ const Account = ({ account, type }) => {
      if (!account) return null;
 
      return (
-          <HStack justifyContent="space-around" pt="$2" pb="$2" alignItems="center" alignContent="flex-start">
-               <Text bold isTruncated w="60%" maxW="60%" color={textColor}>
+          <HStack justifyContent="space-around" className="pt-2 pb-2" style={{ alignItems: 'center', alignContent: 'flex-start' }}>
+               <Text bold isTruncated className="w-[60%] max-w-[60%]">
                     {account.displayName ? account.displayName : account.ils_barcode} - {account.homeLocation}
                </Text>
                {type === 'viewer' && user.removeLinkedAccountRule === 0 ? null : (
                     <Button
-                         bgColor="$warning500"
+                        style={{ backgroundColor: neutralPairs.danger }}
                          isLoading={isRemoving}
                          isLoadingText={getTermFromDictionary(language, 'removing', true)}
                          size="sm"
                          onPress={removeAccount}
                     >
-                         <ButtonText color="$white">{getTermFromDictionary(language, 'remove')}</ButtonText>
+                        <ButtonText style={{ color: '#ffffff' }}>{getTermFromDictionary(language, 'remove')}</ButtonText>
                     </Button>
                )}
           </HStack>

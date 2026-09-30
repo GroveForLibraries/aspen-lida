@@ -1,8 +1,8 @@
-import { Box } from '@gluestack-ui/themed';
 import { useColorModeValue } from '../../themes/theme';
 import React from 'react';
 import { Platform } from 'react-native';
 import { AppleMaps, GoogleMaps } from 'expo-maps';
+import { Box } from '@/components/ui/box';
 
 const mapStyle = [
      {
@@ -218,6 +218,12 @@ const mapStyleDark = [
      },
 ];
 
+/**
+ * DisplayMap component that displays a map with a marker for the given location data. It uses Apple Maps on iOS and Google Maps on other platforms, and adjusts the map style based on the current color mode (light or dark).
+ * @param data
+ * @returns {React.JSX.Element|null}
+ * @constructor
+ */
 const DisplayMap = (data) => {
      const location = data?.data ?? {};
 
@@ -245,7 +251,7 @@ const DisplayMap = (data) => {
 
      if (Platform.OS === 'ios') {
           return (
-               <Box pt={2} pb={2}>
+               <Box className="pt-[2px] pb-[2px]">
                     <AppleMaps.View
                          ref={mapRef}
                          style={{ height: 180, width: '100%' }}
@@ -273,7 +279,7 @@ const DisplayMap = (data) => {
      }
 
      return (
-          <Box pt={2} pb={2}>
+         <Box className="pt-[2px] pb-[2px]">
                <GoogleMaps.View
                     ref={mapRef}
                     style={{ height: 180, width: '100%' }}

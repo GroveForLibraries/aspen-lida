@@ -231,7 +231,7 @@ export function formatLinkedAccounts(primaryUser, cards, barcodeStyle, data) {
           ils_barcode: primaryUser.ils_barcode ?? primaryUser.cat_username,
           expired: primaryUser.expired,
           expires: primaryUser.expires,
-          barcodeStyle: barcodeStyle,
+          barcodeStyle: primaryUser.barcodeStyle  ?? barcodeStyle,
           homeLocation: primaryUser.homeLocation,
      };
      cardStack.push(primaryCard);
@@ -248,7 +248,7 @@ export function formatLinkedAccounts(primaryUser, cards, barcodeStyle, data) {
                               ils_barcode: account.ils_barcode ?? account.barcode,
                               expired: account.expired,
                               expires: account.expires,
-                              barcodeStyle: account.barcodeStyle ?? barcodeStyle,
+                              barcodeStyle: account.barcodeStyle ?? primaryUser.barcodeStyle ?? barcodeStyle,
                               homeLocation: account.homeLocation,
                          };
                          cardStack.push(card);
@@ -261,7 +261,7 @@ export function formatLinkedAccounts(primaryUser, cards, barcodeStyle, data) {
                               cat_username: account.cat_username ?? account.barcode,
                               expired: account.expired,
                               expires: account.expires,
-                              barcodeStyle: account.barcodeStyle ?? barcodeStyle,
+                              barcodeStyle: account.barcodeStyle ?? primaryUser.barcodeStyle ?? barcodeStyle,
                               homeLocation: account.homeLocation,
                          };
                          cardStack.push(card);

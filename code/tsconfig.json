@@ -1,4 +1,16 @@
 {
-  "compilerOptions": {},
+  "compilerOptions": {
+    "paths": {
+      "@/tailwind.config": [
+        "./tailwind.config"
+      ],
+      "@/*": [
+        "./*"
+      ],
+      "tailwindcss/resolveConfig": [
+        "./tailwindcss-resolveConfig"
+      ]
+    }
+  },
   "extends": "expo/tsconfig.base"
 }

@@ -1,12 +1,20 @@
-import { Checkbox, CheckboxIndicator, CheckboxLabel, HStack, Text, Icon } from '@gluestack-ui/themed';
-import { MaterialIcons } from '@expo/vector-icons';
 import React from 'react';
-import { logDebugMessage } from '../../../util/logging.js';
-import { useTheme } from '../../../themes/theme';
+import { ThemedCheckbox as Checkbox, ThemedCheckboxIcon as CheckboxIcon, ThemedCheckboxIndicator as CheckboxIndicator, ThemedCheckboxLabel as CheckboxLabel } from '../../../components/themed/ThemedCheckbox';
+import { HStack } from '@/components/ui/hstack';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
+import { logDebugMessage } from '@/src/util/logging';
 
-
+/**
+ * Facet_Checkbox component that renders a checkbox for a given facet option. It handles the checked state and updates the parent component when the checkbox is toggled.
+ * @param param0
+ * @param param0.data
+ * @param param0.category
+ * @param param0.values
+ * @param param0.updateCheckboxFacet
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const Facet_Checkbox = ({ data, category, values = [], updateCheckboxFacet }) => {
-     const {theme, textColor, colorMode } = useTheme();
      const isChecked = values.includes(data.value);
      const handleChange = (newValue) => {
           logDebugMessage("Clicked on " + data.value + " isChecked is " + isChecked + " newValue is " + newValue);
@@ -14,7 +22,7 @@ export const Facet_Checkbox = ({ data, category, values = [], updateCheckboxFace
      };
 
      return (
-          <HStack alignItems="center" px="$3" py="$4">
+          <HStack className="items-center px-3 py-4">
                <Checkbox
                     value={data.value}
                     accessibilityLabel={data.display}
@@ -22,17 +30,11 @@ export const Facet_Checkbox = ({ data, category, values = [], updateCheckboxFace
                     onChange={(value) => {
                          handleChange(value);
                     }}>
-                    <CheckboxIndicator
-                         sx={{
-                              ':checked': {
-                                   borderColor: theme.tokens.colors.primary['500'],
-                                   backgroundColor: theme.tokens.colors.primary['500'],
-                              },
-                         }}>
-                         {isChecked && <Icon as={MaterialIcons} name="check" color={theme.tokens.colors.primary['500-text']} size="sm" />}
+                    <CheckboxIndicator>
+                         {isChecked ? <CheckboxIcon /> : null}
                     </CheckboxIndicator>
-                    <CheckboxLabel pl="$2">
-                         <Text color={textColor}>
+                    <CheckboxLabel className="pl-2">
+                         <Text>
                               {data.display}
                               {data.count ? ` (${data.count})` : ''}
                          </Text>

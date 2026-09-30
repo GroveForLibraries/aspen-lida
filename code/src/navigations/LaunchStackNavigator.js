@@ -10,6 +10,11 @@ import { useTheme } from '../themes/theme';
 
 const Stack = createNativeStackNavigator();
 
+/**
+ * LaunchStackNavigator component that sets up a stack navigator for the initial launch of the app, including a loading screen and the main account drawer.
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 const LaunchStackNavigator = () => {
      const route = useRoute();
      const refreshUserData = route.params?.refreshUserData ?? false;

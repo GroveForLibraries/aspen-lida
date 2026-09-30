@@ -1,28 +1,33 @@
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { DrawerActions } from '@react-navigation/native';
-import { HStack, Pressable, Text, VStack, useToken } from '@gluestack-ui/themed';
 import React from 'react';
-
+import { HStack } from '@/components/ui/hstack';
+import { Pressable } from '@/components/ui/pressable';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
+import { VStack } from '@/components/ui/vstack';
 import { useSelfCheckEnabled, useSelfCheckSettings } from '../../hooks/useLibraryBranchData';
 import { getTermFromDictionary } from '../../translations/TranslationService';
-
 import AccountStackNavigator from '../stack/AccountStackNavigator';
 import BrowseStackNavigator from '../stack/BrowseStackNavigator';
 import LibraryCardStackNavigator from '../stack/LibraryCardStackNavigator';
 import MoreStackNavigator from '../stack/MoreStackNavigator';
 import SelfCheckOutStackNavigator from '../stack/SelfCheckOutStackNavigator';
-
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
-import { useTheme } from '../../themes/theme';
+import { TOKENS, useTheme } from '../../themes/theme';
 
 const Tab = createBottomTabNavigator();
-
+/**
+ * TabNavigator component that sets up a bottom tab navigator with tabs for browsing, library card, self-checkout (if enabled), account, and more. The self-checkout tab is conditionally displayed based on the self-checkout settings.
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export default function TabNavigator() {
      const enableSelfCheck = useSelfCheckEnabled();
      const selfCheckSettings = useSelfCheckSettings();
-     const { colorMode } = useTheme();
+     const { brand, colorMode } = useTheme();
+     const tabColors = TOKENS.componentTokens.tabNavigator[colorMode === 'dark' ? 'dark' : 'light'];
 
      const settingsEnabledCandidates = [
           selfCheckSettings?.isEnabled,
@@ -34,9 +39,9 @@ export default function TabNavigator() {
      );
      const showSelfCheckTab = enableSelfCheck === true || settingsEnableSelfCheck;
 
-     const activeIcon = useToken('colors', colorMode === 'light' ? 'coolGray900' : 'coolGray100');
-     const inactiveIcon = useToken('colors', colorMode === 'light' ? 'coolGray500' : 'coolGray400');
-     const tabBarBackgroundColor = colorMode === 'light' ? '$coolGray50' : '$coolGray800';
+     const activeTint = brand.primary[500];
+     const inactiveTint = tabColors.inactiveTint;
+     const tabBarBackgroundColor = tabColors.background;
 
      return (
           <Tab.Navigator
@@ -46,10 +51,10 @@ export default function TabNavigator() {
                     headerShown: false,
                     backBehavior: 'none',
                     tabBarHideOnKeyboard: true,
-                    tabBarActiveTintColor: activeIcon,
-                    tabBarInactiveTintColor: inactiveIcon,
+                    tabBarActiveTintColor: activeTint,
+                    tabBarInactiveTintColor: inactiveTint,
                     tabBarLabelStyle: { fontWeight: '400' },
-                    tabBarStyle: { backgroundColor: tabBarBackgroundColor, elevation: 0 },
+                    tabBarStyle: { backgroundColor: tabBarBackgroundColor, borderTopColor: tabColors.borderTop, elevation: 0 },
                }}>
                <Tab.Screen name="BrowseTab" component={BrowseStackNavigator} />
                <Tab.Screen name="LibraryCardTab" component={LibraryCardStackNavigator} />
@@ -79,13 +84,23 @@ export default function TabNavigator() {
      );
 }
 
+/**
+ * TabItem component that renders the custom tab bar for the bottom tab navigator, displaying icons and labels for each tab based on the current state and descriptors. It also handles navigation when a tab is pressed or long-pressed.
+ * @param param0
+ * @param param0.state
+ * @param param0.descriptors
+ * @param param0.navigation
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const TabItem = ({ state, descriptors, navigation }) => {
      const language = useActiveLanguage();
-     const { colorMode } = useTheme();
-     const activeIconColor = useToken('colors', colorMode === 'light' ? 'coolGray900' : 'coolGray100');
-     const inactiveIconColor = useToken('colors', colorMode === 'light' ? 'coolGray500' : 'coolGray400');
-     const tabBarBackgroundColor = colorMode === 'light' ? '$coolGray50' : '$coolGray800';
-     const tabBarBorderColor = '$coolGray400';
+     const { brand, colorMode } = useTheme();
+     const tabColors = TOKENS.componentTokens.tabNavigator[colorMode === 'dark' ? 'dark' : 'light'];
+     const activeIconColor = brand.primary[500];
+     const inactiveIconColor = tabColors.inactiveTint;
+     const tabBarBackgroundColor = tabColors.background;
+     const tabBorderColor = tabColors.borderTop;
      const insets = useSafeAreaInsets();
 
      const [browseTabLabel, setBrowseTabLabel] = React.useState(getTermFromDictionary(language, 'nav_discover'));
@@ -108,36 +123,39 @@ export const TabItem = ({ state, descriptors, navigation }) => {
 
      return (
           <HStack
-               px="$7"
-               pt="$2"
-               pb={insets.bottom}
-               gap="$4"
-               alignItems="center"
-               justifyContent="space-between"
-               backgroundColor={tabBarBackgroundColor}
-               borderTopWidth="$1"
-               borderColor={tabBarBorderColor}>
+               space="lg"
+               className="px-7 pt-2 items-center justify-between border-t"
+               style={{
+                    paddingBottom: insets.bottom,
+                    backgroundColor: tabBarBackgroundColor,
+                    borderColor: tabBorderColor,
+               }}>
                {state.routes.map((route, index) => {
                     const { options } = descriptors[route.key];
                     const isFocused = state.index === index;
 
-                    let iconName = 'ellipse-outline';
+                    // Focus is conveyed by iconColor below, not by swapping to a filled/outline
+                    // glyph variant -- MaterialIcons/MaterialCommunityIcons don't have a matching
+                    // filled/outline pair for every one of these the way Ionicons did.
+                    let iconName = 'circle';
+                    let IconComponent = MaterialIcons;
                     let label = route.name;
 
                     if (route.name === 'BrowseTab') {
-                         iconName = isFocused ? 'library' : 'library-outline';
+                         iconName = 'local-library';
                          label = browseTabLabel;
                     } else if (route.name === 'LibraryCardTab') {
-                         iconName = isFocused ? 'card' : 'card-outline';
+                         iconName = 'credit-card';
                          label = cardTabLabel;
                     } else if (route.name === 'AccountTab') {
-                         iconName = isFocused ? 'person' : 'person-outline';
+                         iconName = 'person';
                          label = accountTabLabel;
                     } else if (route.name === 'MoreTab') {
-                         iconName = isFocused ? 'ellipsis-horizontal' : 'ellipsis-horizontal-outline';
+                         iconName = 'more-horiz';
                          label = moreTabLabel;
                     } else if (route.name === 'SelfCheckTab') {
-                         iconName = isFocused ? 'barcode' : 'barcode-outline';
+                         iconName = 'barcode';
+                         IconComponent = MaterialCommunityIcons;
                          label = scoTabLabel;
                     }
 
@@ -175,9 +193,9 @@ export const TabItem = ({ state, descriptors, navigation }) => {
                               testID={options.tabBarTestID}
                               onPress={onPress}
                               onLongPress={onLongPress}>
-                              <VStack gap="$1" alignItems="center">
-                                   <Ionicons name={iconName} size={22} color={iconColor} />
-                                   <Text size="2xs" color={iconColor} fontWeight="$normal">
+                              <VStack space="xs" className="items-center">
+                                   <IconComponent name={iconName} size={22} color={iconColor} />
+                                   <Text size="2xs" style={{ color: iconColor, fontWeight: '400' }}>
                                         {label}
                                    </Text>
                               </VStack>

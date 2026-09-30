@@ -1,17 +1,22 @@
-import { Center, AlertDialog, AlertDialogBackdrop, AlertDialogContent, AlertDialogHeader, AlertDialogBody, AlertDialogFooter, Button, ButtonGroup, ButtonText, Heading, Text } from '@gluestack-ui/themed';
-
 import React from 'react';
-
 import { AuthContext } from '../../context/AuthContext';
-
 import {getTermFromDictionary} from '../../translations/TranslationService';
-
-import { logDebugMessage, logInfoMessage, logWarnMessage, logErrorMessage } from '../../util/logging.js';
+import { logDebugMessage } from '../../util/logging.js';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
-import { useTheme } from '../../themes/theme';
+import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../components/themed/ThemedButton';
+import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
+import { Center } from '@/components/ui/center';
+import { ThemedHeading as Heading } from '@/src/components/themed/ThemedHeading';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
+import { ThemedModal as Modal, ThemedModalBackdrop as ModalBackdrop, ThemedModalBody as ModalBody, ThemedModalCloseButton as ModalCloseButton, ThemedModalContent as ModalContent, ThemedModalFooter as ModalFooter, ThemedModalHeader as ModalHeader } from '@/src/components/themed/ThemedModal';
+import { ThemedCloseIcon as CloseIcon } from '@/src/components/themed/ThemedFormControls';
 
+/**
+ * InvalidCredentials component that displays an alert dialog when the user has entered invalid credentials, allowing the user to sign out.
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const InvalidCredentials = () => {
-     const { theme, colorMode, textColor } = useTheme();
      const language = useActiveLanguage();
      const { signOut } = React.useContext(AuthContext);
      const [isOpen, setIsOpen] = React.useState(true);
@@ -21,20 +26,27 @@ export const InvalidCredentials = () => {
 
      return (
           <Center>
-               <AlertDialog leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={onClose}>
-                    <AlertDialogBackdrop/>
-                    <AlertDialogContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"}>
-                         <AlertDialogHeader><Heading color={textColor}>{getTermFromDictionary(language, 'error')}</Heading></AlertDialogHeader>
-                         <AlertDialogBody><Text color={textColor}>{getTermFromDictionary(language, 'error_invalid_credentials')}</Text></AlertDialogBody>
-                         <AlertDialogFooter>
+               <Modal leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={onClose}>
+                    <ModalBackdrop/>
+                    <ModalContent>
+                         <ModalHeader>
+                              <Heading>{getTermFromDictionary(language, 'error')}</Heading>
+                              <ModalCloseButton onPress={onClose}>
+                                   <CloseIcon />
+                              </ModalCloseButton>
+                         </ModalHeader>
+                         <ModalBody>
+                              <Text>{getTermFromDictionary(language, 'error_invalid_credentials')}</Text>
+                         </ModalBody>
+                         <ModalFooter>
                               <ButtonGroup space="sm">
-                                   <Button bgColor={theme.tokens.colors.primary['500']} onPress={signOut} ref={cancelRef}>
-                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'button_ok')}</ButtonText>
+                                   <Button colorScheme="primary" onPress={signOut} ref={cancelRef}>
+                                        <ButtonText>{getTermFromDictionary(language, 'button_ok')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
-                         </AlertDialogFooter>
-                    </AlertDialogContent>
-               </AlertDialog>
+                         </ModalFooter>
+                    </ModalContent>
+               </Modal>
           </Center>
      );
 };

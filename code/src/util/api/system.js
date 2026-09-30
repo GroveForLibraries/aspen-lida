@@ -1,6 +1,5 @@
-import { LIBRARY, isBrandedApp } from '../globals';
+import { LIBRARY, isBrandedApp, GLOBALS } from '../globals';
 import { logDebugMessage, logErrorMessage, logInfoMessage, logWarnMessage } from '../logging';
-import { GLOBALS } from '../globals';
 import { popToast } from '../../components/feedback';
 import { createApiClient } from './apiFactory';
 import { generateSwatches, buildSwatchFromThemeTokens } from '../../helpers/helpers';
@@ -171,6 +170,7 @@ export async function getAppSettings(url, timeout, slug) {
           logWarnMessage(response);
           return [];
      } catch (err) {
+          // TODO(translation-client): Exception path is local; move toast body text to TranslationService key.
           popToast(getTermFromDictionary('en', 'error_no_server_connection'), 'Could not retrieve App Settings, please try again later.', 'error');
           logErrorMessage(`Exception in getAppSettings ${err}`);
           return [];

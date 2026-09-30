@@ -1,19 +1,22 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { filter, isEmpty, isNumber, isObject } from '../../../helpers/helpers';
-import { Button, ButtonText, ButtonSpinner } from '@gluestack-ui/themed';
 import React from 'react';
-
-// custom components and helper files
-import { HoldsContext } from '../../../context/initialContext';
-import { useLibrary } from '../../../hooks/useLibrarySystemData';
-import { useUserState, useAccounts, useLocations, useUpdateUserProfile } from '../../../hooks/useUserData';
-import { refreshProfile } from '../../../util/api/user';
-import { completeAction } from '../../../util/api/userHelper';
+import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../themed/ThemedButton';
+import { HoldsContext } from '@/src/context/initialContext';
+import { useLibrary } from '@/src/hooks/useLibrarySystemData';
+import { useUserState, useAccounts, useLocations, useUpdateUserProfile } from '@/src/hooks/useUserData';
+import { refreshProfile } from '@/src/util/api/user';
+import { completeAction } from '@/src/util/api/userHelper';
 import { HoldPrompt } from './HoldPrompt';
+import { logDebugMessage } from '@/src/util/logging';
+import { useTheme } from '@/src/themes/theme';
 
-import { logDebugMessage, logInfoMessage, logWarnMessage, logErrorMessage } from '../../../util/logging.js';
-import { useTheme } from '../../../themes/theme';
-
+/**
+ * PlaceHold component for displaying a button that places a hold on an item.
+ * @param props
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const PlaceHold = (props = {}) => {
      const queryClient = useQueryClient();
      const {
@@ -56,12 +59,11 @@ export const PlaceHold = (props = {}) => {
      const { data: accounts } = useAccounts();
      const { data: locations } = useLocations();
       const library = useLibrary();
-      const [loading, setLoading] = React.useState(false);
      const holdsContext = React.useContext(HoldsContext) ?? {};
-     const holds = holdsContext.holds ?? [];
-     const { theme } = useTheme() ?? {};
-     const primary500 = theme?.tokens?.colors?.primary?.['500'] ?? '$primary500';
-     const primary500Text = theme?.tokens?.colors?.primary?.['500-text'] ?? '$primary500-text';
+     const holds = Array.isArray(holdsContext.holds) ? holdsContext.holds : [];
+     const { brand } = useTheme();
+     const primary500 = brand.primary[500];
+     const primary500Text = brand.primary['500-text'];
       const safeLocations = Array.isArray(locations) ? locations : [];
       const safeAccounts = Array.isArray(accounts) ? accounts : [];
       const numItemsWithVolumes = Number(volumeInfo?.numItemsWithVolumes ?? 0) || 0;
@@ -128,15 +130,14 @@ export const PlaceHold = (props = {}) => {
      logDebugMessage("holdTypeForFormat = " + holdTypeForFormat);
      logDebugMessage("record = " + record);
      let alreadyOnHold = false;
-     if(holds) {
-          holds.forEach(holdSection => {
-               holdSection.data.forEach(hold => {
-                    if ((hold.source + ':' + hold.sourceId) == record) {
-                         alreadyOnHold = true;
-                    }
-               });
+     holds.forEach((holdSection) => {
+          const sectionHolds = Array.isArray(holdSection?.data) ? holdSection.data : [];
+          sectionHolds.forEach((hold) => {
+               if ((hold.source + ':' + hold.sourceId) == record) {
+                    alreadyOnHold = true;
+               }
           });
-     }
+     });
      if (alreadyOnHold) {
           logDebugMessage("Showing Hold Prompt because titles is already on hold");
           loadHoldPrompt = true;
@@ -210,12 +211,9 @@ export const PlaceHold = (props = {}) => {
                <>
                     <Button
                          size="md"
-                         bgColor={primary500}
                          variant="solid"
-                         minWidth="100%"
-                         maxWidth="100%"
+                         style={{ backgroundColor: primary500, minWidth: '100%', maxWidth: '100%' }}
                          onPress={async () => {
-                              setLoading(true);
                               await completeAction(record, type, user.id, '', '', pickupLocation, sublocation, user.rememberHoldPickupLocation, library.baseUrl, volumeId, holdType).then(async (ilsResponse) => {
                                    setResponse(ilsResponse);
 
@@ -249,7 +247,6 @@ export const PlaceHold = (props = {}) => {
                                         }, 45 * 1000);
                                    }
 
-                                   setLoading(false);
                                    if (ilsResponse?.confirmationNeeded && ilsResponse.confirmationNeeded) {
                                         setHoldConfirmationIsOpen(true);
                                    } else if (ilsResponse?.shouldBeItemHold && ilsResponse.shouldBeItemHold) {
@@ -259,13 +256,9 @@ export const PlaceHold = (props = {}) => {
                                    }
                               });
                          }}>
-                         {loading ? (
-                              <ButtonSpinner color={primary500Text} />
-                         ) : (
-                              <ButtonText color={primary500Text} textAlign="center">
-                                   {title}
-                              </ButtonText>
-                         )}
+                         <ButtonText style={{ color: primary500Text, textAlign: 'center' }}>
+                              {title}
+                         </ButtonText>
                     </Button>
                </>
           );

@@ -1,36 +1,27 @@
-import {
-     Button,
-     ButtonText,
-     ButtonGroup,
-     Center,
-     Modal,
-     ModalContent,
-     ModalHeader,
-     ModalBody,
-     ModalFooter,
-     Text,
-     Icon,
-     Heading,
-     ModalBackdrop, CloseIcon, ModalCloseButton
-} from '@gluestack-ui/themed';
 import React, { useState } from 'react';
+import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../../components/themed/ThemedButton';
+import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
+import { Center } from '@/components/ui/center';
+import { ThemedHeading as Heading } from '@/src/components/themed/ThemedHeading';
+import { ThemedModal as Modal, ThemedModalBackdrop as ModalBackdrop, ThemedModalBody as ModalBody, ThemedModalCloseButton as ModalCloseButton, ThemedModalContent as ModalContent, ThemedModalFooter as ModalFooter, ThemedModalHeader as ModalHeader } from '@/src/components/themed/ThemedModal';
+import { ThemedText as Text } from '@/src/components/themed/ThemedText';
+import { useUserState, useUpdateUserProfile, useUpdateAccounts, useUpdateViewers } from '@/src/hooks/useUserData';
+import { getTermFromDictionary } from '@/src/translations/TranslationService';
+import { disableAccountLinking, refreshProfile, getLinkedAccounts, getViewerAccounts } from '@/src/util/api/user';
+import { formatLinkedAccounts } from '@/src/util/api/userHelper';
+import { toArray } from '@/src/helpers/helpers';
+import { useActiveLanguage } from '@/src/hooks/useLanguageData';
+import { useLibrary } from '@/src/hooks/useLibrarySystemData';
+import { ThemedCloseIcon as CloseIcon } from '@/src/components/themed/ThemedFormControls';
 
-
-import { useUserState, useUpdateUserProfile, useUpdateAccounts, useUpdateViewers } from '../../../hooks/useUserData';
-import { getTermFromDictionary } from '../../../translations/TranslationService';
-import { disableAccountLinking, refreshProfile, getLinkedAccounts, getViewerAccounts } from '../../../util/api/user';
-import { formatLinkedAccounts } from '../../../util/api/userHelper';
-import { toArray } from '../../../helpers/helpers';
-import { useActiveLanguage } from '../../../hooks/useLanguageData';
-import { useTheme } from '../../../themes/theme';
-import { useLibrary } from '../../../hooks/useLibrarySystemData';
-
-// custom components and helper files
-
+/**
+ * DisableAccountLinking component that allows users to disable account linking. It displays a button that opens a modal where users can confirm disabling account linking. The component handles API calls to disable account linking and refreshes the linked accounts, viewer accounts, and user profile upon successful completion.
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 const DisableAccountLinking = () => {
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { textColor, theme, colorMode } = useTheme();
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const updateUserProfile = useUpdateUserProfile();
@@ -65,28 +56,28 @@ const DisableAccountLinking = () => {
 
      return (
           <Center>
-               <Button onPress={toggle} bgColor={theme.tokens.colors.primary['500']}>
-                    <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'disable_linked_accounts')}</ButtonText>
+               <Button onPress={toggle} colorScheme="primary">
+                    <ButtonText>{getTermFromDictionary(language, 'disable_linked_accounts')}</ButtonText>
                </Button>
                <Modal isOpen={showModal} onClose={toggle} size="lg">
                     <ModalBackdrop />
-                    <ModalContent bgColor={colorMode === 'light' ? "$warmGray50" : "$coolGray700"} maxWidth="95%">
+                    <ModalContent className="max-w-[95%]">
                          <ModalHeader>
-                              <Heading size="sm" color={textColor}>{getTermFromDictionary(language, 'disable_linked_accounts_title')}</Heading>
-                              <ModalCloseButton p="$3" onPress={toggle}>
-                                   <Icon as={CloseIcon} color={textColor} />
+                              <Heading>{getTermFromDictionary(language, 'disable_linked_accounts_title')}</Heading>
+                              <ModalCloseButton onPress={toggle}>
+                                   <CloseIcon />
                               </ModalCloseButton>
                          </ModalHeader>
                          <ModalBody>
-                              <Text color={textColor}>{getTermFromDictionary(language, 'disable_linked_accounts_body')}</Text>
+                              <Text>{getTermFromDictionary(language, 'disable_linked_accounts_body')}</Text>
                          </ModalBody>
                          <ModalFooter>
                               <ButtonGroup>
-                                   <Button variant="link" onPress={toggle}>
-                                        <ButtonText color={theme.tokens.colors.primary['500']}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
+                                   <Button colorScheme="primary" variant="link" onPress={toggle}>
+                                       <ButtonText>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                    </Button>
                                    <Button
-                                        bgColor={theme.tokens.colors.primary['500']}
+                                       colorScheme="primary"
                                         isLoading={loading}
                                         isLoadingText={getTermFromDictionary(language, 'updating', true)}
                                         onPress={async () => {
@@ -96,7 +87,7 @@ const DisableAccountLinking = () => {
                                                   toggle();
                                              });
                                         }}>
-                                        <ButtonText color={theme.tokens.colors.primary['500-text']}>{getTermFromDictionary(language, 'accept')}</ButtonText>
+                                      <ButtonText>{getTermFromDictionary(language, 'accept')}</ButtonText>
                                    </Button>
                               </ButtonGroup>
                          </ModalFooter>

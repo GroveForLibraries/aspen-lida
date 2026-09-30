@@ -1,16 +1,29 @@
 import React, { useState } from 'react';
 import { logDebugMessage } from '../util/logging.js';
 
+/**
+ * CheckoutsContext provides a context for managing checkouts state.
+ * @type {React.Context<{updateCheckouts: function(), checkouts: *[], resetCheckouts: function()}>}
+ */
 export const CheckoutsContext = React.createContext({
      updateCheckouts: () => {},
      checkouts: [],
      resetCheckouts: () => {},
 });
+
+/**
+ * HoldsContext provides a context for managing holds state.
+ * @type {React.Context<{updateHolds: function(), holds: *[], resetHolds: function()}>}
+ */
 export const HoldsContext = React.createContext({
      updateHolds: () => {},
      holds: [],
      resetHolds: () => {},
 });
+/**
+ * GroupedWorkContext provides a context for managing grouped work, format, and language state.
+ * @type {React.Context<{updateGroupedWork: function(), updateFormat: function(), updateLanguage: function(), groupedWork: *[], format: *[], language: *[], resetGroupedWork: function()}>}
+ */
 export const GroupedWorkContext = React.createContext({
      updateGroupedWork: () => {},
      updateFormat: () => {},
@@ -20,12 +33,21 @@ export const GroupedWorkContext = React.createContext({
      language: [],
      resetGroupedWork: () => {},
 });
+
+/**
+ * SystemMessagesContext provides a context for managing system messages state.
+ * @type {React.Context<{updateSystemMessages: function(), systemMessages: *[], resetSystemMessages: function()}>}
+ */
 export const SystemMessagesContext = React.createContext({
      updateSystemMessages: () => {},
      systemMessages: [],
      resetSystemMessages: () => {},
 });
 
+/**
+ * SearchContext provides a context for managing search-related state, including query, current index, current source, sources, indexes, facets, and sort order.
+ * @type {React.Context<{query: string, currentIndex: string, currentSource: string, sources: *[], indexes: *[], facets: *[], sort: string, updateQuery: function(), updateCurrentIndex: function(), updateCurrentSource: function(), updateIndexes: function(), updateSources: function(), updateFacets: function(), updateSort: function(), resetSearch: function()}>}
+ */
 export const SearchContext = React.createContext({
      query: '',
      currentIndex: 'Keyword',
@@ -44,7 +66,13 @@ export const SearchContext = React.createContext({
      resetSearch: () => {},
 });
 
-
+/**
+ * CheckoutsProvider component for managing checkouts state and providing checkouts context to its children.
+ * @param param0
+ * @param param0.children
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const CheckoutsProvider = ({ children }) => {
      const [checkouts, setCheckouts] = useState();
 
@@ -70,6 +98,13 @@ export const CheckoutsProvider = ({ children }) => {
      );
 };
 
+/**
+ * HoldsProvider component for managing holds state and providing holds context to its children.
+ * @param param0
+ * @param param0.children
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const HoldsProvider = ({ children }) => {
      const [holds, setHolds] = useState();
 
@@ -95,6 +130,13 @@ export const HoldsProvider = ({ children }) => {
      );
 };
 
+/**
+ * GroupedWorkProvider component for managing grouped work, format, and language state and providing grouped work context to its children.
+ * @param param0
+ * @param param0.children
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const GroupedWorkProvider = ({ children }) => {
      const [groupedWork, setGroupedWork] = useState();
      const [format, setFormat] = useState();
@@ -130,7 +172,13 @@ export const GroupedWorkProvider = ({ children }) => {
      return <GroupedWorkContext.Provider value={{ groupedWork, format, language, updateGroupedWork, updateFormat, updateLanguage, resetGroupedWork }}>{children}</GroupedWorkContext.Provider>;
 };
 
-
+/**
+ * SystemMessagesProvider component for managing system messages state and providing system messages context to its children.
+ * @param param0
+ * @param param0.children
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const SystemMessagesProvider = ({ children }) => {
      const [systemMessages, setSystemMessages] = useState();
 
@@ -156,6 +204,13 @@ export const SystemMessagesProvider = ({ children }) => {
      );
 };
 
+/**
+ * SearchProvider component for managing search-related state and providing search context to its children.
+ * @param param0
+ * @param param0.children
+ * @returns {React.JSX.Element}
+ * @constructor
+ */
 export const SearchProvider = ({ children }) => {
      const [currentIndex, setCurrentIndex] = useState();
      const [currentSource, setCurrentSource] = useState();
