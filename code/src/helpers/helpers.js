@@ -1289,3 +1289,19 @@ export function parseStoredNumber(raw) {
           return numberOrNull(raw);
      }
 }
+
+/**
+ * Creates an array of values from the first array that are not included in the second array.
+ * @param {Array} array
+ * @param {Array} values
+ * @returns {Array}
+ */
+export function differenceValues(array, values) {
+     const source = Array.isArray(array) ? array : [];
+     const excluded = Array.isArray(values) ? values : [];
+
+     if (source.length === 0) return [];
+     if (excluded.length === 0) return [...source];
+
+     return source.filter((item) => !excluded.includes(item));
+}
