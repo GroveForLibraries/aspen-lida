@@ -300,7 +300,7 @@ const PrivacyPolicy = () => {
           secondaryToolbarColor: backgroundColor };
 
      const openURL = async () => {
-          const url = appendQuery(appSettings.settings.privacyPolicy ?? GLOBALS.privacyPolicy, 'minimalInterface=true');
+          const url = appendQuery(appSettings.privacyPolicy ?? GLOBALS.privacyPolicy, 'minimalInterface=true');
           logInfoMessage(url);
           await WebBrowser.openBrowserAsync(url, browserParams)
                .then((res) => {
