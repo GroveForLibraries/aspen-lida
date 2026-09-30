@@ -226,7 +226,7 @@ export function uniquePrimitiveArray(arr) {
  * @param {string} omission
  * @returns {string}
  */
-export function truncate(str, maxLength, omission = '...') {
+export function truncate(str, maxLength = 30, omission = '...') {
      if (str == null) return '';
      if (str.length <= maxLength) return str;
      return str.slice(0, maxLength - omission.length) + omission;
@@ -1288,4 +1288,20 @@ export function parseStoredNumber(raw) {
      } catch {
           return numberOrNull(raw);
      }
+}
+
+/**
+ * Creates an array of values from the first array that are not included in the second array.
+ * @param {Array} array
+ * @param {Array} values
+ * @returns {Array}
+ */
+export function differenceValues(array, values) {
+     const source = Array.isArray(array) ? array : [];
+     const excluded = Array.isArray(values) ? values : [];
+
+     if (source.length === 0) return [];
+     if (excluded.length === 0) return [...source];
+
+     return source.filter((item) => !excluded.includes(item));
 }

@@ -1,4 +1,4 @@
-import { concat, filter, forEach, isEqual, map, size } from '../../helpers/helpers';
+import { concat, differenceValues, filter, forEach, isEqual, map, size } from '../../helpers/helpers';
 import { ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/ThemedMaterialIcons';
 import React from 'react';
 import { ThemedScrollView as ScrollView } from '@/src/components/themed/ThemedScrollView';
@@ -224,7 +224,7 @@ export const Facet = ({ route, navigation }) => {
                const prevSelections = values;
                addAppliedFilter(group, newValues, multiSelect);
                if (multiSelect) {
-                    const difference = difference(prevSelections, newValues);
+                    const difference = differenceValues(prevSelections, newValues);
                     if (difference) {
                          removeAppliedFilter(group, difference);
                     }
@@ -234,7 +234,7 @@ export const Facet = ({ route, navigation }) => {
 
      const discardChanges = () => {
           SearchGlobal.hasPendingChanges = true;
-          const difference = difference(values, valuesDefault);
+          const difference = differenceValues(values, valuesDefault);
           if (difference) {
                removeAppliedFilter(category, difference);
           }
