@@ -226,7 +226,7 @@ export function uniquePrimitiveArray(arr) {
  * @param {string} omission
  * @returns {string}
  */
-export function truncate(str, maxLength, omission = '...') {
+export function truncate(str, maxLength = 30, omission = '...') {
      if (str == null) return '';
      if (str.length <= maxLength) return str;
      return str.slice(0, maxLength - omission.length) + omission;
