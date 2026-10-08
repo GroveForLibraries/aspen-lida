@@ -7,7 +7,8 @@ import { ThemedFormControl as FormControl, ThemedFormControlLabelText as FormCon
 import { ThemedMaterialIcons as MaterialIcons } from '../../themed/ThemedMaterialIcons';
 import { ThemedRadio as Radio, ThemedRadioGroup as RadioGroup, ThemedRadioIcon as RadioIcon, ThemedRadioIndicator as RadioIndicator, ThemedRadioLabel as RadioLabel } from '../../themed/ThemedRadio';
 import { ThemedSelect as Select, ThemedSelectBackdrop as SelectBackdrop, ThemedSelectContent as SelectContent, ThemedSelectDragIndicator as SelectDragIndicator, ThemedSelectDragIndicatorWrapper as SelectDragIndicatorWrapper, ThemedSelectInput as SelectInput, ThemedSelectItem as SelectItem, ThemedSelectPortal as SelectPortal, ThemedSelectScrollView as SelectScrollView, ThemedSelectTrigger as SelectTrigger } from '../../themed/ThemedSelect';
-import { isEmpty } from '../../../helpers/helpers';
+import { isEmpty } from '@/src/helpers/helpers';
+import { getTermFromDictionary } from '@/src/translations/TranslationHelper';
 
 /**
  * SelectVolume component for selecting a volume for a library hold request.
