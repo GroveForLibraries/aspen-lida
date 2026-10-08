@@ -236,8 +236,6 @@ export const MyReadingHistory = () => {
      };
 
      const getActionButtons = () => {
-          const { neutralPairs, textColor, colorMode } = useTheme();
-
           let sortLength = 8 * sortBy.last_used.length + 80;
           if (sort === 'author') {
                sortLength = 8 * sortBy.author.length + 80;
