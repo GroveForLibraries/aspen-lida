@@ -345,10 +345,10 @@ export const MyCampaigns = () => {
 				</Text>
 				<VStack space="md">
      <HStack style={{ justifyContent: 'space-between', borderBottomWidth: 1, borderColor }} className="pb-1">
-						<Text bold className="flex-[3]">{getTermFromDictionary(language, 'activity_name')}</Text>
-						<Text bold className="flex-[2]">{getTermFromDictionary(language, 'activity_goal')}</Text>
-						<Text bold className="flex-[2]">{getTermFromDictionary(language, 'activity_reward')}</Text>
-						<Text bold className="flex-[2]">{getTermFromDictionary(language, 'progress')}</Text>
+						<Text bold className="flex-3">{getTermFromDictionary(language, 'activity_name')}</Text>
+						<Text bold className="flex-2">{getTermFromDictionary(language, 'activity_goal')}</Text>
+						<Text bold className="flex-2">{getTermFromDictionary(language, 'activity_reward')}</Text>
+						<Text bold className="flex-2">{getTermFromDictionary(language, 'progress')}</Text>
 					</HStack>
 
 					{items.map((item, i) => {
@@ -365,7 +365,7 @@ export const MyCampaigns = () => {
 								style={{ justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: borderColor }}
 								className="pl-4 pr-5 py-2"
 							>
-								<Text className="flex-[2]">
+								<Text className="flex-2">
 									{String(item.name || '')}
 								</Text>
 								<Text className="flex-1">
@@ -415,10 +415,10 @@ export const MyCampaigns = () => {
 
 		return (
 			<VStack space="md" className="px-4 py-3" key={item.id}>
-    <HStack style={{ justifyContent: 'space-between', borderBottomWidth: 1, borderColor }} className="pb-2">
-					<Text bold className="flex-[2]">{getTermFromDictionary(language, 'campaign_name_header')}</Text>
-					<Text bold className="flex-[3]">{getTermFromDictionary(language, 'campaign_reward')}</Text>
-					<Text bold className="flex-[2]">{getTermFromDictionary(language, 'campaign_dates')}</Text>
+                    <HStack style={{ justifyContent: 'space-between', borderBottomWidth: 1, borderColor }} className="pb-2">
+					<Text bold className="flex-2">{getTermFromDictionary(language, 'campaign_name_header')}</Text>
+					<Text bold className="flex-3">{getTermFromDictionary(language, 'campaign_reward')}</Text>
+					<Text bold className="flex-2">{getTermFromDictionary(language, 'campaign_dates')}</Text>
 					<Text bold className="flex-1"> </Text>
 					<Text bold className="flex-1"> </Text>
 				</HStack>
@@ -427,7 +427,7 @@ export const MyCampaigns = () => {
 					style={{ justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 0.5, borderColor }}
 					className="py-2"
 				>
-					<Text className="flex-[2]">
+					<Text className="flex-2">
 						{String(item.name || '')}
 					</Text>
 					<RewardDisplay
@@ -435,7 +435,7 @@ export const MyCampaigns = () => {
 						imageUrl={campaignImageUrl}
 						type="campaign"
 					/>
-					<Text className="flex-[2]">
+					<Text className="flex-2">
 						{startDate} {'\n'} - {'\n'}{endDate}
 					</Text>
 					<Button
