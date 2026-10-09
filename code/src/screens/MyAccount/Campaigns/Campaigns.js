@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigation } from '@react-navigation/native';
-import { ScreenContainer } from '@/src/components/ScreenContainer';
+import { ScreenContainer, screenContentContainerStyle } from '@/src/components/ScreenContainer';
 import { getTermFromDictionary } from '@/src/translations/TranslationService';
 import { fetchCampaigns, unenrollCampaign, enrollCampaign, optIntoCampaignEmails, optUserOutOfCampaignLeaderboard, optUserInToCampaignLeaderboard, addActivityProgress } from '@/src/util/api/user';
 import { Image } from 'expo-image';
@@ -561,102 +561,89 @@ export const MyCampaigns = () => {
 		return option ? getTermFromDictionary(language, option.labelKey) : 'Select Filter';
 	};
 
-	return (
-		<>
-			<Box style={{ backgroundColor: panelBg, borderBottomWidth: 1, borderColor }} className="px-4 py-3">
-				<Select
-					onValueChange={(itemValue) => setFilterBy(itemValue)}
-				>
-					<SelectTrigger className="w-64">
-						<SelectInput
-							// TODO(translation): Replace hardcoded placeholder with TranslationService-backed key.
-							placeholder="Select Filter"
-							value={getFilterLabel(filterBy)}
-						/>
-					</SelectTrigger>
-					<SelectPortal>
-						<SelectBackdrop />
-						<SelectContent>
-							<SelectDragIndicatorWrapper>
-								<SelectDragIndicator />
-							</SelectDragIndicatorWrapper>
-							<SelectScrollView>
-								{FILTER_OPTIONS.map(option => (
-									<SelectItem
-										key={option.value}
-										label={getTermFromDictionary(language, option.labelKey)}
-										value={option.value}
-									/>
-								))}
-							</SelectScrollView>
-						</SelectContent>
-					</SelectPortal>
-				</Select>
-			</Box>
-			<ScreenContainer safeArea>
+     return (
+          <>
+               <Box style={{ backgroundColor: panelBg, borderBottomWidth: 1, borderColor }} className="px-4 py-3">
+                    <Select onValueChange={(itemValue) => setFilterBy(itemValue)}>
+                         <SelectTrigger className="w-64">
+                              <SelectInput placeholder="Select Filter" value={getFilterLabel(filterBy)} />
+                         </SelectTrigger>
+                         <SelectPortal>
+                              <SelectBackdrop />
+                              <SelectContent>
+                                   <SelectDragIndicatorWrapper>
+                                        <SelectDragIndicator />
+                                   </SelectDragIndicatorWrapper>
+                                   <SelectScrollView>
+                                        {FILTER_OPTIONS.map((option) => (
+                                             <SelectItem key={option.value} label={getTermFromDictionary(language, option.labelKey)} value={option.value} />
+                                        ))}
+                                   </SelectScrollView>
+                              </SelectContent>
+                         </SelectPortal>
+                    </Select>
+               </Box>
 
-			{status === 'loading' || isFetching ? (
-				<Center className="flex-1">
-					<Text>{getTermFromDictionary(language, 'loading')}</Text>
-				</Center>
-			) : status === 'error' ? (
-				<Center className="flex-1">
-					<Text>{getTermFromDictionary(language, 'campaign_loading_error')}</Text>
-				</Center>
-			) : campaignsData.length === 0 ? (
-				<EmptyComponent />
-			) : filterBy === 'linkedUserCampaigns' ? (
-				<ScrollView>
-					{Object.entries(groupedCampaigns).map(([userName, { userId, campaigns: groupedCampaignsList}]) => (
-						<Box key={String(userId)} className="mb-6">
-							<Box style={{ backgroundColor: panelBg }} className="-mx-4 px-4 py-2">
-								<Text size="lg" bold>
-									{getTermFromDictionary(language, 'campaigns_for_linked_user')}: {String(userName)}
-								</Text>
-							</Box>
+               <ScreenContainer safeArea>
+                    {status === 'loading' || isFetching ? (
+                         <Center className="flex-1">
+                              <Text>{getTermFromDictionary(language, 'loading')}</Text>
+                         </Center>
+                    ) : status === 'error' ? (
+                         <Center className="flex-1">
+                              <Text>{getTermFromDictionary(language, 'campaign_loading_error')}</Text>
+                         </Center>
+                    ) : campaignsData.length === 0 ? (
+                         <EmptyComponent />
+                    ) : filterBy === 'linkedUserCampaigns' ? (
+                         <ScrollView contentContainerStyle={{ paddingBottom: 30, ...screenContentContainerStyle }}>
+                              {Object.entries(groupedCampaigns).map(([userName, { userId, campaigns: groupedCampaignsList }]) => (
+                                   <Box key={String(userId)} className="mb-6">
+                                        <Box style={{ backgroundColor: panelBg }} className="-mx-4 px-4 py-2">
+                                             <Text size="lg" bold>
+                                                  {getTermFromDictionary(language, 'campaigns_for_linked_user')}: {String(userName)}
+                                             </Text>
+                                        </Box>
 
-							{Array.isArray(groupedCampaignsList) && groupedCampaignsList.map((item) => {
-								if (!item || !item.id) return null;
+                                        {Array.isArray(groupedCampaignsList) &&
+                                             groupedCampaignsList.map((item) => {
+                                                  if (!item || !item.id) return null;
 
-								return (
-									<Box key={String(item.id)}>
-										{renderCampaignItem({
-											item,
-											expanded: expandedCampaigns[item.id],
-											onToggle: () => toggleExpanded(item.id),
-											onOpenActions: () => handleOpenActions(item, userId) })}
-									</Box>
-								);
-							})}
-						</Box>
-					))}
-				</ScrollView>
-			) : (
-				<FlatList
-					data={campaignsData}
-					ListEmptyComponent={EmptyComponent}
-					renderItem={({ item }) => {
+                                                  return (
+                                                       <Box key={String(item.id)}>
+                                                            {renderCampaignItem({
+                                                                 item,
+                                                                 expanded: expandedCampaigns[item.id],
+                                                                 onToggle: () => toggleExpanded(item.id),
+                                                                 onOpenActions: () => handleOpenActions(item, userId),
+                                                            })}
+                                                       </Box>
+                                                  );
+                                             })}
+                                   </Box>
+                              ))}
+                         </ScrollView>
+                    ) : (
+                         <FlatList
+                              data={campaignsData}
+                              ListEmptyComponent={EmptyComponent}
+                              renderItem={({ item }) => {
+                                   if (!item) return null;
 
-						 if (!item) {
-								return null;
-							}
+                                   return renderCampaignItem({
+                                        item,
+                                        expanded: expandedCampaigns[item.id],
+                                        onToggle: () => toggleExpanded(item.id),
+                                        onOpenActions: () => handleOpenActions(item, filterBy === 'linkedUserCampaigns' ? item.linkedUserId : null),
+                                   });
+                              }}
+                              keyExtractor={(item, index) => (item?.id ? String(item.id) : String(index))}
+                              contentContainerStyle={{ paddingBottom: 30, ...screenContentContainerStyle }}
+                         />
+                    )}
 
-						if (!item) return null;
-
-						return renderCampaignItem({
-							item,
-							expanded: expandedCampaigns[item.id],
-							onToggle: () => toggleExpanded(item.id),
-							onOpenActions: () => handleOpenActions(item, filterBy === 'linkedUserCampaigns' ? item.linkedUserId : null) });
-					}}
-
-					keyExtractor={(item, index) => item?.id ? String(item.id) : String(index)}
-					contentContainerStyle={{ paddingBottom: 30 }}
-				/>
-			)}
-
-			{renderActionSheet()}
-			</ScreenContainer>
-		</>
-	);
+                    {renderActionSheet()}
+               </ScreenContainer>
+          </>
+     );
 }
