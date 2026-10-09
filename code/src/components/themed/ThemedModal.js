@@ -40,7 +40,7 @@ export const ThemedModalContent = React.forwardRef(({ style, ...props }, ref) =>
      const { height: windowHeight } = useWindowDimensions();
      const surfaceBg = neutrals.surface;
 
-     return <ModalContent ref={ref} style={[{ maxWidth: '90%', maxHeight: windowHeight * 0.8, backgroundColor: surfaceBg, padding: 16, boxShadow: TOKENS.primitives.shadows.elevated }, style]} {...props} />;
+     return <ModalContent ref={ref} style={[{ maxWidth: '90%', maxHeight: windowHeight * 0.8, backgroundColor: surfaceBg, padding: 16, boxShadow: TOKENS.primitives.shadows.elevated, overflow: 'hidden' }, style]} {...props} />;
 });
 
 ThemedModalContent.displayName = 'ThemedModalContent';

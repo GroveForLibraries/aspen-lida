@@ -72,21 +72,19 @@ const CreateList = (props) => {
      return (
           <Center>
                <Button onPress={toggle} size="sm" colorScheme="primary">
-                   <MaterialIcons name="add" size={18} color={brand.primary['500-text']} className="mr-1" />
-                   <ButtonText>{getTermFromDictionary(language, 'create_new_list')}</ButtonText>
+                    <MaterialIcons name="add" size={18} color={brand.primary['500-text']} className="mr-1" />
+                    <ButtonText>{getTermFromDictionary(language, 'create_new_list')}</ButtonText>
                </Button>
                <Modal isOpen={showModal} onClose={toggle} size="full">
                     <ModalBackdrop />
                     <ModalContent className="max-w-[90%]">
                          <ModalHeader>
-                              <Heading>
-                                   {getTermFromDictionary(language, 'create_new_list')}
-                              </Heading>
+                              <Heading>{getTermFromDictionary(language, 'create_new_list')}</Heading>
                               <ModalCloseButton onPress={toggle}>
                                    <CloseIcon />
                               </ModalCloseButton>
                          </ModalHeader>
-                         <ModalBody>
+                         <ModalBody scrollEnabled={true}>
                               <FormControl>
                                    <FormControlLabel>
                                         <FormControlLabelText>{getTermFromDictionary(language, 'title')}</FormControlLabelText>
@@ -113,18 +111,18 @@ const CreateList = (props) => {
                                         onChange={(nextValue) => {
                                              setPublic(nextValue);
                                         }}>
-                                       <HStack className="flex-row items-center w-[75%] max-w-75" space="md">
-                                            <Radio value="false" className="my-1">
-                                                 <RadioIndicator className="mr-2" style={{ borderColor }}>
-                                                      <RadioIcon as={MaterialIcons} name="circle" style={{ color: borderColor }} />
+                                        <HStack className="flex-row items-center w-[75%] max-w-75" space="md">
+                                             <Radio value="false" className="my-1">
+                                                  <RadioIndicator className="mr-2" style={{ borderColor }}>
+                                                       <RadioIcon as={MaterialIcons} name="circle" style={{ color: borderColor }} />
                                                   </RadioIndicator>
-                                                 <RadioLabel>{getTermFromDictionary(language, 'private')}</RadioLabel>
+                                                  <RadioLabel>{getTermFromDictionary(language, 'private')}</RadioLabel>
                                              </Radio>
-                                            <Radio value="true" className="my-1">
-                                                 <RadioIndicator className="mr-2" style={{ borderColor }}>
-                                                      <RadioIcon as={MaterialIcons} name="circle" style={{ color: borderColor }} />
+                                             <Radio value="true" className="my-1">
+                                                  <RadioIndicator className="mr-2" style={{ borderColor }}>
+                                                       <RadioIcon as={MaterialIcons} name="circle" style={{ color: borderColor }} />
                                                   </RadioIndicator>
-                                                 <RadioLabel>{getTermFromDictionary(language, 'public')}</RadioLabel>
+                                                  <RadioLabel>{getTermFromDictionary(language, 'public')}</RadioLabel>
                                              </Radio>
                                         </HStack>
                                    </RadioGroup>
@@ -134,9 +132,7 @@ const CreateList = (props) => {
                                         <FormControlLabelText>{getTermFromDictionary(language, 'should_add_to_list_group')}</FormControlLabelText>
                                    </FormControlLabel>
                                    <Select name="should_add_to_list_group" selectedValue={addToGroup} accessibilityLabel={getTermFromDictionary(language, 'should_add_to_list_group')} onValueChange={(itemValue) => setAddToGroup(itemValue)}>
-                                        <SelectTrigger>
-                                             {addToGroup !== '' ? <SelectInput value={addToGroup === 'new' ? getTermFromDictionary(language, 'add_to_list_group_new') : addToGroup === 'existing' ? getTermFromDictionary(language, 'add_to_list_group_existing') : getTermFromDictionary(language, 'add_to_list_group_no')} /> : <SelectInput value={getTermFromDictionary(language, 'add_to_list_group_no')} />}
-                                        </SelectTrigger>
+                                        <SelectTrigger>{addToGroup !== '' ? <SelectInput value={addToGroup === 'new' ? getTermFromDictionary(language, 'add_to_list_group_new') : addToGroup === 'existing' ? getTermFromDictionary(language, 'add_to_list_group_existing') : getTermFromDictionary(language, 'add_to_list_group_no')} /> : <SelectInput value={getTermFromDictionary(language, 'add_to_list_group_no')} />}</SelectTrigger>
                                         <SelectPortal>
                                              <SelectBackdrop />
                                              <SelectContent>
@@ -169,15 +165,15 @@ const CreateList = (props) => {
                                                   </FormControlLabel>
                                                   <Select name="should_nest_list_group" selectedValue={nestedGroup} accessibilityLabel={getTermFromDictionary(language, 'should_nest_list_group')} onValueChange={(itemValue) => setNestedGroup(itemValue)}>
                                                        <SelectTrigger>
-                                                   {nestedGroup !== 'no' && nestedGroup !== '' ? (
-                                                        toArray(listGroups.groups).map((group) => {
-                                                             if (group.id === nestedGroup) {
-                                                                  return <SelectInput value={group.title} />;
-                                                             }
-                                                        })
-                                                   ) : (
-                                                        <SelectInput value={getTermFromDictionary(language, 'nest_within_group_no')} />
-                                                   )}
+                                                            {nestedGroup !== 'no' && nestedGroup !== '' ? (
+                                                                 toArray(listGroups.groups).map((group) => {
+                                                                      if (group.id === nestedGroup) {
+                                                                           return <SelectInput value={group.title} />;
+                                                                      }
+                                                                 })
+                                                            ) : (
+                                                                 <SelectInput value={getTermFromDictionary(language, 'nest_within_group_no')} />
+                                                            )}
                                                        </SelectTrigger>
                                                        <SelectPortal>
                                                             <SelectBackdrop />
@@ -185,12 +181,12 @@ const CreateList = (props) => {
                                                                  <SelectDragIndicatorWrapper>
                                                                       <SelectDragIndicator />
                                                                  </SelectDragIndicatorWrapper>
-                                                                  <SelectScrollView>
-                                                                       <SelectItem label={getTermFromDictionary(language, 'nest_within_group_no')} value="no" key={1} selectedValue={nestedGroup} />
-                                                                       {toArray(listGroups.groups).map((item, index) => {
-                                                                            return <SelectItem key={index} value={item.id} label={item.title} selectedValue={nestedGroup} />;
-                                                                       })}
-                                                                  </SelectScrollView>
+                                                                 <SelectScrollView>
+                                                                      <SelectItem label={getTermFromDictionary(language, 'nest_within_group_no')} value="no" key={1} selectedValue={nestedGroup} />
+                                                                      {toArray(listGroups.groups).map((item, index) => {
+                                                                           return <SelectItem key={index} value={item.id} label={item.title} selectedValue={nestedGroup} />;
+                                                                      })}
+                                                                 </SelectScrollView>
                                                             </SelectContent>
                                                        </SelectPortal>
                                                   </Select>
@@ -212,28 +208,28 @@ const CreateList = (props) => {
                                                   logDebugMessage(itemValue);
                                              }}>
                                              <SelectTrigger>
-                                                   {existingGroupId && existingGroupId !== -1 ? (
-                                                        toArray(listGroups.groups).map((group) => {
-                                                             if (group.id === existingGroupId) {
-                                                                  return <SelectInput value={group.title} />;
-                                                             }
-                                                        })
-                                                   ) : (
-                                                        <SelectInput value={listGroups.groups[0].id} />
-                                                   )}
+                                                  {existingGroupId && existingGroupId !== -1 ? (
+                                                       toArray(listGroups.groups).map((group) => {
+                                                            if (group.id === existingGroupId) {
+                                                                 return <SelectInput value={group.title} />;
+                                                            }
+                                                       })
+                                                  ) : (
+                                                       <SelectInput value={listGroups.groups[0].id} />
+                                                  )}
                                              </SelectTrigger>
                                              <SelectPortal>
                                                   <SelectBackdrop />
                                                   <SelectContent>
-                                                        <SelectDragIndicatorWrapper>
-                                                             <SelectDragIndicator />
-                                                        </SelectDragIndicatorWrapper>
-                                                         <SelectScrollView>
-                                                              {toArray(listGroups.groups).map((item, index) => {
-                                                                   return <SelectItem key={index} value={item.id} label={item.title} selectedValue={existingGroupId} />;
-                                                              })}
-                                                         </SelectScrollView>
-                                                   </SelectContent>
+                                                       <SelectDragIndicatorWrapper>
+                                                            <SelectDragIndicator />
+                                                       </SelectDragIndicatorWrapper>
+                                                       <SelectScrollView>
+                                                            {toArray(listGroups.groups).map((item, index) => {
+                                                                 return <SelectItem key={index} value={item.id} label={item.title} selectedValue={existingGroupId} />;
+                                                            })}
+                                                       </SelectScrollView>
+                                                  </SelectContent>
                                              </SelectPortal>
                                         </Select>
                                    </FormControl>
@@ -244,48 +240,49 @@ const CreateList = (props) => {
                                    <Button variant="outline" onPress={toggle} style={{ borderColor }}>
                                         <ButtonText style={{ color: textColor }}>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                    </Button>
-                                    <Button
-                                         colorScheme="primary"
-                                         isLoading={loading}
-                                         isLoadingText={getTermFromDictionary(language, 'creating_list', true)}
-                                         onPress={async () => {
-                                              setAdding(true);
-                                              setLoading(true);
-                                              try {
-                                                   await createList(title, description, isPublic, library.baseUrl, addToGroup, nestedGroup, newGroupName, existingGroupId).then(async (res) => {
-                                                        let status = 'success';
-                                                        if (!res.success) {
-                                                             status = 'danger';
-                                                        }
-                                                        const profileResponse = await refreshProfile(library.baseUrl);
-                                                        if (profileResponse?.ok && profileResponse?.data?.result?.profile) {
-                                                             await updateUserProfile(profileResponse.data.result.profile);
-                                                        }
-                                                        // Refresh lists and list groups from API and update local database
-                                                        const listsResponse = await getLists(library.baseUrl, 1, 20, 1);
-                                                        if (listsResponse.ok) {
-                                                             await updateLists(listsResponse.data.result);
-                                                        }
-                                                        const groupsResponse = await getListGroups(library.baseUrl);
-                                                        if (groupsResponse.ok) {
-                                                             await updateListGroups({
-                                                                  groups: groupsResponse.data?.result?.groups ?? [],
-                                                                  unassigned: groupsResponse.data?.result?.unassigned ?? 0 });
-                                                        }
-                                                        toggle();
-                                                        popAlert(getTermFromDictionary(language, 'list_created'), res.message, status);
-                                                   });
-                                              } catch (error) {
-                                                   logErrorMessage("Failed to create list: ", error);
-                                                   // TODO(translation): Replace hardcoded alert title/body with TranslationService-backed keys.
-                                                   popAlert("Error", "Something went wrong while creating the list.", "danger");
-                                              } finally {
-                                                   setAdding(false);
-                                                   setLoading(false);
-                                              }
-                                         }}>
+                                   <Button
+                                        colorScheme="primary"
+                                        isLoading={loading}
+                                        isLoadingText={getTermFromDictionary(language, 'creating_list', true)}
+                                        onPress={async () => {
+                                             setAdding(true);
+                                             setLoading(true);
+                                             try {
+                                                  await createList(title, description, isPublic, library.baseUrl, addToGroup, nestedGroup, newGroupName, existingGroupId).then(async (res) => {
+                                                       let status = 'success';
+                                                       if (!res.success) {
+                                                            status = 'danger';
+                                                       }
+                                                       const profileResponse = await refreshProfile(library.baseUrl);
+                                                       if (profileResponse?.ok && profileResponse?.data?.result?.profile) {
+                                                            await updateUserProfile(profileResponse.data.result.profile);
+                                                       }
+                                                       // Refresh lists and list groups from API and update local database
+                                                       const listsResponse = await getLists(library.baseUrl, 1, 20, 1);
+                                                       if (listsResponse.ok) {
+                                                            await updateLists(listsResponse.data.result);
+                                                       }
+                                                       const groupsResponse = await getListGroups(library.baseUrl);
+                                                       if (groupsResponse.ok) {
+                                                            await updateListGroups({
+                                                                 groups: groupsResponse.data?.result?.groups ?? [],
+                                                                 unassigned: groupsResponse.data?.result?.unassigned ?? 0,
+                                                            });
+                                                       }
+                                                       toggle();
+                                                       popAlert(getTermFromDictionary(language, 'list_created'), res.message, status);
+                                                  });
+                                             } catch (error) {
+                                                  logErrorMessage('Failed to create list: ', error);
+                                                  // TODO(translation): Replace hardcoded alert title/body with TranslationService-backed keys.
+                                                  popAlert('Error', 'Something went wrong while creating the list.', 'danger');
+                                             } finally {
+                                                  setAdding(false);
+                                                  setLoading(false);
+                                             }
+                                        }}>
                                         <ButtonText>{getTermFromDictionary(language, 'create_list')}</ButtonText>
-                                    </Button>
+                                   </Button>
                               </ButtonGroup>
                          </ModalFooter>
                     </ModalContent>
