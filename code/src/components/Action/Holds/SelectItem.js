@@ -12,7 +12,7 @@ import { getTermFromDictionary } from '@/src/translations/TranslationService';
  * @constructor
  */
 export const SelectItemHold = (props) => {
-     const { id, data, item, setItem, setHoldType, showModal, holdTypeForFormat, language, url, textColor, brand } = props;
+     const { id, data, item, setItem, setHoldType, showModal, holdTypeForFormat, language, url, textColor, brand, neutrals } = props;
 
      let holdType = props.holdType;
      let copies = data.copies;
@@ -28,6 +28,8 @@ export const SelectItemHold = (props) => {
           defaultItem = item;
      }
 
+     const borderColor = neutrals.border;
+
      return (
           <>
                {holdTypeForFormat === 'either' ? (
@@ -41,14 +43,14 @@ export const SelectItemHold = (props) => {
                               }}
                               accessibilityLabel="">
                               <Radio value="default" size="sm" className="my-1">
-                                   <RadioIndicator className="mr-1">
-                                        <RadioIcon as={MaterialIcons} name="circle" />
+                                   <RadioIndicator className="mr-1" style={{ borderColor }}>
+                                        <RadioIcon as={MaterialIcons} name="circle" style={{ color: textColor }} />
                                    </RadioIndicator>
                                    <RadioLabel>{getTermFromDictionary(language, 'first_available')}</RadioLabel>
                               </Radio>
                               <Radio value="item" size="sm" className="my-1">
-                                   <RadioIndicator className="mr-1">
-                                        <RadioIcon as={MaterialIcons} name="circle" />
+                                   <RadioIndicator className="mr-1" style={{ borderColor }}>
+                                        <RadioIcon as={MaterialIcons} name="circle" style={{ color: textColor }} />
                                    </RadioIndicator>
                                    <RadioLabel>{getTermFromDictionary(language, 'specific_item')}</RadioLabel>
                               </Radio>

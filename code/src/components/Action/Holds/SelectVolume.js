@@ -17,7 +17,7 @@ import { getTermFromDictionary } from '@/src/translations/TranslationHelper';
  * @constructor
  */
 export const SelectVolume = (props) => {
-     const { id, volume, setVolume, showModal, promptForHoldType, holdType, setHoldType, language, url, textColor, brand } = props;
+     const { id, volume, setVolume, showModal, promptForHoldType, holdType, setHoldType, language, url, textColor, brand, neutrals } = props;
 
      const { status, data, error, isFetching } = useQuery({
           queryKey: ['volumes', id, url],
@@ -25,6 +25,7 @@ export const SelectVolume = (props) => {
           enabled: !!showModal,
      });
      const volumeOptions = Object.values(data ?? {});
+     const borderColor = neutrals.border;
 
      if (!isFetching && data && isEmpty(volume)) {
           let volumesKeys = Object.keys(data);
@@ -51,14 +52,14 @@ export const SelectVolume = (props) => {
                                              setVolume('');
                                         }}>
                                         <Radio value="item" size="sm" className="my-1">
-                                             <RadioIndicator className="mr-1">
-                                                  <RadioIcon as={MaterialIcons} name="circle" />
+                                             <RadioIndicator className="mr-1" style={{ borderColor }}>
+                                                  <RadioIcon as={MaterialIcons} name="circle" style={{ color: textColor }} />
                                              </RadioIndicator>
                                              <RadioLabel>{getTermFromDictionary(language, 'first_available')}</RadioLabel>
                                         </Radio>
                                         <Radio value="volume" size="sm" className="my-1">
-                                             <RadioIndicator className="mr-1">
-                                                  <RadioIcon as={MaterialIcons} name="circle" />
+                                             <RadioIndicator className="mr-1" style={{ borderColor }}>
+                                                  <RadioIcon as={MaterialIcons} name="circle" style={{ color: textColor }} />
                                              </RadioIndicator>
                                              <RadioLabel>{getTermFromDictionary(language, 'specific_volume')}</RadioLabel>
                                         </Radio>

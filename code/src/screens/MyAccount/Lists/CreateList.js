@@ -114,13 +114,13 @@ const CreateList = (props) => {
                                         <HStack className="flex-row items-center w-[75%] max-w-75" space="md">
                                              <Radio value="false" className="my-1">
                                                   <RadioIndicator className="mr-2" style={{ borderColor }}>
-                                                       <RadioIcon as={MaterialIcons} name="circle" style={{ color: borderColor }} />
+                                                       <RadioIcon as={MaterialIcons} name="circle" style={{ color: textColor }} />
                                                   </RadioIndicator>
                                                   <RadioLabel>{getTermFromDictionary(language, 'private')}</RadioLabel>
                                              </Radio>
                                              <Radio value="true" className="my-1">
                                                   <RadioIndicator className="mr-2" style={{ borderColor }}>
-                                                       <RadioIcon as={MaterialIcons} name="circle" style={{ color: borderColor }} />
+                                                       <RadioIcon as={MaterialIcons} name="circle" style={{ color: textColor }} />
                                                   </RadioIndicator>
                                                   <RadioLabel>{getTermFromDictionary(language, 'public')}</RadioLabel>
                                              </Radio>
