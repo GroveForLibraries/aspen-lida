@@ -124,15 +124,11 @@ export const MyHold = (props) => {
 
      const initializeLeftColumn = () => {
           if (hold.coverUrl) {
-               let url = library.baseUrl + '/bookcover.php?id=' + hold.source + ':' + hold.recordId + '&size=medium';
-               if (hold.upc) {
-                    url = url + '&upc=' + hold.upc;
-               }
                return (
                     <VStack>
                          <Image
                               alt={hold.title}
-                              source={url}
+                              source={hold.coverUrl}
                              placeholder={blurhash}
                              transition={1000}
                              contentFit="cover"
