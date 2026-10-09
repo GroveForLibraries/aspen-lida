@@ -70,22 +70,7 @@ const BrowseStackNavigator = () => {
                          title: getTermFromDictionary(language, 'where_is_it'),
                          headerShown: true,
                          presentation: 'modal',
-                         header: () => (
-                              <ModalHeader
-                                   title={getTermFromDictionary(language, 'where_is_it')}
-                                   onBack={() => navigation.goBack()}
-                                   onClose={() => {
-                                        const parent = navigation.getParent();
-                                        if (parent?.canGoBack()) {
-                                             parent.goBack();
-                                        } else if (navigation.canGoBack()) {
-                                             navigation.goBack();
-                                        }
-                                   }}
-                                   showBack={false}
-                                   showClose={true}
-                              />
-                         ),
+                         header: () => <ModalHeader title={getTermFromDictionary(language, 'where_is_it')} onBack={() => navigation.goBack()} onClose={() => navigation.goBack()} showBack={false} showClose={true} />,
                     })}
                />
                <Stack.Screen
@@ -308,19 +293,7 @@ export const EditionsModal = () => {
                          title: getTermFromDictionary(language, 'where_is_it'),
                          headerShown: true,
                          presentation: 'modal',
-                         header: ({ navigation }) => (
-                              <ModalHeader
-                                   title={getTermFromDictionary(language, 'where_is_it')}
-                                   onBack={() => navigation.goBack()}
-                                   onClose={() => {
-                                        const parent = navigation.getParent();
-                                        if (parent?.canGoBack()) parent.goBack();
-                                        else if (navigation.canGoBack()) navigation.goBack();
-                                   }}
-                                   showBack={false}
-                                   showClose={true}
-                              />
-                         ),
+                         header: ({ navigation }) => <ModalHeader title={getTermFromDictionary(language, 'where_is_it')} onBack={() => navigation.goBack()} onClose={() => navigation.goBack()} showBack={false} showClose={true} />,
                     }}
                />
           </EditionsStack.Navigator>
