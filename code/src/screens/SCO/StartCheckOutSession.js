@@ -27,7 +27,6 @@ export const StartCheckOutSession = () => {
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const { data: accounts } = useAccounts();
-     const { textColor, brand } = useTheme();
 
      let startNew = useRoute().params?.startNew ?? false;
 
@@ -44,14 +43,19 @@ export const StartCheckOutSession = () => {
 
      React.useEffect(() => {
           const startNewSession = navigation.addListener('focus', () => {
-               if (startNew) {
-                    setActiveAccount(user.ils_barcode ?? user.cat_username);
-                    setIsOpen(true);
-               }
+               setActiveAccount(user.ils_barcode ?? user.cat_username);
+               setIsOpen(true);
           });
 
           return startNewSession;
-     }, [navigation, startNew]);
+     }, [navigation, user.ils_barcode, user.cat_username]);
+
+     React.useEffect(() => {
+          const nextAccount = user.ils_barcode ?? user.cat_username;
+          if (nextAccount) {
+               setActiveAccount(nextAccount);
+          }
+     }, [user.ils_barcode, user.cat_username]);
 
      const GoBackHome = () => {
           setIsOpen(false);
@@ -73,71 +77,64 @@ export const StartCheckOutSession = () => {
 
      return (
           <Center>
-               <Modal leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={() => GoBackHome()}>
-                    <ModalBackdrop />
-                    <ModalContent>
-                         <ModalHeader>
-                              <Heading>{getTermFromDictionary(language, 'start_checkout_session')}</Heading>
-                              <ModalCloseButton onPress={() => GoBackHome()}>
-                                   <CloseIcon />
-                              </ModalCloseButton>
-                         </ModalHeader>
-                         <ModalBody>
-                              <FormControl>
-                                   <FormControlLabel>
-                                        <FormControlLabelText>{getTermFromDictionary(language, 'select_an_account')}</FormControlLabelText>
-                                   </FormControlLabel>
-                                   <Select
-                                        name="linkedAccount"
-                                        selectedValue={activeAccount}
-                                        accessibilityLabel={getTermFromDictionary(language, 'select_an_account')}
-                                        className="mt-1 mb-3"
-                                        onValueChange={(itemValue) => setActiveAccount(itemValue)}>
-                                        <SelectTrigger>
-                                             <SelectInput
-                                                  value={
-                                                       (() => {
+               {isOpen ? (
+                    <Modal leastDestructiveRef={cancelRef} isOpen={isOpen} onClose={() => GoBackHome()}>
+                         <ModalBackdrop />
+                         <ModalContent>
+                              <ModalHeader>
+                                   <Heading>{getTermFromDictionary(language, 'start_checkout_session')}</Heading>
+                                   <ModalCloseButton onPress={() => GoBackHome()}>
+                                        <CloseIcon />
+                                   </ModalCloseButton>
+                              </ModalHeader>
+                              <ModalBody>
+                                   <FormControl>
+                                        <FormControlLabel>
+                                             <FormControlLabelText>{getTermFromDictionary(language, 'select_an_account')}</FormControlLabelText>
+                                        </FormControlLabel>
+                                        <Select name="linkedAccount" selectedValue={activeAccount} accessibilityLabel={getTermFromDictionary(language, 'select_an_account')} className="mt-1 mb-3" onValueChange={(itemValue) => setActiveAccount(itemValue)}>
+                                             <SelectTrigger>
+                                                  <SelectInput
+                                                       value={(() => {
                                                             if (activeAccount === (user.ils_barcode ?? user.cat_username)) {
                                                                  return user.displayName;
                                                             }
-                                                            const found = availableAccounts.find(
-                                                                 item => activeAccount === (item.ils_barcode ?? item.cat_username)
-                                                            );
+                                                            const found = availableAccounts.find((item) => activeAccount === (item.ils_barcode ?? item.cat_username));
                                                             return found ? found.displayName : '';
-                                                       })()
-                                                  }
-                                                  placeholder={getTermFromDictionary(language, 'select_an_account')}
-                                             />
-                                        </SelectTrigger>
-                                        <SelectPortal>
-                                             <SelectBackdrop />
-                                             <SelectContent>
-                                                  <SelectDragIndicatorWrapper>
-                                                       <SelectDragIndicator />
-                                                  </SelectDragIndicatorWrapper>
-                                                  <SelectScrollView>
-                                                       <SelectItem label={user.displayName} value={user.ils_barcode ?? user.cat_username} style={activeAccount === (user.ils_barcode ?? user.cat_username) ? { backgroundColor: brand.tertiary[300] } : undefined} textStyle={{ color: activeAccount === (user.ils_barcode ?? user.cat_username) ? brand.tertiary['500-text'] : textColor }} />
-                                                       {availableAccounts.map((item, index) => {
-                                                            return <SelectItem label={item.displayName} value={item.ils_barcode ?? item.cat_username} key={index} style={activeAccount === (item.ils_barcode || item.cat_username) ? { backgroundColor: brand.tertiary[300] } : undefined} textStyle={{ color: activeAccount === (item.ils_barcode || item.cat_username) ? brand.tertiary['500-text'] : textColor }} />;
-                                                       })}
-                                                  </SelectScrollView>
-                                             </SelectContent>
-                                        </SelectPortal>
-                                   </Select>
-                              </FormControl>
-                         </ModalBody>
-                         <ModalFooter>
-                              <ButtonGroup space="sm">
-                                   <Button ref={cancelRef} onPress={() => GoBackHome()} colorScheme="primary">
-                                        <ButtonText>{getTermFromDictionary(language, 'cancel')}</ButtonText>
-                                   </Button>
-                                   <Button onPress={() => StartNewSession()} colorScheme="primary">
-                                        <ButtonText>{getTermFromDictionary(language, 'button_start')}</ButtonText>
-                                   </Button>
-                              </ButtonGroup>
-                         </ModalFooter>
-                    </ModalContent>
-               </Modal>
+                                                       })()}
+                                                       placeholder={getTermFromDictionary(language, 'select_an_account')}
+                                                  />
+                                             </SelectTrigger>
+                                             <SelectPortal>
+                                                  <SelectBackdrop />
+                                                  <SelectContent>
+                                                       <SelectDragIndicatorWrapper>
+                                                            <SelectDragIndicator />
+                                                       </SelectDragIndicatorWrapper>
+                                                       <SelectScrollView>
+                                                            <SelectItem label={user.displayName} value={user.ils_barcode ?? user.cat_username}  />
+                                                            {availableAccounts.map((item, index) => {
+                                                                 return <SelectItem label={item.displayName} value={item.ils_barcode ?? item.cat_username} key={index}  />;
+                                                            })}
+                                                       </SelectScrollView>
+                                                  </SelectContent>
+                                             </SelectPortal>
+                                        </Select>
+                                   </FormControl>
+                              </ModalBody>
+                              <ModalFooter>
+                                   <ButtonGroup space="sm">
+                                        <Button ref={cancelRef} onPress={() => GoBackHome()} colorScheme="primary">
+                                             <ButtonText>{getTermFromDictionary(language, 'cancel')}</ButtonText>
+                                        </Button>
+                                        <Button onPress={() => StartNewSession()} colorScheme="primary">
+                                             <ButtonText>{getTermFromDictionary(language, 'button_start')}</ButtonText>
+                                        </Button>
+                                   </ButtonGroup>
+                              </ModalFooter>
+                         </ModalContent>
+                    </Modal>
+               ) : null}
           </Center>
      );
 };

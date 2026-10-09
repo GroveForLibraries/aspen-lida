@@ -58,7 +58,21 @@ export default function TabNavigator() {
                }}>
                <Tab.Screen name="BrowseTab" component={BrowseStackNavigator} />
                <Tab.Screen name="LibraryCardTab" component={LibraryCardStackNavigator} />
-               {showSelfCheckTab ? <Tab.Screen name="SelfCheckTab" component={SelfCheckOutStackNavigator} /> : null}
+               {showSelfCheckTab ? (
+                    <Tab.Screen
+                         name="SelfCheckTab"
+                         component={SelfCheckOutStackNavigator}
+                         listeners={({ navigation }) => ({
+                              tabPress: (e) => {
+                                   e.preventDefault();
+                                   navigation.navigate('SelfCheckTab', {
+                                        screen: 'StartCheckOutSession',
+                                        params: { startNew: true },
+                                   });
+                              },
+                         })}
+                    />
+               ) : null}
                <Tab.Screen
                     name="AccountTab"
                     component={AccountStackNavigator}
