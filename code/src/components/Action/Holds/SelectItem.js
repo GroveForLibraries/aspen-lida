@@ -82,9 +82,9 @@ export const SelectItemHold = (props) => {
                                              {Object.keys(copies).map((item) => {
                                                   let copy = copies[item];
                                                   if (copy.id === defaultItem) {
-                                                       return <SelectItem label={copy.location} value={copy.id} key={copy.id} style={{ backgroundColor: brand.tertiary[300] }} textStyle={{ color: brand.tertiary['500-text'] }} />;
+                                                       return <SelectItem label={copy.location} value={copy.id} key={copy.id} selectedValue={defaultItem} />;
                                                   }
-                                                  return <SelectItem label={copy.location} value={copy.id} key={copy.id} textStyle={{ color: textColor }} />;
+                                                  return <SelectItem label={copy.location} value={copy.id} key={copy.id} selectedValue={defaultItem} />;
                                              })}
                                         </SelectScrollView>
                                    </SelectContent>

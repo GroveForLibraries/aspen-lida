@@ -105,16 +105,16 @@ export const StartCheckOutSession = () => {
                                                        placeholder={getTermFromDictionary(language, 'select_an_account')}
                                                   />
                                              </SelectTrigger>
-                                             <SelectPortal>
+                                             <SelectPortal useRNModal={true}>
                                                   <SelectBackdrop />
                                                   <SelectContent>
                                                        <SelectDragIndicatorWrapper>
                                                             <SelectDragIndicator />
                                                        </SelectDragIndicatorWrapper>
                                                        <SelectScrollView>
-                                                            <SelectItem label={user.displayName} value={user.ils_barcode ?? user.cat_username}  />
+                                                            <SelectItem label={user.displayName} value={user.ils_barcode ?? user.cat_username} selectedValue={activeAccount} />
                                                             {availableAccounts.map((item, index) => {
-                                                                 return <SelectItem label={item.displayName} value={item.ils_barcode ?? item.cat_username} key={index}  />;
+                                                                 return <SelectItem label={item.displayName} value={item.ils_barcode ?? item.cat_username} key={index} selectedValue={activeAccount} />;
                                                             })}
                                                        </SelectScrollView>
                                                   </SelectContent>

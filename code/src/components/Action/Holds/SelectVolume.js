@@ -88,9 +88,9 @@ export const SelectVolume = (props) => {
                                                  <SelectScrollView>
                                                        {volumeOptions.map((item, index) => {
                                                             if (item.volumeId === volume) {
-                                                                return <SelectItem label={item.label} value={item.volumeId} key={index} style={{ backgroundColor: brand.tertiary[300] }} textStyle={{ color: brand.tertiary['500-text'] }} />;
+                                                                return <SelectItem label={item.label} value={item.volumeId} key={index} selectedValue={volume} />;
                                                             }
-                                                            return <SelectItem label={item.label} value={item.volumeId} key={index} textStyle={{ color: textColor }} />;
+                                                            return <SelectItem label={item.label} value={item.volumeId} key={index} selectedValue={volume} />;
                                                        })}
                                                  </SelectScrollView>
                                             </SelectContent>

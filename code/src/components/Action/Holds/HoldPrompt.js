@@ -495,9 +495,9 @@ export const HoldPrompt = (props) => {
                                                        <SelectScrollView>
                                                             {safeLocations.map((availableLocations, index) => {
                                                                  if (availableLocations.code === location) {
-                                                                    return <SelectItem label={availableLocations.name} value={availableLocations.code} key={index} style={{ backgroundColor: brand.tertiary[300] }} textStyle={{ color: brand.tertiary['500-text'] }} />;
+                                                                    return <SelectItem label={availableLocations.name} value={availableLocations.code} key={index} selectedValue={location} />;
                                                                  }
-                                                                 return <SelectItem label={availableLocations.name} value={availableLocations.code} key={index} style={{ backgroundColor: location === availableLocations.code ? brand.tertiary[300] : 'transparent' }} textStyle={{ color: location === availableLocations.code ? brand.tertiary['500-text'] : textColor }} />;
+                                                                 return <SelectItem label={availableLocations.name} value={availableLocations.code} key={index} selectedValue={location} />;
                                                             })}
                                                        </SelectScrollView>
                                                   </SelectContent>
@@ -546,9 +546,9 @@ export const HoldPrompt = (props) => {
                                                             <SelectDragIndicator />
                                                        </SelectDragIndicatorWrapper>
                                                        <SelectScrollView>
-                                                            <SelectItem label={user.displayName} value={user.id} style={{ backgroundColor: activeAccount === user.id ? brand.tertiary[300] : 'transparent' }} textStyle={{ color: activeAccount === user.id ? brand.tertiary['500-text'] : textColor }} />
+                                                            <SelectItem label={user.displayName} value={user.id} selectedValue={activeAccount} />
                                                             {accounts.map((item, index) => {
-                                                                 return <SelectItem label={item.displayName} value={item.id} key={index} style={{ backgroundColor: activeAccount === item.id ? brand.tertiary[300] : 'transparent' }} textStyle={{ color: activeAccount === item.id ? brand.tertiary['500-text'] : textColor }} />;
+                                                                 return <SelectItem label={item.displayName} value={item.id} key={index} selectedValue={activeAccount} />;
                                                             })}
                                                        </SelectScrollView>
                                                   </SelectContent>

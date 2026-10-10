@@ -576,7 +576,7 @@ export const MyCampaigns = () => {
                                    </SelectDragIndicatorWrapper>
                                    <SelectScrollView>
                                         {FILTER_OPTIONS.map((option) => (
-                                             <SelectItem key={option.value} label={getTermFromDictionary(language, option.labelKey)} value={option.value} />
+                                             <SelectItem key={option.value} label={getTermFromDictionary(language, option.labelKey)} value={option.value} selectedValue={filterBy} />
                                         ))}
                                    </SelectScrollView>
                               </SelectContent>

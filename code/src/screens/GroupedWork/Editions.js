@@ -299,7 +299,7 @@ export const Editions = () => {
                                                                  if (item.status) {
                                                                       itemLabel += " - " + item.status;
                                                                  }
-                                                                 return <SelectItem label={itemLabel} value={item.itemNumber} key={index} textStyle={{ color: textColor }} />;
+                                                                 return <SelectItem label={itemLabel} value={item.itemNumber} key={index} selectedValue={selectedItem} />;
                                                             })}
                                                        </SelectScrollView>
                                                   </SelectContent>

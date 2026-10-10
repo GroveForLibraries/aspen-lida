@@ -278,7 +278,7 @@ const Request = (payload) => {
                                         </SelectDragIndicatorWrapper>
                                         <SelectScrollView>
                                              {locations.map((location, index) => {
-                                                  return <SelectItem key={index} label={location.displayName} value={location.code} style={{ backgroundColor: pickupLocation === location.code ? brand.tertiary[300] : 'transparent' }} textStyle={{ color: pickupLocation === location.code ? brand.tertiary['500-text'] : textColor }} />;
+                                                  return <SelectItem key={index} label={location.displayName} value={location.code} selectedValue={pickupLocation} />;
                                              })}
                                         </SelectScrollView>
                                    </SelectContent>
