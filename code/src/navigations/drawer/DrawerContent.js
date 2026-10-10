@@ -490,7 +490,7 @@ export const DrawerContent = (props) => {
            queryFn: () => getSystemMessages(library.libraryId ?? null, location?.locationId ?? null, library.baseUrl),
            enabled: !!library.baseUrl,
            runOnMount: true,
-           refetchInterval: 60 * 1000 * 30,
+           refetchInterval: 60 * 1000 * 5,
            refetchIntervalInBackground: true,
            refetchOnWindowFocus: 'always' }, {
            onSuccess: (data) => {
