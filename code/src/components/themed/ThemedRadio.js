@@ -8,9 +8,9 @@ export const ThemedRadio = Radio;
 export const ThemedRadioGroup = RadioGroup;
 /** Wraps gluestack's RadioIcon (the selected-state dot), filling it with the theme's brand primary color. */
 export const ThemedRadioIcon = React.forwardRef(({ className, style, ...props }, ref) => {
-     const { brand } = useTheme();
+     const { textColor } = useTheme();
 
-     return <RadioIcon ref={ref} className={['fill-transparent', className].filter(Boolean).join(' ')} style={[{ color: brand.primary[500] }, style]} {...props} />;
+     return <RadioIcon ref={ref} className={['fill-transparent', className].filter(Boolean).join(' ')} style={[{ color: textColor }, style]} {...props} />;
 });
 
 ThemedRadioIcon.displayName = 'ThemedRadioIcon';

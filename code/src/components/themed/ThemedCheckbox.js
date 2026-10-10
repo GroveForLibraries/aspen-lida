@@ -47,10 +47,10 @@ export const ThemedCheckboxIndicator = React.forwardRef(({ className, style, ...
      const size = React.useContext(CheckboxSizeContext);
      const { isChecked } = useCheckbox('CheckboxContext');
      const sizeStyle = resolveCheckboxSizeStyle(size);
-     const { brand } = useTheme();
+     const { textColor, neutrals } = useTheme();
      const checkedStyle = isChecked
-          ? { borderColor: brand.primary[500], backgroundColor: brand.primary[500] }
-          : { borderColor: brand.primary[500] };
+          ? { borderColor: neutrals.border, backgroundColor: neutrals.surface }
+          : { borderColor: neutrals.border };
 
      return <CheckboxIndicator ref={ref} className={[sizeStyle.indicator, CHECKED_COLOR_NEUTRALIZER, className].filter(Boolean).join(' ')} style={[{ marginRight: 8 }, checkedStyle, style]} {...props} />;
 });
@@ -63,9 +63,9 @@ export const ThemedCheckboxIndicator = React.forwardRef(({ className, style, ...
 export const ThemedCheckboxIcon = React.forwardRef(({ as, name, className, style, ...props }, ref) => {
      const size = React.useContext(CheckboxSizeContext);
      const sizeStyle = resolveCheckboxSizeStyle(size);
-     const { brand } = useTheme();
+     const { textColor } = useTheme();
 
-     return <CheckboxIcon ref={ref} as={as ?? MaterialIcons} name={name ?? 'check'} className={[sizeStyle.icon, 'text-transparent', className].filter(Boolean).join(' ')} style={[{ color: brand.primary['500-text'] }, style]} {...props} />;
+     return <CheckboxIcon ref={ref} as={as ?? MaterialIcons} name={name ?? 'check'} className={[sizeStyle.icon, 'text-transparent', className].filter(Boolean).join(' ')} style={[{ color: textColor }, style]} {...props} />;
 });
 
 /**

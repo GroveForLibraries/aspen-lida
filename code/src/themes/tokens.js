@@ -62,6 +62,7 @@ export const TOKENS = {
                lightText: '#ffffff',
                darkText: '#272727',
                danger: '#ef4444',
+               warning: '#f59e0b',
           },
      },
      semanticTokens: {

@@ -1020,9 +1020,8 @@ const Fines = () => {
      const user = userState?.user ?? {};
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { neutrals } = useTheme();
-     const backgroundColor = neutrals.surface;
-     const textColor = neutrals.textMain;
+     const { textColor, colorMode, neutralPairs, neutrals } = useTheme();
+     const backgroundColor = colorMode === 'light' ?  neutralPairs.surface.light : neutralPairs.surface.dark;
 
      const shouldShowFines = library.showFines ?? true;
 
