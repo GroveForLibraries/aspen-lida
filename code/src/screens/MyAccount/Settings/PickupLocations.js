@@ -145,8 +145,7 @@ export const Settings_PickupLocations = () => {
 		userPickupLocation2Id = String(user.myLocation2Id);
 	}
 
-	const showAlternatePickupLocations = locations.length > 1;
-
+     const showAlternatePickupLocations = (locations?.length ?? 0) > 1;
 	let pickupLocation = '';
 	let pickupLocation1 = '';
 	let pickupLocation2 = '';
