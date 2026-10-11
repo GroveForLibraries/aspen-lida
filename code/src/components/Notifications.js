@@ -228,8 +228,8 @@ export const DisplaySystemMessage = (props) => {
      logDebugMessage("System Message Style is " + style);
 
      return (
-          <Alert action={style} variant="solid" className="min-h-50 mb-2 rounded">
-               <VStack space="sm" className="w-full p-3">
+          <Alert action={style} variant="solid" className="m-2 rounded">
+               <VStack space="sm" className="w-full p-1">
                     <HStack alignItems="flex-start" justifyContent="space-between">
                          <AlertText action={style} variant="solid" className="mr-2">{props.message}</AlertText>
                          <Pressable

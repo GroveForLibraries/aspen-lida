@@ -66,7 +66,9 @@ export const ThemedSelectInput = React.forwardRef(({ style, placeholderTextColor
      return (
           <SelectInput
                ref={ref}
-               style={[{ paddingVertical: 0, color: textColor }, style]}
+               style={[{ paddingVertical: 0, color: textColor, flex: 1, minWidth: 0 }, style]}
+               numberOfLines={1}
+               ellipsizeMode="tail"
                placeholderTextColor={placeholderTextColor ?? inputColors.placeholder}
                {...props}
           />

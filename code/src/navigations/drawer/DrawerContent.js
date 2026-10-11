@@ -490,7 +490,7 @@ export const DrawerContent = (props) => {
            queryFn: () => getSystemMessages(library.libraryId ?? null, location?.locationId ?? null, library.baseUrl),
            enabled: !!library.baseUrl,
            runOnMount: true,
-           refetchInterval: 60 * 1000 * 30,
+           refetchInterval: 60 * 1000 * 5,
            refetchIntervalInBackground: true,
            refetchOnWindowFocus: 'always' }, {
            onSuccess: (data) => {
@@ -1020,9 +1020,8 @@ const Fines = () => {
      const user = userState?.user ?? {};
      const library = useLibrary();
      const language = useActiveLanguage();
-     const { neutrals } = useTheme();
-     const backgroundColor = neutrals.surface;
-     const textColor = neutrals.textMain;
+     const { textColor, colorMode, neutralPairs, neutrals } = useTheme();
+     const backgroundColor = colorMode === 'light' ?  neutralPairs.surface.light : neutralPairs.surface.dark;
 
      const shouldShowFines = library.showFines ?? true;
 

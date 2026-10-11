@@ -469,8 +469,8 @@ export const HoldPrompt = (props) => {
                                         colorMode={colorMode}
                                    />
                               ) : null}
-                              {data !== undefined && !isFetching && isEmpty(volumeId) && (holdType === 'either' || holdType === 'item') ? <SelectItemHold neutralPairs={neutralPairs} brand={brand} colorMode={colorMode} id={id} item={item} setItem={setItem} language={language} data={data} holdType={holdType} setHoldType={setHoldType} holdTypeForFormat={holdTypeForFormat} url={library.baseUrl} showModal={showModal} textColor={textColor} /> : null}
-                              {promptForHoldType || (holdType === 'volume' && isEmpty(volumeId)) ? <SelectVolume neutralPairs={neutralPairs} brand={brand} id={id} language={language} volume={volume} setVolume={setVolume} promptForHoldType={promptForHoldType} holdType={holdType} setHoldType={setHoldType} showModal={showModal} url={library.baseUrl} textColor={textColor} colorMode={colorMode} /> : null}
+                              {data !== undefined && !isFetching && isEmpty(volumeId) && (holdType === 'either' || holdType === 'item') ? <SelectItemHold neutralPairs={neutralPairs} neutrals={neutrals} brand={brand} colorMode={colorMode} id={id} item={item} setItem={setItem} language={language} data={data} holdType={holdType} setHoldType={setHoldType} holdTypeForFormat={holdTypeForFormat} url={library.baseUrl} showModal={showModal} textColor={textColor} /> : null}
+                              {promptForHoldType || (holdType === 'volume' && isEmpty(volumeId)) ? <SelectVolume neutralPairs={neutralPairs} neutrals={neutrals} brand={brand} id={id} language={language} volume={volume} setVolume={setVolume} promptForHoldType={promptForHoldType} holdType={holdType} setHoldType={setHoldType} showModal={showModal} url={library.baseUrl} textColor={textColor} colorMode={colorMode} /> : null}
                               {(isArray(locations) && (size(locations) > 1 || !preferredPickupLocationIsValid) && !isEContent && !user.rememberHoldPickupLocation) || (isArray(locations) && size(locations) > 1 && !isEContent && size(accounts) > 0) ? (
                                    <FormControl className="mt-1">
                                         <FormControlLabel>
@@ -495,9 +495,9 @@ export const HoldPrompt = (props) => {
                                                        <SelectScrollView>
                                                             {safeLocations.map((availableLocations, index) => {
                                                                  if (availableLocations.code === location) {
-                                                                    return <SelectItem label={availableLocations.name} value={availableLocations.code} key={index} style={{ backgroundColor: brand.tertiary[300] }} textStyle={{ color: brand.tertiary['500-text'] }} />;
+                                                                    return <SelectItem label={availableLocations.name} value={availableLocations.code} key={index} selectedValue={location} />;
                                                                  }
-                                                                 return <SelectItem label={availableLocations.name} value={availableLocations.code} key={index} style={{ backgroundColor: location === availableLocations.code ? brand.tertiary[300] : 'transparent' }} textStyle={{ color: location === availableLocations.code ? brand.tertiary['500-text'] : textColor }} />;
+                                                                 return <SelectItem label={availableLocations.name} value={availableLocations.code} key={index} selectedValue={location} />;
                                                             })}
                                                        </SelectScrollView>
                                                   </SelectContent>
@@ -546,9 +546,9 @@ export const HoldPrompt = (props) => {
                                                             <SelectDragIndicator />
                                                        </SelectDragIndicatorWrapper>
                                                        <SelectScrollView>
-                                                            <SelectItem label={user.displayName} value={user.id} style={{ backgroundColor: activeAccount === user.id ? brand.tertiary[300] : 'transparent' }} textStyle={{ color: activeAccount === user.id ? brand.tertiary['500-text'] : textColor }} />
+                                                            <SelectItem label={user.displayName} value={user.id} selectedValue={activeAccount} />
                                                             {accounts.map((item, index) => {
-                                                                 return <SelectItem label={item.displayName} value={item.id} key={index} style={{ backgroundColor: activeAccount === item.id ? brand.tertiary[300] : 'transparent' }} textStyle={{ color: activeAccount === item.id ? brand.tertiary['500-text'] : textColor }} />;
+                                                                 return <SelectItem label={item.displayName} value={item.id} key={index} selectedValue={activeAccount} />;
                                                             })}
                                                        </SelectScrollView>
                                                   </SelectContent>

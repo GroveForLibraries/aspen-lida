@@ -331,8 +331,8 @@ const DisplayBrowseCategoryRecord = ({record}) => {
                />
                {isNew ? (
                     <Box style={{ zIndex: 1, alignItems: 'center' }}>
-                         <Badge colorScheme="warning" className="mx-5" style={{ backgroundColor: '#f59e0b', marginTop: -8 }}>
-                              <BadgeText colorScheme="warning" bold style={{ color: neutralPairs.white, textTransform: 'none' }}>
+                         <Badge colorScheme="warning" className="mx-5" style={{ marginTop: -8 }}>
+                              <BadgeText colorScheme="warning" bold style={{ textTransform: 'none' }}>
                                    {getTermFromDictionary(language, 'flag_new')}
                               </BadgeText>
                          </Badge>
