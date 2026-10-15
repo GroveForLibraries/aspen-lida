@@ -356,6 +356,17 @@ async function replaceStoredThemeCatalog(locationId, themes = []) {
      notifyThemeCatalogChanged();
 }
 
+async function clearStoredThemeCatalog() {
+     try {
+          const { clearThemeCatalog } = require('../db');
+          await clearThemeCatalog();
+          notifyThemeCatalogChanged();
+     } catch (e) {
+          logWarnMessage('Unable to clear stored theme catalog');
+          logWarnMessage(e);
+     }
+}
+
 export function resolveSelfCheckEnabled(result = {}) {
      const candidates = [
           result?.settings?.isEnabled,
@@ -660,7 +671,7 @@ export async function getThemeInfo(url = null, locationId = null) {
      }
 
      if (useSingleTheme === true) {
-          await replaceStoredThemeCatalog(resolvedLocationId, []);
+          await clearStoredThemeCatalog();
 
           const singleThemeClient = createApiClient({
                url: libraryUrl,

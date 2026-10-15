@@ -176,6 +176,15 @@ export async function saveThemeCatalog(locationId, themes = []) {
 }
 
 /**
+ * Remove every stored theme catalog row across all locations.
+ * Used when the library forces a single theme, so no stale per-location themes remain selectable.
+ */
+export async function clearThemeCatalog() {
+     const db = await getDb();
+     await db.runAsync(`DELETE FROM theme_catalog;`);
+}
+
+/**
  * Load the stored theme catalog for a location, ordered the same way it was fetched (by weight).
  * @param locationId
  * @returns {Promise<Array>}
