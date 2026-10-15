@@ -637,17 +637,18 @@ export const HoldPrompt = (props) => {
                                                             }
 
                                                             setShowModal(false);
-                                                            if (result?.confirmationNeeded && result.confirmationNeeded) {
-                                                                 setHoldConfirmationIsOpen(true);
-                                                            } else if (result?.shouldBeItemHold && result.shouldBeItemHold) {
-                                                                 setHoldItemSelectIsOpen(true);
-                                                            } else if (result?.needsIllRequest && result.needsIllRequest === true) {
-                                                                 logDebugMessage('Need to show local ILL form');
-                                                                 logDebugMessage(response);
-                                                            }
-                                                            {
-                                                                 setResponseIsOpen(true);
-                                                            }
+                                                            setTimeout(() => {
+                                                                 if (result?.confirmationNeeded) {
+                                                                      setHoldConfirmationIsOpen(true);
+                                                                 } else if (result?.shouldBeItemHold) {
+                                                                      setHoldItemSelectIsOpen(true);
+                                                                 } else {
+                                                                      if (result?.needsIllRequest) {
+                                                                           logDebugMessage('Need to show local ILL form');
+                                                                      }
+                                                                      setResponseIsOpen(true);
+                                                                 }
+                                                            }, 400);
                                                        } else {
                                                             logWarnMessage('Did not get a good result completing action');
                                                        }
