@@ -26,6 +26,7 @@ jest.mock('../src/util/db', () => ({
      loadAppSettings: jest.fn(async () => null),
      saveAppSettings: jest.fn(async () => {}),
      saveThemeCatalog: jest.fn(async () => {}),
+     clearThemeCatalog: jest.fn(async () => {}),
      loadThemeState: jest.fn(async () => null),
 }));
 
