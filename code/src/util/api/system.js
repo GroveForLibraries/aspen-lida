@@ -660,7 +660,7 @@ export async function getThemeInfo(url = null, locationId = null) {
      }
 
      if (useSingleTheme === true) {
-          await replaceStoredThemeCatalog(resolvedLocationId, []);
+          await clearStoredThemeCatalog();
 
           const singleThemeClient = createApiClient({
                url: libraryUrl,
@@ -780,4 +780,15 @@ export async function getThemeInfo(url = null, locationId = null) {
      logInfoMessage('Backup theme loaded due to server or client issue.');
      logErrorMessage(response);
      return getDefaultThemeResult(fallbackThemeId, resolvedLocationId);
+}
+
+async function clearStoredThemeCatalog() {
+     try {
+          const { clearThemeCatalog } = require('../db');
+          await clearThemeCatalog();
+          notifyThemeCatalogChanged();
+     } catch (e) {
+          logWarnMessage('Unable to clear stored theme catalog');
+          logWarnMessage(e);
+     }
 }

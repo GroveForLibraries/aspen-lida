@@ -102,6 +102,15 @@ export async function isStoredThemeIdMatch(themeId) {
 }
 
 /**
+ * Remove every stored theme catalog row across all locations.
+ * Used when the library forces a single theme, so no stale per-location themes remain selectable.
+ */
+export async function clearThemeCatalog() {
+     const db = await getDb();
+     await db.runAsync(`DELETE FROM theme_catalog;`);
+}
+
+/**
  * Replace the stored theme catalog for a location with the given list of themes,
  * one row per theme, so the app can offer a theme switcher without a network round trip.
  * theme_id is the theme's own id as sent by getAspenLiDAThemesByLocation (not a local
