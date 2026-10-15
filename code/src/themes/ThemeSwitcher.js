@@ -16,6 +16,7 @@ import {
 import { useLibraryLocation } from '../hooks/useLibraryBranchData';
 import { logDebugMessage } from '../util/logging.js';
 import { buildThemeConfigFromCatalogEntry, useTheme, useThemeForDisplay } from './theme';
+import {saveUserThemePreference} from "@/src/util/db";
 
 /** Back-chevron icon, colored for contrast against a branded header background. */
 export const BackIcon = (props) => {
@@ -110,6 +111,7 @@ export const ThemeSwitcher = ({ showText = true } = {}) => {
                if (builtTheme.baseMode === 'dark' || builtTheme.baseMode === 'light') {
                     await updateColorMode(builtTheme.baseMode);
                }
+               await saveUserThemePreference(location?.locationId, builtTheme.themeId);
           } catch (error) {
                logDebugMessage('Theme switch failed');
                logDebugMessage(error);

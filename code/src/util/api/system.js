@@ -293,6 +293,16 @@ function getAppSettingValue(settings = {}, key) {
      return undefined;
 }
 
+/**
+ * Returns 'light' or 'dark' when the theme defines a usable base mode, otherwise null
+ * (legacy/default themes have no base mode, so the stored color mode should be kept).
+ */
+export function normalizeBaseMode(value) {
+     if (typeof value !== 'string') return null;
+     const lowered = value.trim().toLowerCase();
+     return lowered === 'light' || lowered === 'dark' ? lowered : null;
+}
+
 function getDefaultThemeResult(fallbackThemeId, locationId = null) {
      const COLOR_SCHEMES = ['#3dbdd6', '#9acf87', '#c1adcc'];
      return {
@@ -342,6 +352,7 @@ function buildThemeResultFromAspenLiDATheme(result, themeId, locationId = null) 
           themeId,
           locationId,
           header: normalizedTheme.header,
+          baseMode: normalizeBaseMode(result.baseMode),
      };
 }
 
@@ -727,11 +738,13 @@ export async function getThemeInfo(url = null, locationId = null) {
                const themes = normalizeAspenLiDAThemesPayload(aspenLiDAThemesResponse.data.result.themes);
                await replaceStoredThemeCatalog(locationId, themes);
                if (themes.length > 0) {
-                    const { loadThemeState } = require('../db');
+                    const { loadUserThemePreference } = require('../db');
 
-                    const currentThemeState = await loadThemeState();
-                    const isSameLocationAsStored = currentThemeState?.locationId === resolvedLocationId;
-                    const selectedTheme = (isSameLocationAsStored && themes.find((theme) => theme.id === currentThemeState?.themeId)) || themes[0];
+                     const storedPreference = await loadUserThemePreference(resolvedLocationId);
+                    const preferredThemeId = storedPreference?.themeId != null ? Number(storedPreference.themeId) : null;
+
+                    const selectedTheme = (preferredThemeId != null && themes.find((theme) => Number(theme.id) === preferredThemeId)) || themes[0];
+
                     fallbackThemeInfoId = selectedTheme?.id ?? fallbackThemeInfoId;
 
                     const COLOR_GROUPS = [selectedTheme.primary, selectedTheme.secondary, selectedTheme.tertiary];
@@ -742,6 +755,7 @@ export async function getThemeInfo(url = null, locationId = null) {
                               themeId: selectedTheme.id,
                               locationId: resolvedLocationId,
                               header: selectedTheme.header ?? null,
+                              baseMode: normalizeBaseMode(selectedTheme.baseMode),
                          };
                     }
                     logWarnMessage(`AspenLiDA theme catalog themeId=${selectedTheme.id} is missing color data, falling back to getThemeInfo`);

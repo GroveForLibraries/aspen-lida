@@ -13,6 +13,23 @@ async function ensureUserStateRow(db, now, userId) {
      );
 }
 
+function normalizeIdentity(value) {
+     return value == null ? '' : String(value).trim().toLowerCase();
+}
+
+function resolveCachedIdentityCandidates(row = {}) {
+     const profile = safeParse(row.profile_json) ?? {};
+     return [
+          ['cat_username', row.cat_username],
+          ['ils_barcode', row.ils_barcode],
+          ['profile.cat_username', profile?.cat_username],
+          ['profile.ils_barcode', profile?.ils_barcode],
+          ['profile.username', profile?.username],
+          ['profile.ils_username', profile?.ils_username],
+          ['profile.unique_ils_id', profile?.unique_ils_id],
+     ];
+}
+
 // ─── user_state: targeted partial saves ──────────────────────────────────────
 
 /**
@@ -220,7 +237,7 @@ export async function findCachedUserIdForUsername(username) {
      if (!username) return null;
      // Case-insensitive: the typed/scanned login value doesn't reliably match the ILS's
      // stored casing for cat_username/ils_barcode.
-     const normalized = String(username).trim().toLowerCase();
+     const normalized = normalizeIdentity(username);
      if (!normalized) return null;
 
      const db = await getDb();
@@ -230,7 +247,37 @@ export async function findCachedUserIdForUsername(username) {
             LIMIT 1;`,
           [normalized, normalized]
      );
-     return row?.user_id ?? null;
+     if (row?.user_id != null) {
+          return row.user_id;
+     }
+
+     const fallbackRows = await db.getAllAsync(
+          `SELECT user_id, updated_at, cat_username, ils_barcode, profile_json
+             FROM user_state
+            WHERE user_id IS NOT NULL
+            ORDER BY updated_at DESC
+            LIMIT 25;`
+     );
+
+     for (const fallbackRow of fallbackRows) {
+          for (const [source, candidate] of resolveCachedIdentityCandidates(fallbackRow)) {
+               if (normalizeIdentity(candidate) === normalized) {
+                    logDebugMessage({
+                         event: 'findCachedUserIdForUsername:fallbackMatch',
+                         source,
+                         userId: fallbackRow.user_id,
+                    });
+                    return fallbackRow.user_id;
+               }
+          }
+     }
+
+     logDebugMessage({
+          event: 'findCachedUserIdForUsername:noMatch',
+          hasCachedUserRows: fallbackRows.length > 0,
+          cachedUserRowCount: fallbackRows.length,
+     });
+     return null;
 }
 
 // ─── user_state: read ─────────────────────────────────────────────────────────
