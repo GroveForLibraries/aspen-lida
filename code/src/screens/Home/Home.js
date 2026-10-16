@@ -319,7 +319,7 @@ export const DiscoverHomeScreen = () => {
                <FlatList
                     contentContainerStyle={{ paddingBottom: listBottomPadding }}
                     ListHeaderComponent={
-                         <Box className="py-[10px]">
+                         <Box>
                               {androidEndSupportMessage()}
                               {showSystemMessage()}
                               <FormControl className="px-2">
