@@ -315,7 +315,7 @@ export const DiscoverHomeScreen = () => {
      const listBottomPadding = insets.bottom + 96;
 
      return (
-          <ScreenContainer safeArea>
+          <ScreenContainer className="p-0 m-0 pt-2">
                <FlatList
                     contentContainerStyle={{ paddingBottom: listBottomPadding }}
                     ListHeaderComponent={

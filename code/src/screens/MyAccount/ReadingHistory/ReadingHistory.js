@@ -223,7 +223,7 @@ export const MyReadingHistory = () => {
                               </AccordionTrigger>
                          </AccordionHeader>
                          <AccordionContent className="p-0 pt-2 px-5" style={{ backgroundColor: 'transparent' }}>
-                              <Alert action="info">
+                              <Alert action="info" className="p-2">
                                    <AlertIcon action="info" className="mr-3" />
                                    <AlertText action="info" size="xs">
                                         {getTermFromDictionary(language, 'reading_history_disclaimer')}
@@ -440,15 +440,15 @@ export const MyReadingHistory = () => {
 
      return (
           <>
+               {systemMessagesForScreen.length > 0 ? <Box className="pt-2">{showSystemMessage()}</Box> : null}
                {user.trackReadingHistory === '1' ? getActionButtons() : null}
                {getDisclaimer()}
                {user.trackReadingHistory !== '1' || isLoading || fetchError ? (
-                    <ScreenContainer>
-                         {systemMessagesForScreen.length > 0 ? <Box className="p-2">{showSystemMessage()}</Box> : null}
+                    <ScreenContainer className="p-0 m-0 pt-2">
                          {user.trackReadingHistory !== '1' ? (
-                             <Box className="py-5">
-                                  <Button colorScheme="primary" onPress={optIn} isLoading={optingIn} isLoadingText={getTermFromDictionary(language, 'updating', true)}>
-                                       <ButtonText>{getTermFromDictionary(language, 'reading_history_opt_in')}</ButtonText>
+                              <Box className="py-5">
+                                   <Button colorScheme="primary" onPress={optIn} isLoading={optingIn} isLoadingText={getTermFromDictionary(language, 'updating', true)}>
+                                        <ButtonText>{getTermFromDictionary(language, 'reading_history_opt_in')}</ButtonText>
                                    </Button>
                               </Box>
                          ) : isLoading ? (
@@ -459,19 +459,7 @@ export const MyReadingHistory = () => {
                     </ScreenContainer>
                ) : (
                     <>
-                         {systemMessagesForScreen.length > 0 ? <Box className="p-2 px-4">{showSystemMessage()}</Box> : null}
-                         <FlatList
-                              data={pageHistory}
-                              ListEmptyComponent={Empty}
-                              ListFooterComponent={Paging}
-                              renderItem={renderReadingHistoryItem}
-                              keyExtractor={readingHistoryKeyExtractor}
-                              initialNumToRender={8}
-                              maxToRenderPerBatch={8}
-                              windowSize={5}
-                              removeClippedSubviews={Platform.OS !== 'ios'}
-                              contentContainerStyle={{ paddingBottom: 30, ...screenContentContainerStyle }}
-                         />
+                         <FlatList data={pageHistory} ListEmptyComponent={Empty} ListFooterComponent={Paging} renderItem={renderReadingHistoryItem} keyExtractor={readingHistoryKeyExtractor} initialNumToRender={8} maxToRenderPerBatch={8} windowSize={5} removeClippedSubviews={Platform.OS !== 'ios'} contentContainerStyle={{ paddingBottom: 30, ...screenContentContainerStyle }} />
                     </>
                )}
           </>

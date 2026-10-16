@@ -661,9 +661,9 @@ export const DrawerContent = (props) => {
 
                          {displayILSMessages()}
 
-                         <Divider className="my-3" />
+                         <Divider />
 
-                         <VStack key={`drawer-menu-${language}-${dictionaryUpdatedAt}`} className="flex-1">
+                         <VStack key={`drawer-menu-${language}-${dictionaryUpdatedAt}`} className="flex-1 gap-4">
                               <Checkouts />
                               <Holds />
                               <UserLists />
@@ -675,7 +675,7 @@ export const DrawerContent = (props) => {
                               <Events />
                               <Campaigns />
 
-                              <Divider className="my-2" />
+                              <Divider />
 
                               <UserProfile />
                               <LinkedAccounts />
@@ -708,9 +708,9 @@ const UserProfileOverview = () => {
      const icon = library.logoApp ?? library.favicon ?? Constants.expoConfig.ios.icon;
 
      return (
-          <Box className="px-3">
+          <Box className="pt-2">
                <HStack space="md" alignItems="center">
-                    <Image source={icon} alt={getTermFromDictionary(language, 'library_card')} className="rounded-md" style={{ width: 42, height: 42 }} />
+                    <Image source={icon} alt={getTermFromDictionary(language, 'library_card')} className="rounded-md" style={{ width: 32, height: 32 }} />
                     <Box className="ml-3">
                          {user.displayName ? (
                               <Text numberOfLines={1} className="max-w-[175px] font-bold" size="md">
@@ -747,7 +747,7 @@ const Checkouts = () => {
 
      return (
           <Pressable
-               className="px-2 py-2 rounded-md"
+               className="rounded-md"
                onPress={() => {
                     navigateStack('AccountScreenTab', 'MyCheckouts', {
                          libraryUrl: library.baseUrl,
@@ -783,7 +783,7 @@ const Holds = () => {
 
      return (
           <Pressable
-               className="px-2 py-2 rounded-md"
+               className="rounded-md"
                onPress={() => {
                     navigateStack('AccountScreenTab', 'MyHolds', {
                          libraryUrl: library.baseUrl,
@@ -819,7 +819,7 @@ const UserLists = () => {
 
      return (
           <Pressable
-               className="px-2 py-2 rounded-md"
+               className="rounded-md"
                onPress={() => {
                     navigateStack('AccountScreenTab', 'MyLists', {
                          libraryUrl: library.baseUrl,
@@ -852,7 +852,7 @@ const SavedSearches = () => {
 
      return (
           <Pressable
-               className="px-2 py-2 rounded-md"
+               className="rounded-md"
                onPress={() => {
                     navigateStack('AccountScreenTab', 'MySavedSearches', {
                          libraryUrl: library.baseUrl,
@@ -888,7 +888,7 @@ const ReadingHistory = () => {
 
      return (
           <Pressable
-               className="px-2 py-2 rounded-md"
+               className="rounded-md"
                onPress={() => {
                     navigateStack('AccountScreenTab', 'MyReadingHistory', {
                          libraryUrl: library.baseUrl,
@@ -917,7 +917,7 @@ const UserProfile = () => {
 
      return (
           <Pressable
-               className="px-2 py-2"
+               className="rounded-md"
                onPress={() => {
                     navigateStack('AccountScreenTab', 'MyProfile', {
                          libraryUrl: library.baseUrl,
@@ -940,7 +940,7 @@ const NotificationHistory = () => {
      if (library.displayIlsInbox === '1' || library.displayIlsInbox === 1 || library.displayIlsInbox === true) {
           return (
                <Pressable
-                    className="px-2 py-2"
+                    className="rounded-md"
                     onPress={() => {
                          navigateStack('AccountScreenTab', 'MyNotificationHistory', {
                               hasPendingChanges: false });
@@ -967,7 +967,7 @@ const LinkedAccounts = () => {
      if (library.allowLinkedAccounts === '1') {
           return (
                <Pressable
-                    className="px-2 py-2"
+                    className="rounded-md"
                     onPress={() =>
                          navigateStack('AccountScreenTab', 'MyLinkedAccounts', {
                               libraryUrl: library.baseUrl,
@@ -998,7 +998,7 @@ const AlternateLibraryCard = () => {
      if (shouldShowAlternateLibraryCard === '1' || shouldShowAlternateLibraryCard === 1) {
           return (
                <Pressable
-                    className="px-2 py-2 rounded-md"
+                    className="rounded-md"
                     onPress={() => {
                          navigateStack('LibraryCardTab', 'MyAlternateLibraryCard', {
                               prevRoute: 'AccountDrawer',
@@ -1037,7 +1037,7 @@ const Fines = () => {
 
      if (shouldShowFines) {
           return (
-               <Pressable className="px-2 py-2 rounded-md" onPress={async () => await passUserToDiscovery(library.baseUrl, 'Fines', user.id, backgroundColor, textColor)}>
+               <Pressable className="rounded-md" onPress={async () => await passUserToDiscovery(library.baseUrl, 'Fines', user.id, backgroundColor, textColor)}>
                     <HStack space="xs" alignItems="center">
                          <MaterialIcons name="chevron-right" size={20} color={neutrals.actionableIndicator} />
                          <VStack>
@@ -1066,7 +1066,7 @@ const Events = () => {
      if (library.hasEventSettings) {
           return (
                <Pressable
-                    className="px-2 py-2 rounded-md"
+                    className="rounded-md"
                     onPress={() => {
                          navigateStack('AccountScreenTab', 'MyEvents', {
                               libraryUrl: library.baseUrl,
@@ -1107,7 +1107,7 @@ const YearInReview = () => {
 
      if (shouldShowYearInReview) {
           return (
-               <Pressable className="px-2 py-2 rounded-md" onPress={async () => await passUserToDiscovery(library.baseUrl, 'YearInReview', user.id, backgroundColor, textColor)}>
+               <Pressable className="rounded-md" onPress={async () => await passUserToDiscovery(library.baseUrl, 'YearInReview', user.id, backgroundColor, textColor)}>
                     <HStack space="xs" alignItems="center">
                          <MaterialIcons name="chevron-right" size={20} color={neutrals.actionableIndicator} />
                          <VStack>
@@ -1133,7 +1133,7 @@ const Campaigns = () => {
      if (library.hasCommunityEngagementEnabled) {
           return(
                <Pressable
-                    className="px-2 py-2 rounded-md"
+                    className="rounded-md"
                     onPress={() =>
                          navigateStack('AccountScreenTab', 'MyCampaigns', {
                               libraryUrl: library.baseUrl,

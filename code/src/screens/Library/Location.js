@@ -92,33 +92,36 @@ export const Location = () => {
                                         style={{
                                              width: '100%',
                                              height: 200,
-                                             borderRadius: "$sm",
-                                             zIndex: -1 }}
+                                             borderRadius: '$sm',
+                                             zIndex: -1,
+                                        }}
                                         placeholder={blurhash}
                                         transition={1000}
                                         contentFit="cover"
                                    />
                               </>
                          ) : null}
-                         <Box style={{ zIndex: 200 }} className="mx-4">
+                         <Box style={{ zIndex: 200 }} className="pt-2">
                               {showSystemMessage()}
-                              {library.displayName !== location.displayName ? <Heading className="mb-2">{location.displayName}</Heading> : <Heading className="mb-1">{library.displayName}</Heading>}
-                              {location.address ? <Text>{location.address}</Text> : null}
-                              {location.phone ? (
-                                   <Text>
-                                        {getTermFromDictionary(language, 'phone')}: {location.phone}
-                                   </Text>
-                              ) : null}
-                              {hasHours ? (
-                                   <Badge colorScheme={isClosedToday ? 'error' : 'success'} className="self-start">
-                                        <BadgeText colorScheme={isClosedToday ? 'error' : 'success'} style={{ color: textColor }}>
-                                             {hoursLabel}
-                                        </BadgeText>
-                                   </Badge>
-                              ) : null}
+                              <Box className="mx-4 pt-2">
+                                   {library.displayName !== location.displayName ? <Heading className="mb-2">{location.displayName}</Heading> : <Heading className="mb-1">{library.displayName}</Heading>}
+                                   {location.address ? <Text>{location.address}</Text> : null}
+                                   {location.phone ? (
+                                        <Text>
+                                             {getTermFromDictionary(language, 'phone')}: {location.phone}
+                                        </Text>
+                                   ) : null}
+                                   {hasHours ? (
+                                        <Badge colorScheme={isClosedToday ? 'error' : 'success'} className="self-start">
+                                             <BadgeText colorScheme={isClosedToday ? 'error' : 'success'}>
+                                                  {hoursLabel}
+                                             </BadgeText>
+                                        </Badge>
+                                   ) : null}
+                              </Box>
                          </Box>
                          <DisplayMap data={location} />
-                         <Box className="mx-4" >
+                         <Box className="mx-4">
                               <ContactButtons data={location} />
                               {hasHours ? <Hours data={location} /> : null}
                               <AdditionalInformation data={location} />
@@ -126,7 +129,7 @@ export const Location = () => {
                                    <>
                                         <Divider className="mt-5 mb-2" />
                                         <Button size="sm" onPress={selectLocations} colorScheme="primary">
-                                            <ButtonText>{getTermFromDictionary(language, 'view_all_locations')}</ButtonText>
+                                             <ButtonText>{getTermFromDictionary(language, 'view_all_locations')}</ButtonText>
                                         </Button>
                                    </>
                               ) : null}

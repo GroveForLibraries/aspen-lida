@@ -373,9 +373,9 @@ export const MyLists = () => {
 
      return (
           <>
-               <Box className="px-4 py-2 flex-nowrap" style={{ backgroundColor: panelBg }}>
+               <Box className="py-2 flex-nowrap" style={{ backgroundColor: panelBg }}>
                     {showSystemMessage()}
-                    <ScrollView horizontal>
+                    <ScrollView horizontal className="px-2">
                          <ButtonGroup space="sm">
                               <CreateList setLoading={setLoading} />
                               <CreateListGroup setLoading={setLoading} updateSelectedListGroup={updateSelectedListGroup} />

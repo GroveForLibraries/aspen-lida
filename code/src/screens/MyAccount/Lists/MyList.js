@@ -383,7 +383,7 @@ export const MyList = ({ route }) => {
 
           return (
                <Box
-                    className="px-4 py-2"
+                    className="p-2"
                     style={{ backgroundColor: panelBg, borderBottomWidth: 1, borderColor, flexWrap: 'nowrap' }}>
                     <ScrollView horizontal>
                          <HStack space="sm">
@@ -434,7 +434,7 @@ export const MyList = ({ route }) => {
 
      return (
           <>
-               {systemMessagesForScreen.length > 0 ? <Box className="p-2">{showSystemMessage()}</Box> : null}
+               {systemMessagesForScreen.length > 0 ? <Box className="pt-2">{showSystemMessage()}</Box> : null}
                {!isLoading && !fetchError ? getActionButtons() : null}
                {isLoading ? <ScreenContainer>{loadingSpinner()}</ScreenContainer> : fetchError ? <ScreenContainer>{loadError('Error', '')}</ScreenContainer> : <FlatList className="pb-25" contentContainerStyle={screenContentContainerStyle} data={listData.listTitles} ListFooterComponent={Paging} renderItem={({ item }) => renderItem(item, library.baseUrl)} keyExtractor={(item, index) => index.toString()} />}
           </>
