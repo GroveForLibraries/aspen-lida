@@ -132,11 +132,15 @@ export const EventScreen = () => {
 const DisplayEvent = (payload) => {
      const event = payload.data;
      const hasValidImage = payload.hasValidImage;
+     let isNativeEvent = false;
      const route = useRoute();
      const source = route.params.source;
      const language = useActiveLanguage();
      const { textColor, neutralPairs, neutrals } = useTheme();
      const backgroundColor = neutrals.surface;
+     if(event.id && event.id.startsWith('aspenEvent_')) {
+          isNativeEvent = true;
+     }
      const openLink = async () => {
           const browserParams = {
                enableDefaultShareMenuItem: false,
@@ -183,17 +187,7 @@ const DisplayEvent = (payload) => {
                {event.cover ? <Box style={{ height: 125, width: '100%', backgroundColor, zIndex: -1, position: 'absolute', left: 0, top: 0 }} /> : null}
                <Box className="py-5 w-full">
                     <Center style={{ marginTop: event.cover ? 20 : 0, width: '100%' }}>
-                         {event.cover ? (
-                              <Image
-                                   alt={event.title}
-                                   source={event.cover}
-                                   className="rounded-lg"
-                                   style={{ width: '100%', height: 150.0 }}
-                                   placeholder={blurhash}
-                                   transition={1000}
-                                   contentFit="cover"
-                              />
-                         ) : null}
+                         {event.cover ? <Image alt={event.title} source={event.cover} className="rounded-lg" style={{ width: '100%', height: 150.0 }} placeholder={blurhash} transition={1000} contentFit="cover" /> : null}
                          <EventTitle title={event.title} hasCoverImage={hasValidImage} />
                     </Center>
                     <VStack divider={<Divider />}>
@@ -204,9 +198,11 @@ const DisplayEvent = (payload) => {
                     {event.inUserEvents ? <InYourEvents /> : <AddToYourEvents id={event.id} source={source} />}
                     <HStack space="sm" className="justify-between">
                          {event.canAddToList ? <AddToList source="Events" itemId={event.id} btnStyle="reg" btnWidth="48%" /> : null}
-                         {event.url ? <Button style={{ backgroundColor: neutralPairs.surface.light, width: event.canAddToList ? '49%' : '100%' }} onPress={() => openLink()}>
-                              <ButtonText style={{ color: neutralPairs.textMain.light }}>{getTermFromDictionary(language, 'more_info')}</ButtonText>
-                         </Button>: null}
+                         {event.url && !isNativeEvent ? (
+                              <Button style={{ backgroundColor: neutralPairs.surface.light, width: event.canAddToList ? '49%' : '100%' }} onPress={() => openLink()}>
+                                   <ButtonText style={{ color: neutralPairs.textMain.light }}>{getTermFromDictionary(language, 'more_info')}</ButtonText>
+                              </Button>
+                         ) : null}
                     </HStack>
                     <EventDescription description={event.description} />
                     <HStack space="lg" className="justify-between mt-5 flex-wrap">
