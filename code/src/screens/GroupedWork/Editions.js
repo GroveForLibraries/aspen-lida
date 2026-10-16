@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/ThemedMaterialIcons';
 import { useNavigation } from '@react-navigation/native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -141,6 +141,8 @@ export const Editions = () => {
 
      const records = data?.records ? (Array.isArray(data.records) ? data.records : Object.values(data.records)) : [];
 
+     const holdItems = holdSelectItemResponse?.items ? (Array.isArray(holdSelectItemResponse.items) ? holdSelectItemResponse.items : Object.values(holdSelectItemResponse.items)) : [];
+
      return (
           <ScreenContainer>
                <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}>
@@ -191,7 +193,7 @@ export const Editions = () => {
                     </Box>
                </ScrollView>
                <Center>
-                    <Modal leastDestructiveRef={cancelResponseRef} isOpen={responseIsOpen} onClose={onResponseClose} size="md">
+                    <Modal useRNModal leastDestructiveRef={cancelResponseRef} isOpen={responseIsOpen} onClose={onResponseClose} size="md">
                          <ModalBackdrop />
                          <ModalContent>
                               <ModalHeader>
@@ -217,7 +219,7 @@ export const Editions = () => {
                               </ModalFooter>
                          </ModalContent>
                     </Modal>
-                    <Modal leastDestructiveRef={cancelHoldConfirmationRef} isOpen={holdConfirmationIsOpen} onClose={onHoldConfirmationClose} size="md">
+                    <Modal useRNModal leastDestructiveRef={cancelHoldConfirmationRef} isOpen={holdConfirmationIsOpen} onClose={onHoldConfirmationClose} size="md">
                          <ModalBackdrop />
                          <ModalContent>
                               <ModalHeader>
@@ -267,7 +269,7 @@ export const Editions = () => {
                               </ModalFooter>
                          </ModalContent>
                     </Modal>
-                    <Modal leastDestructiveRef={cancelHoldItemSelectRef} isOpen={holdItemSelectIsOpen} onClose={onHoldItemSelectClose} size="md">
+                    <Modal useRNModal leastDestructiveRef={cancelHoldItemSelectRef} isOpen={holdItemSelectIsOpen} onClose={onHoldItemSelectClose} size="md">
                          <ModalBackdrop />
                          <ModalContent>
                               <ModalHeader>
@@ -283,23 +285,18 @@ export const Editions = () => {
                                              <SelectTrigger>
                                                   <SelectInput placeholder="Select option" />
                                              </SelectTrigger>
-                                             <SelectPortal>
+                                             <SelectPortal useRNModal={true}>
                                                   <SelectBackdrop />
                                                   <SelectContent>
                                                        <SelectDragIndicatorWrapper>
                                                             <SelectDragIndicator />
                                                        </SelectDragIndicatorWrapper>
                                                        <SelectScrollView>
-                                                            {(holdSelectItemResponse.items || []).map((item, index) => {
-                                                                 let itemLabel = "";
-                                                                 if (item.location) {
-                                                                      itemLabel = item.location + " - ";
-                                                                 }
+                                                            {holdItems.map((item, index) => {
+                                                                 let itemLabel = item.location ? `${item.location} - ` : '';
                                                                  itemLabel += item.callNumber;
-                                                                 if (item.status) {
-                                                                      itemLabel += " - " + item.status;
-                                                                 }
-                                                                 return <SelectItem label={itemLabel} value={item.itemNumber} key={index} selectedValue={selectedItem} />;
+                                                                 if (item.status) itemLabel += ` - ${item.status}`;
+                                                                 return <SelectItem label={itemLabel} value={item.itemNumber} key={item.itemNumber ?? index} />;
                                                             })}
                                                        </SelectScrollView>
                                                   </SelectContent>
@@ -319,24 +316,24 @@ export const Editions = () => {
                                              colorScheme="primary"
                                              onPress={async () => {
                                                   setPlacingItemHold(true);
-                                                  await placeHold(library.baseUrl, selectedItem, 'ils', holdSelectItemResponse.patronId, holdSelectItemResponse.pickupLocation, holdSelectItemResponse.sublocation, false, '', 'item', null, null, null, holdSelectItemResponse.bibId, language).then(async (result) => {
+                                                  try {
+                                                       const result = await placeHold(library.baseUrl, selectedItem, 'ils', holdSelectItemResponse.patronId, holdSelectItemResponse.pickupLocation, holdSelectItemResponse.sublocation, false, '', 'item', null, null, null, holdSelectItemResponse.bibId, language);
                                                        setResponse(result);
-                                                       queryClient.invalidateQueries({ queryKey: ['holds', holdSelectItemResponse.patronId, library.baseUrl, language] });
-                                                       await refreshProfile(library.baseUrl).then(async (data) => {
-                                                            if (data.ok) {
-                                                                 await updateUserProfile(data.data.result.profile);
-                                                            } else {
-                                                                 logWarnMessage('Could not refresh profile after placing item hold from edition selection.');
-                                                                 logDebugMessage(data);
-                                                                 getErrorMessage(data.code ?? 0, data.problem);
-                                                            }
-                                                       });
-                                                       setHoldItemSelectIsOpen(false);
-                                                       setPlacingItemHold(false);
-                                                       if (result) {
-                                                            setResponseIsOpen(true);
+                                                       queryClient.invalidateQueries({ queryKey: ['holds'] });
+                                                       const data = await refreshProfile(library.baseUrl);
+                                                       if (data.ok) {
+                                                            await updateUserProfile(data.data.result.profile);
+                                                       } else {
+                                                            logWarnMessage('Could not refresh profile after placing item hold from edition selection.');
                                                        }
-                                                  });
+                                                       setHoldItemSelectIsOpen(false);
+                                                       if (result) {
+                                                            setTimeout(() => setResponseIsOpen(true), 400);
+                                                       }
+                                                  } finally {
+                                                       setPlacingItemHold(false);
+                                                       setSelectedItem('');
+                                                  }
                                              }}>
                                              <ButtonText>{getTermFromDictionary(language, 'place_hold')}</ButtonText>
                                         </Button>
