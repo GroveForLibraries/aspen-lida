@@ -3,23 +3,8 @@ import * as SecureStore from 'expo-secure-store';
 import React from 'react';
 import { Image } from 'expo-image';
 import { getTermFromDictionary, ensureTranslationsLibraryHydrated, setTranslationsLibrary } from '../../translations/TranslationService';
-import { buildThemeForLibrary, useTheme, runExclusiveThemeInit } from '../../themes/theme';
-import {
-     loadAllLanguageData,
-     loadAllLibraryBranchData,
-     loadAllLibrarySystemData,
-     loadAllUserData,
-     loadLibraryUrl,
-     loadLocation,
-     loadThemeState,
-     saveThemeState,
-     setCurrentUserId,
-     setCurrentLocationId,
-     setCurrentLibraryId,
-     findCachedUserIdForUsername,
-     backfillLegacyUserId,
-     backfillLegacyBrowseCategoryScope,
-} from '../../util/db';
+import { buildThemeForLibrary, useTheme, runExclusiveThemeInit, resolveColorModeForTheme, loadPreferredThemeConfigForLocation } from '../../themes/theme';
+import { loadAllLanguageData, loadAllLibraryBranchData, loadAllLibrarySystemData, loadAllUserData, loadLibraryUrl, loadLocation, loadThemeState, saveThemeState, setCurrentUserId, setCurrentLocationId, setCurrentLibraryId, findCachedUserIdForUsername, backfillLegacyUserId, backfillLegacyBrowseCategoryScope } from '../../util/db';
 import { isPlainObject, parseStoredNumber } from '../../helpers/helpers';
 import { GLOBALS, LIBRARY } from '../../util/globals';
 import { logDebugMessage, logErrorMessage } from '../../util/logging';
@@ -341,8 +326,19 @@ export const SplashScreen = ({ shouldInitializeTheme = false, forceRefreshTheme 
                          const persistedLibraryUrl = await loadLibraryUrl();
                          const themeUrl = LIBRARY.url || persistedLibraryUrl || GLOBALS.url || Constants.expoConfig.extra.apiUrl;
 
+                         const preferredTheme = await loadPreferredThemeConfigForLocation(currentLocationId);
+
                          if (!themeUrl) {
-                              logDebugMessage('Splash theme init: no URL available yet, applying cached theme if present and leaving defaults otherwise');
+                              logDebugMessage('Splash theme init: no URL available yet, resolving theme from stored catalog + user preference if available');
+                              if (preferredTheme) {
+                                   const resolvedMode = resolveColorModeForTheme(preferredTheme.baseMode, mode);
+                                   await updateTheme(preferredTheme.theme, preferredTheme.themeId, currentLocationId, preferredTheme.header);
+                                   if (resolvedMode !== mode) {
+                                        await updateColorMode(resolvedMode);
+                                   }
+                                   return;
+                              }
+
                               if (currentThemeState?.themeColors?.primary && currentThemeState?.themeColors?.secondary && currentThemeState?.themeColors?.tertiary) {
                                    await updateTheme({
                                         tokens: {
@@ -353,18 +349,40 @@ export const SplashScreen = ({ shouldInitializeTheme = false, forceRefreshTheme 
                               return;
                          }
 
+                         if (preferredTheme && !forceRefreshTheme) {
+                              logDebugMessage(`Splash theme init: using stored preferred theme themeId=${preferredTheme.themeId}`);
+                              const resolvedMode = resolveColorModeForTheme(preferredTheme.baseMode, mode);
+                              await saveThemeState({
+                                   themeId: preferredTheme.themeId,
+                                   locationId: currentLocationId,
+                                   colorMode: resolvedMode,
+                                   textColor: resolvedMode === 'dark' ? 'textLight50' : 'textLight950',
+                                   themeColors: preferredTheme.themeColors,
+                                   header: preferredTheme.header,
+                              });
+                              await updateTheme(preferredTheme.theme, preferredTheme.themeId, currentLocationId, preferredTheme.header);
+                              if (resolvedMode !== mode) {
+                                   await updateColorMode(resolvedMode);
+                              }
+                              return;
+                         }
+
                          logDebugMessage(`Splash theme init: fetching theme from API url=${themeUrl} forceRefresh=${forceRefreshTheme}`);
                          const builtTheme = await buildThemeForLibrary(themeUrl, currentLocationId);
+                         const resolvedMode = resolveColorModeForTheme(builtTheme.baseMode, mode);
                          await saveThemeState({
                               themeId: builtTheme.themeId,
                               locationId: builtTheme.locationId,
-                              colorMode: mode,
-                              textColor: mode === 'dark' ? 'textLight50' : 'textLight950',
+                              colorMode: resolvedMode,
+                              textColor: resolvedMode === 'dark' ? 'textLight50' : 'textLight950',
                               themeColors: builtTheme.themeColors,
                               header: builtTheme.header,
                          });
-                         logDebugMessage(`Splash theme init: saved fetched theme themeId=${builtTheme.themeId}`);
+                         logDebugMessage(`Splash theme init: saved fetched theme themeId=${builtTheme.themeId} mode=${resolvedMode}`);
                          await updateTheme(builtTheme.theme, builtTheme.themeId, builtTheme.locationId, builtTheme.header);
+                         if (resolvedMode !== mode) {
+                              await updateColorMode(resolvedMode);
+                         }
                          logDebugMessage('Splash theme init: complete');
                     });
                } catch (error) {

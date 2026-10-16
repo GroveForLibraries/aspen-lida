@@ -24,7 +24,7 @@ import { GLOBALS } from '@/src/util/globals';
 import { useNavigation } from '@react-navigation/native';
 import { logDebugMessage, logErrorMessage, dumpSQLiteTable} from '@/src/util/logging';
 import { useActiveLanguage, useAllLanguageData, useLanguageUserStateQuery, useUpdateAvailableLanguages, useUpdateDictionary } from '@/src/hooks/useLanguageData';
-import { buildThemeForLibrary, useTheme } from '@/src/themes/theme';
+import { buildThemeForLibrary, resolveColorModeForTheme, useTheme } from '@/src/themes/theme';
 import { useAllLibrarySystemData, useLibraryQuery } from '@/src/hooks/useLibrarySystemData';
 import { useAllLibraryBranchData, useLibraryLocationQuery } from '@/src/hooks/useLibraryBranchData';
 import { useThemeStateQuery } from '@/src/hooks/useThemeData';
@@ -74,7 +74,7 @@ export const SupportScreen = () => {
      const activeLanguage = useActiveLanguage();
      const updateLanguages = useUpdateAvailableLanguages();
      const updateDictionary = useUpdateDictionary();
-     const { neutralPairs, textColor, colorMode } = useTheme();
+     const { neutralPairs, textColor, colorMode, updateColorMode } = useTheme();
      const mutedTextColor = colorMode === 'light' ? neutralPairs.textMuted.light : neutralPairs.white;
      const [refreshingCache, setRefreshingCache] = React.useState({});
      const [dumpingCache, setDumpingCache] = React.useState({});
@@ -288,12 +288,18 @@ export const SupportScreen = () => {
                     logDebugMessage('Theme cache refresh triggered from Support screen');
                     const themeResponse = await buildThemeForLibrary(libraryUrl);
                     if (themeResponse) {
+                         const resolvedMode = resolveColorModeForTheme(themeResponse.baseMode, colorMode);
                          await saveThemeState({
                               themeId: themeResponse.themeId,
-                              colorMode: colorMode === 'dark' ? 'dark' : 'light',
-                             textColor: colorMode === 'dark' ? '#e5e7eb' : '#57534e',
+                              locationId: themeResponse.locationId,
+                              colorMode: resolvedMode,
+                              textColor: resolvedMode === 'dark' ? '#e5e7eb' : '#57534e',
                               themeColors: themeResponse.themeColors,
+                              header: themeResponse.header,
                          });
+                         if (resolvedMode !== colorMode) {
+                              await updateColorMode(resolvedMode);
+                         }
                     }
                }
 
@@ -322,7 +328,7 @@ export const SupportScreen = () => {
                     setRefreshingCache((prev) => ({ ...prev, [cacheKey]: false }));
                }
           },
-          [activeLanguage, allLanguageDataQuery, allLibraryBranchDataQuery, allLibrarySystemDataQuery, browseCategoryDataQuery, library, library?.barcodeStyle, libraryId, libraryUrl, themeStateQuery, updateDictionary, updateLanguages, userStateQuery]
+          [activeLanguage, allLanguageDataQuery, allLibraryBranchDataQuery, allLibrarySystemDataQuery, browseCategoryDataQuery, colorMode, library, library?.barcodeStyle, libraryId, libraryUrl, themeStateQuery, updateColorMode, updateDictionary, updateLanguages, userStateQuery]
      );
 
      const cacheItems = [

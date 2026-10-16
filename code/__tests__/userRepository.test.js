@@ -209,8 +209,26 @@ describe('userRepository', () => {
                expect(mockDb.getFirstAsync).not.toHaveBeenCalled();
           });
 
+          it('falls back to cached profile_json identity fields when direct column lookup misses', async () => {
+               mockDb.getFirstAsync.mockResolvedValueOnce(null);
+               mockDb.getAllAsync.mockResolvedValueOnce([
+                    {
+                         user_id: 42,
+                         cat_username: null,
+                         ils_barcode: null,
+                         profile_json: JSON.stringify({ username: 'JaneDoe123' }),
+                    },
+               ]);
+
+               const result = await findCachedUserIdForUsername(' janedoe123 ');
+
+               expect(result).toBe(42);
+               expect(mockDb.getAllAsync).toHaveBeenCalledWith(expect.stringContaining('FROM user_state'));
+          });
+
           it('returns null when no row matches', async () => {
                mockDb.getFirstAsync.mockResolvedValueOnce(null);
+               mockDb.getAllAsync.mockResolvedValueOnce([]);
                expect(await findCachedUserIdForUsername('unknown')).toBeNull();
           });
      });
