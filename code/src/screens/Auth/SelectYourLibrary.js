@@ -68,6 +68,8 @@ export const SelectYourLibrary = (payload) => {
      }
 
      const filteredLibraries = FilteredLibraries(libraries);
+     const hasSearchQuery = !isEmpty(query) && query.trim() !== '';
+     const hasNoResults = hasSearchQuery && filteredLibraries.length === 0;
 
      if (libraries.length === 0 && allLibraries.length === 0)
      {
@@ -89,8 +91,9 @@ export const SelectYourLibrary = (payload) => {
                     <ModalContent
                          style={{
                               backgroundColor: surfaceBg,
-                              height: filteredLibraries.length === 0 ? 'auto' : isKeyboardOpen ? '65%' : '80%',
-                              maxHeight: filteredLibraries.length === 0 ? 400 : undefined,
+                              height: isKeyboardOpen ? '65%' : '80%',
+                              maxHeight: 500,
+                              minHeight: hasNoResults ? 260 : undefined,
                               marginTop: isKeyboardOpen ? insets.top + 16 : undefined,
                          }}
                     >
@@ -100,7 +103,7 @@ export const SelectYourLibrary = (payload) => {
                                    <CloseIcon />
                               </ModalCloseButton>
                          </ModalHeader>
-                         <ModalBody className="flex-1" scrollEnabled={true}>
+                         <ModalBody className="flex-1" scrollEnabled={true} style={{ minHeight: hasNoResults ? 180 : undefined }}>
                               <Box className="p-2" style={{ paddingBottom: query ? 0 : 5 }}>
                                    <Input style={{ borderColor }}>
                                         <InputField
@@ -111,24 +114,30 @@ export const SelectYourLibrary = (payload) => {
                                              onChangeText={(text) => setQuery(text)}
                                         />
                                         {query ? <InputSlot onPress={() => clearSearch()}>
-                                            <MaterialCommunityIcons name="close-circle" size={20} className="mr-2" />
+                                            <MaterialCommunityIcons name="close-circle" size={20} />
                                         </InputSlot> : null}
                                    </Input>
                               </Box>
-                              <VStack>
-                                   {filteredLibraries.map((item, index) => (
-                                        <Item
-                                             key={index}
-                                             data={item}
-                                             isCommunity={isCommunity}
-                                             setShowModal={setShowModal}
-                                             updateSelectedLibrary={updateSelectedLibrary}
-                                             textColor={textColor}
-                                             colorMode={colorMode}
-                                             neutralPairs={neutralPairs}
-                                        />
-                                   ))}
-                              </VStack>
+                              {hasNoResults ? (
+                                   <VStack className="items-center justify-center px-4 py-6" space="sm" style={{ minHeight: 120 }}>
+                                        <Text size="sm" style={{ opacity: 0.7 }}>No libraries match your search.</Text>
+                                   </VStack>
+                              ) : (
+                                   <VStack>
+                                        {filteredLibraries.map((item, index) => (
+                                             <Item
+                                                  key={index}
+                                                  data={item}
+                                                  isCommunity={isCommunity}
+                                                  setShowModal={setShowModal}
+                                                  updateSelectedLibrary={updateSelectedLibrary}
+                                                  textColor={textColor}
+                                                  colorMode={colorMode}
+                                                  neutralPairs={neutralPairs}
+                                             />
+                                        ))}
+                                   </VStack>
+                              )}
                          </ModalBody>
                     </ModalContent>
                 </Modal>
