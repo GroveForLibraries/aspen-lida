@@ -4,7 +4,7 @@ import { Checkbox, CheckboxGroup, CheckboxIcon, CheckboxIndicator, CheckboxLabel
 // `defaultIsChecked`, and CheckboxGroup value-membership alike.
 import { useCheckbox } from '@gluestack-ui/core/lib/esm/checkbox/creator/CheckboxProvider';
 import { ThemedMaterialIcons as MaterialIcons } from './ThemedMaterialIcons';
-import { useTheme } from '../../themes/theme';
+import { TOKENS, useTheme } from '../../themes/theme';
 
 // Per-size Tailwind classes for the indicator box, its check icon, and the label text,
 // keyed by the `size` prop ('sm' | 'md' | 'lg').
@@ -47,10 +47,12 @@ export const ThemedCheckboxIndicator = React.forwardRef(({ className, style, ...
      const size = React.useContext(CheckboxSizeContext);
      const { isChecked } = useCheckbox('CheckboxContext');
      const sizeStyle = resolveCheckboxSizeStyle(size);
-     const { textColor, neutrals } = useTheme();
+     const { neutrals, colorMode } = useTheme();
+     const inputColors = TOKENS.componentTokens.input[colorMode === 'dark' ? 'dark' : 'light'];
+
      const checkedStyle = isChecked
-          ? { borderColor: neutrals.border, backgroundColor: neutrals.surface }
-          : { borderColor: neutrals.border };
+          ? { borderColor: inputColors.borderDefault, backgroundColor: neutrals.surface }
+          : { borderColor: inputColors.borderDefault };
 
      return <CheckboxIndicator ref={ref} className={[sizeStyle.indicator, CHECKED_COLOR_NEUTRALIZER, className].filter(Boolean).join(' ')} style={[{ marginRight: 8 }, checkedStyle, style]} {...props} />;
 });

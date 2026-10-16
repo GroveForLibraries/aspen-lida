@@ -63,6 +63,7 @@ export const TOKENS = {
                darkText: '#272727',
                danger: '#ef4444',
                warning: '#f59e0b',
+               lightWarmGray: '#F3F4F6',
           },
      },
      semanticTokens: {
@@ -70,7 +71,7 @@ export const TOKENS = {
                canvas: '#F9FAFB', // Screen base background
                surface: '#FFFFFF', // Cards, Modals, Menus, Appbars
                surfaceMuted: '#F3F4F6', // List items, table headers
-               border: '#E5E7EB', // Dividers, borders
+               border: '#6b7280', // Dividers, borders
                textMain: '#1F2937', // Headings, primary typography
                textSecondary: '#374151', // Body paragraphs
                textMuted: '#6B7280', // Placeholders, captions
@@ -84,7 +85,7 @@ export const TOKENS = {
                canvas: '#111827',
                surface: '#1F2937',
                surfaceMuted: '#374151',
-               border: '#4B5563',
+               border: '#9ca3af',
                textMain: '#F9FAFB',
                textSecondary: '#E5E7EB',
                textMuted: '#9CA3AF',
@@ -103,8 +104,8 @@ export const TOKENS = {
                dark: { background: '#1F2937', borderTop: '#374151', inactiveTint: '#6B7280' },
           },
           input: {
-               light: { bg: 'transparent', text: '#111827', placeholder: '#9CA3AF', borderDefault: '#D1D5DB', borderInvalid: '#E11D48', bgDisabled: '#F3F4F6' },
-               dark: { bg: 'transparent', text: '#F9FAFB', placeholder: '#6B7280', borderDefault: '#374151', borderInvalid: '#FB7185', bgDisabled: '#1F2937' },
+               light: { bg: 'transparent', text: '#111827', placeholder: '#9CA3AF', borderDefault: '#6B7280', borderInvalid: '#E11D48', bgDisabled: '#F3F4F6' },
+               dark: { bg: 'transparent', text: '#F9FAFB', placeholder: '#6B7280', borderDefault: '#9ca3af', borderInvalid: '#FB7185', bgDisabled: '#1F2937' },
           },
      },
 };
