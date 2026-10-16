@@ -132,11 +132,15 @@ export const EventScreen = () => {
 const DisplayEvent = (payload) => {
      const event = payload.data;
      const hasValidImage = payload.hasValidImage;
+     let isNativeEvent = false;
      const route = useRoute();
      const source = route.params.source;
      const language = useActiveLanguage();
      const { textColor, neutralPairs, neutrals } = useTheme();
      const backgroundColor = neutrals.surface;
+     if(event.id && event.id.startsWith('aspenEvent_')) {
+          isNativeEvent = true;
+     }
      const openLink = async () => {
           const browserParams = {
                enableDefaultShareMenuItem: false,
@@ -183,17 +187,7 @@ const DisplayEvent = (payload) => {
                {event.cover ? <Box style={{ height: 125, width: '100%', backgroundColor, zIndex: -1, position: 'absolute', left: 0, top: 0 }} /> : null}
                <Box className="py-5 w-full">
                     <Center style={{ marginTop: event.cover ? 20 : 0, width: '100%' }}>
-                         {event.cover ? (
-                              <Image
-                                   alt={event.title}
-                                   source={event.cover}
-                                   className="rounded-lg"
-                                   style={{ width: '100%', height: 150.0 }}
-                                   placeholder={blurhash}
-                                   transition={1000}
-                                   contentFit="cover"
-                              />
-                         ) : null}
+                         {event.cover ? <Image alt={event.title} source={event.cover} className="rounded-lg" style={{ width: '100%', height: 150.0 }} placeholder={blurhash} transition={1000} contentFit="cover" /> : null}
                          <EventTitle title={event.title} hasCoverImage={hasValidImage} />
                     </Center>
                     <VStack divider={<Divider />}>
@@ -204,9 +198,11 @@ const DisplayEvent = (payload) => {
                     {event.inUserEvents ? <InYourEvents /> : <AddToYourEvents id={event.id} source={source} />}
                     <HStack space="sm" className="justify-between">
                          {event.canAddToList ? <AddToList source="Events" itemId={event.id} btnStyle="reg" btnWidth="48%" /> : null}
-                         <Button style={{ backgroundColor: neutralPairs.surface.light, width: event.canAddToList ? '49%' : '100%' }} onPress={() => openLink()}>
-                              <ButtonText style={{ color: neutralPairs.textMain.light }}>{getTermFromDictionary(language, 'more_info')}</ButtonText>
-                         </Button>
+                         {event.url && !isNativeEvent ? (
+                              <Button style={{ backgroundColor: neutralPairs.surface.light, width: event.canAddToList ? '49%' : '100%' }} onPress={() => openLink()}>
+                                   <ButtonText style={{ color: neutralPairs.textMain.light }}>{getTermFromDictionary(language, 'more_info')}</ButtonText>
+                              </Button>
+                         ) : null}
                     </HStack>
                     <EventDescription description={event.description} />
                     <HStack space="lg" className="justify-between mt-5 flex-wrap">
@@ -364,6 +360,7 @@ const AddToCalendar = ({ start, end, location, event }) => {
      const [modalBodyText, setModalBodyText] = React.useState('');
      const [modalBodyHeading, setModalBodyHeading] = React.useState('');
      const [calendarId, setCalendarId] = React.useState();
+     const calendarIdRef = React.useRef(null);
      const [confirmAdd, setConfirmAdd] = React.useState(false);
      const { neutralPairs, neutrals } = useTheme();
 
@@ -392,41 +389,83 @@ const AddToCalendar = ({ start, end, location, event }) => {
           displayEndTime = displayData.displayEndTime;
      }
 
+     const resetCalendarModal = () => {
+          setShowModal(false);
+          setConfirmAdd(false);
+          setModalBodyText('');
+          setModalBodyHeading('');
+          calendarIdRef.current = null;
+          setCalendarId(undefined);
+     };
+
+     const getOrCreateCalendarId = async () => {
+          const calendarTitle = location?.name ? location.name + ' Events' : 'Library Events';
+          const calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT);
+          const deviceCalendar = findByProperty(calendars, 'title', calendarTitle);
+
+          if (deviceCalendar?.id) {
+               return deviceCalendar.id;
+          }
+
+          if (Platform.OS === 'android') {
+               return Calendar.createCalendarAsync({
+                    title: calendarTitle,
+                    color: 'yellow',
+                    entityType: Calendar.EntityTypes.EVENT,
+                    source: {
+                         isLocalAccount: true,
+                         name: calendarTitle,
+                    },
+                    name: 'libraryCalendarEvents',
+                    ownerAccount: 'personal',
+                    accessLevel: Calendar.CalendarAccessLevel.OWNER,
+                    isSynced: true,
+               });
+          }
+
+          const defaultCalendar = await Calendar.getDefaultCalendarAsync();
+          if (defaultCalendar?.source) {
+               return Calendar.createCalendarAsync({
+                    title: calendarTitle,
+                    color: 'yellow',
+                    entityType: Calendar.EntityTypes.EVENT,
+                    sourceId: defaultCalendar.source.id,
+                    source: defaultCalendar.source,
+                    name: 'libraryCalendarEvents',
+               });
+          }
+
+          return defaultCalendar?.id ?? null;
+     };
+
      const handleAddToCalendar = async () => {
           const { status } = await Calendar.requestCalendarPermissionsAsync();
           if (status === 'granted') {
-               const defaultCalendarSource =
-                    Platform.OS !== 'android'
-                         ? await Calendar.getDefaultCalendarAsync()
-                         : {
-                                isLocalAccount: true,
-                                name: location.name + ' Events' };
+               try {
+                    const id = await getOrCreateCalendarId();
 
-               const calendars = await Calendar.getCalendarsAsync();
-
-               let id = null;
-                if (findByProperty(calendars, 'title', location.name + ' Events')) {
-                     const deviceCalendar = findByProperty(calendars, 'title', location.name + ' Events');
-                    id = deviceCalendar.id;
-               } else {
-                    id = await Calendar.createCalendarAsync({
-                         title: location.name + ' Events',
-                         color: 'yellow',
-                         entityType: Calendar.EntityTypes.EVENT,
-                         sourceId: defaultCalendarSource?.source?.id,
-                         source: defaultCalendarSource,
-                         name: 'libraryCalendarEvents',
-                         ownerAccount: 'personal',
-                         accessLevel: Calendar.CalendarAccessLevel.OWNER });
+                    if (id) {
+                         logInfoMessage('calendarId: ' + id);
+                         calendarIdRef.current = id;
+                         setCalendarId(id);
+                         setConfirmAdd(true);
+                         setModalBodyHeading(getTermFromDictionary(language, 'add_to_calendar'));
+                         setModalBodyText(getTermFromDictionary(language, 'add_to_calendar_body'));
+                    } else {
+                         setConfirmAdd(false);
+                         setModalBodyHeading(getTermFromDictionary(language, 'error'));
+                         setModalBodyText('Unable to access a device calendar.');
+                    }
+                    setShowModal(true);
+               } catch (e) {
+                    logErrorMessage(e);
+                    setConfirmAdd(false);
+                    setModalBodyHeading(getTermFromDictionary(language, 'error'));
+                    setModalBodyText(e?.message ?? 'Unable to access a device calendar.');
+                    setShowModal(true);
                }
-
-               logInfoMessage('calendarId: ' + calendarId);
-               setCalendarId(id);
-               setConfirmAdd(true);
-               setModalBodyHeading(getTermFromDictionary(language, 'add_to_calendar'));
-               setModalBodyText(getTermFromDictionary(language, 'add_to_calendar_body'));
-               setShowModal(true);
           } else {
+               setConfirmAdd(false);
                setModalBodyHeading(getTermFromDictionary(language, 'error'));
                setModalBodyText(getTermFromDictionary(language, 'event_no_permissions'));
                setShowModal(true);
@@ -434,30 +473,41 @@ const AddToCalendar = ({ start, end, location, event }) => {
      };
 
      const createCalendarEvent = async () => {
-          let eventLocation = location.name;
-          if (location.address) {
+          let eventLocation = location?.name ?? '';
+          if (location?.address) {
                eventLocation = eventLocation + ' ' + location.address;
           }
-          if (calendarId && startDate && endDate) {
-               try {
-                    await Calendar.createEventAsync(calendarId, {
-                         title: event.title,
-                         startDate,
-                         endDate,
-                         id: event.id,
-                         location: eventLocation,
-                         allDay: event.isAllDay ?? false,
-                         url: event.url }).then(async () => {
-                         return popAlert(
-                              getTermFromDictionary(language, 'added_successfully'),
-                              getTermFromDictionary(language, 'event_added_to_calendar'),
-                              'success'
-                         );
-                    });
-               } catch (e) {
-                   logDebugMessage(e);
-               }
+          const targetCalendarId = calendarIdRef.current ?? calendarId;
+
+          if (!targetCalendarId || !startDate || !endDate) {
+               popAlert(getTermFromDictionary(language, 'error'), 'Unable to add event to calendar.', 'error');
+               return false;
           }
+
+          try {
+               const createdEventId = await Calendar.createEventAsync(targetCalendarId, {
+                    title: event.title,
+                    startDate,
+                    endDate,
+                    location: eventLocation || undefined,
+                    allDay: event.isAllDay ?? false,
+                    url: event.url,
+               });
+
+               if (createdEventId) {
+                    popAlert(
+                         getTermFromDictionary(language, 'added_successfully'),
+                         getTermFromDictionary(language, 'event_added_to_calendar'),
+                         'success'
+                    );
+                    return true;
+               }
+          } catch (e) {
+               logErrorMessage(e);
+               popAlert(getTermFromDictionary(language, 'error'), e?.message ?? 'Unable to add event to calendar.', 'error');
+          }
+
+          return false;
      };
 
      return (
@@ -476,12 +526,12 @@ const AddToCalendar = ({ start, end, location, event }) => {
                          <MaterialIcons name="chevron-right" size={20} color={neutrals.actionableIndicator} />
                     </HStack>
                </Pressable>
-               <Modal isOpen={showModal} onClose={() => setShowModal(false)} closeOnOverlayClick={false} size="md">
+               <Modal isOpen={showModal} onClose={() => resetCalendarModal()} closeOnOverlayClick={false} size="md">
                     <ModalBackdrop />
                     <ModalContent style={{ maxWidth: '90%', backgroundColor: neutralPairs.surface.light }}>
                          <ModalHeader>
                               <Heading>{modalBodyHeading}</Heading>
-                              <ModalCloseButton onPress={() => { setShowModal(false); }}>
+                              <ModalCloseButton onPress={() => { resetCalendarModal(); }}>
                                    <CloseIcon />
                               </ModalCloseButton>
                          </ModalHeader>
@@ -492,24 +542,19 @@ const AddToCalendar = ({ start, end, location, event }) => {
                                         variant="outline"
                                        
                                         onPress={() => {
-                                             setShowModal(false);
-                                             setConfirmAdd(false);
-                                             setModalBodyText('');
-                                             setModalBodyHeading('');
+                                             resetCalendarModal();
                                         }}>
                                        <ButtonText>{getTermFromDictionary(language, 'close_window')}</ButtonText>
                                    </Button>
                                    {confirmAdd ? (
                                         <Button
                                             colorScheme="primary"
-                                            onPress={() =>
-                                                 createCalendarEvent().then((result) => {
-                                                      setShowModal(false);
-                                                       setConfirmAdd(false);
-                                                       setModalBodyText('');
-                                                       setModalBodyHeading('');
-                                                  })
-                                             }>
+                                            onPress={async () => {
+                                                 const wasAdded = await createCalendarEvent();
+                                                 if (wasAdded) {
+                                                      resetCalendarModal();
+                                                 }
+                                            }}>
                                            <ButtonText>{getTermFromDictionary(language, 'add_event')}</ButtonText>
                                         </Button>
                                    ) : null}
