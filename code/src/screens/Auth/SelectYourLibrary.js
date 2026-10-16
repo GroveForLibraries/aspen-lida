@@ -101,7 +101,7 @@ export const SelectYourLibrary = (payload) => {
                               </ModalCloseButton>
                          </ModalHeader>
                          <ModalBody className="flex-1" scrollEnabled={true}>
-                              <Box className="p-2" style={{ backgroundColor: surfaceMutedBg, paddingBottom: query ? 0 : 5 }}>
+                              <Box className="p-2" style={{ paddingBottom: query ? 0 : 5 }}>
                                    <Input style={{ borderColor }}>
                                         <InputField
                                              size="lg"
@@ -155,7 +155,7 @@ const Item = (data) => {
                               source={libraryIcon}
                               alt={library.name}
                               className="rounded-full"
-                              style={{ width: 40, height: 40 }}
+                              style={{ width: 26, height: 26 }}
                          />
                     ) : (
                          <Box
@@ -163,7 +163,7 @@ const Item = (data) => {
                               className="rounded-[999px]"
                          />
                     )}
-                    <VStack className="ml-3">
+                    <VStack>
                          <Text bold size="sm">
                               {library.name}
                          </Text>
