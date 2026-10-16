@@ -434,15 +434,9 @@ export const MyList = ({ route }) => {
 
      return (
           <>
+               {systemMessagesForScreen.length > 0 ? <Box className="p-2">{showSystemMessage()}</Box> : null}
                {!isLoading && !fetchError ? getActionButtons() : null}
-               {systemMessagesForScreen.length > 0 ? <ScreenContainer><Box className="p-2">{showSystemMessage()}</Box></ScreenContainer> : null}
-               {isLoading ? (
-                    <ScreenContainer>{loadingSpinner()}</ScreenContainer>
-               ) : fetchError ? (
-                    <ScreenContainer>{loadError('Error', '')}</ScreenContainer>
-               ) : (
-                    <FlatList className="pb-25" contentContainerStyle={screenContentContainerStyle} data={listData.listTitles} ListFooterComponent={Paging} renderItem={({ item }) => renderItem(item, library.baseUrl)} keyExtractor={(item, index) => index.toString()} />
-               )}
+               {isLoading ? <ScreenContainer>{loadingSpinner()}</ScreenContainer> : fetchError ? <ScreenContainer>{loadError('Error', '')}</ScreenContainer> : <FlatList className="pb-25" contentContainerStyle={screenContentContainerStyle} data={listData.listTitles} ListFooterComponent={Paging} renderItem={({ item }) => renderItem(item, library.baseUrl)} keyExtractor={(item, index) => index.toString()} />}
           </>
      );
 };
