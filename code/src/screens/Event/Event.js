@@ -204,9 +204,9 @@ const DisplayEvent = (payload) => {
                     {event.inUserEvents ? <InYourEvents /> : <AddToYourEvents id={event.id} source={source} />}
                     <HStack space="sm" className="justify-between">
                          {event.canAddToList ? <AddToList source="Events" itemId={event.id} btnStyle="reg" btnWidth="48%" /> : null}
-                         <Button style={{ backgroundColor: neutralPairs.surface.light, width: event.canAddToList ? '49%' : '100%' }} onPress={() => openLink()}>
+                         {event.url ? <Button style={{ backgroundColor: neutralPairs.surface.light, width: event.canAddToList ? '49%' : '100%' }} onPress={() => openLink()}>
                               <ButtonText style={{ color: neutralPairs.textMain.light }}>{getTermFromDictionary(language, 'more_info')}</ButtonText>
-                         </Button>
+                         </Button>: null}
                     </HStack>
                     <EventDescription description={event.description} />
                     <HStack space="lg" className="justify-between mt-5 flex-wrap">
