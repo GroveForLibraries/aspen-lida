@@ -157,7 +157,7 @@ export const AllLocations = () => {
                     <FlatList
                          ListHeaderComponent={
                               <>
-                                   {size(systemMessages) > 0 ? <Box className="p-2">{showSystemMessage()}</Box> : null}
+                                   {size(systemMessages) > 0 ? <Box className="pt-2">{showSystemMessage()}</Box> : null}
                                    {getActionButtons()}
                               </>
                          }

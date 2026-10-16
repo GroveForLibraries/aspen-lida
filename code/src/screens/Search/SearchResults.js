@@ -211,7 +211,7 @@ export const SearchResults = () => {
      const NoResults = () => {
           return (
                <>
-                    {systemMessagesForScreen.length > 0 ? <Box className="p-2">{showSystemMessage()}</Box> : null}
+                    {systemMessagesForScreen.length > 0 ? <Box className="pt-2">{showSystemMessage()}</Box> : null}
                     <Center className="flex-1">
                          <Heading className="pt-5">
                               {getTermFromDictionary(language, 'no_results')}
@@ -225,8 +225,8 @@ export const SearchResults = () => {
      };
 
      return (
-          <ScreenContainer safeArea style={{ flex: 1 }}>
-               {systemMessagesForScreen.length > 0 ? <Box className="p-2">{showSystemMessage()}</Box> : null}
+          <ScreenContainer className="flex m-0 p-0">
+               {systemMessagesForScreen.length > 0 ? <Box className="pt-2">{showSystemMessage()}</Box> : null}
                {status === 'loading' || isFetching ? (
                     <LoadingSpinner />
                ) : status === 'error' ? (
