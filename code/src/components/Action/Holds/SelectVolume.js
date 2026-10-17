@@ -7,7 +7,8 @@ import { ThemedFormControl as FormControl, ThemedFormControlLabelText as FormCon
 import { ThemedMaterialIcons as MaterialIcons } from '../../themed/ThemedMaterialIcons';
 import { ThemedRadio as Radio, ThemedRadioGroup as RadioGroup, ThemedRadioIcon as RadioIcon, ThemedRadioIndicator as RadioIndicator, ThemedRadioLabel as RadioLabel } from '../../themed/ThemedRadio';
 import { ThemedSelect as Select, ThemedSelectBackdrop as SelectBackdrop, ThemedSelectContent as SelectContent, ThemedSelectDragIndicator as SelectDragIndicator, ThemedSelectDragIndicatorWrapper as SelectDragIndicatorWrapper, ThemedSelectInput as SelectInput, ThemedSelectItem as SelectItem, ThemedSelectPortal as SelectPortal, ThemedSelectScrollView as SelectScrollView, ThemedSelectTrigger as SelectTrigger } from '../../themed/ThemedSelect';
-import { isEmpty } from '../../../helpers/helpers';
+import { isEmpty } from '@/src/helpers/helpers';
+import { getTermFromDictionary } from '@/src/translations/TranslationHelper';
 
 /**
  * SelectVolume component for selecting a volume for a library hold request.
@@ -16,7 +17,7 @@ import { isEmpty } from '../../../helpers/helpers';
  * @constructor
  */
 export const SelectVolume = (props) => {
-     const { id, volume, setVolume, showModal, promptForHoldType, holdType, setHoldType, language, url, textColor, brand } = props;
+     const { id, volume, setVolume, showModal, promptForHoldType, holdType, setHoldType, language, url, textColor, brand, neutrals } = props;
 
      const { status, data, error, isFetching } = useQuery({
           queryKey: ['volumes', id, url],
@@ -24,6 +25,7 @@ export const SelectVolume = (props) => {
           enabled: !!showModal,
      });
      const volumeOptions = Object.values(data ?? {});
+     const borderColor = neutrals.border;
 
      if (!isFetching && data && isEmpty(volume)) {
           let volumesKeys = Object.keys(data);
@@ -50,14 +52,14 @@ export const SelectVolume = (props) => {
                                              setVolume('');
                                         }}>
                                         <Radio value="item" size="sm" className="my-1">
-                                             <RadioIndicator className="mr-1">
-                                                  <RadioIcon as={MaterialIcons} name="circle" />
+                                             <RadioIndicator className="mr-1" style={{ borderColor }}>
+                                                  <RadioIcon as={MaterialIcons} name="circle" style={{ color: textColor }} />
                                              </RadioIndicator>
                                              <RadioLabel>{getTermFromDictionary(language, 'first_available')}</RadioLabel>
                                         </Radio>
                                         <Radio value="volume" size="sm" className="my-1">
-                                             <RadioIndicator className="mr-1">
-                                                  <RadioIcon as={MaterialIcons} name="circle" />
+                                             <RadioIndicator className="mr-1" style={{ borderColor }}>
+                                                  <RadioIcon as={MaterialIcons} name="circle" style={{ color: textColor }} />
                                              </RadioIndicator>
                                              <RadioLabel>{getTermFromDictionary(language, 'specific_volume')}</RadioLabel>
                                         </Radio>
@@ -86,9 +88,9 @@ export const SelectVolume = (props) => {
                                                  <SelectScrollView>
                                                        {volumeOptions.map((item, index) => {
                                                             if (item.volumeId === volume) {
-                                                                return <SelectItem label={item.label} value={item.volumeId} key={index} style={{ backgroundColor: brand.tertiary[300] }} textStyle={{ color: brand.tertiary['500-text'] }} />;
+                                                                return <SelectItem label={item.label} value={item.volumeId} key={index} selectedValue={volume} />;
                                                             }
-                                                            return <SelectItem label={item.label} value={item.volumeId} key={index} textStyle={{ color: textColor }} />;
+                                                            return <SelectItem label={item.label} value={item.volumeId} key={index} selectedValue={volume} />;
                                                        })}
                                                  </SelectScrollView>
                                             </SelectContent>

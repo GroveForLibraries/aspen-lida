@@ -50,6 +50,16 @@ const radioIconStyle = tva({
   },
 });
 
+const customRadioIconStyle = tva({
+  base: 'stroke-none fill-primary',
+});
+
+const customRadioIconSize = {
+  sm: 9,
+  md: 12,
+  lg: 16,
+} as const;
+
 const radioIndicatorStyle = tva({
   base: 'relative justify-center items-center aspect-square h-4 w-4 shrink-0 rounded-full border border-border  dark:bg-input/30 shadow-xs web:outline-none web:data-[focus-visible=true]:ring-[3px] web:data-[focus-visible=true]:ring-ring/50 web:data-[focus-visible=true]:border-ring data-[invalid=true]:ring-destructive/20 data-[invalid=true]:border-destructive data-[disabled=true]:cursor-not-allowed data-[disabled=true]:opacity-50',
   parentVariants: {
@@ -158,13 +168,28 @@ const RadioIcon = React.forwardRef<
   IRadioIconProps
 >(function RadioIcon({ className, size, ...props }, ref) {
   const { size: parentSize } = useStyleContext(SCOPE);
+  const iconProps = props as typeof props & { as?: React.ElementType };
+  const isCustomIcon = iconProps.as !== undefined;
+  const resolvedCustomIconSize =
+    isCustomIcon &&
+    size === undefined &&
+    props.height === undefined &&
+    props.width === undefined
+      ? customRadioIconSize[
+          (parentSize as keyof typeof customRadioIconSize) ?? 'md'
+        ]
+      : undefined;
 
   if (typeof size === 'number') {
     return (
       <UIRadio.Icon
         ref={ref}
         {...props}
-        className={radioIconStyle({ class: className })}
+        className={
+          isCustomIcon
+            ? customRadioIconStyle({ class: className })
+            : radioIconStyle({ class: className })
+        }
         size={size}
       />
     );
@@ -176,7 +201,20 @@ const RadioIcon = React.forwardRef<
       <UIRadio.Icon
         ref={ref}
         {...props}
-        className={radioIconStyle({ class: className })}
+        className={
+          isCustomIcon
+            ? customRadioIconStyle({ class: className })
+            : radioIconStyle({ class: className })
+        }
+      />
+    );
+  } else if (resolvedCustomIconSize !== undefined) {
+    return (
+      <UIRadio.Icon
+        ref={ref}
+        {...props}
+        className={customRadioIconStyle({ class: className })}
+        size={resolvedCustomIconSize}
       />
     );
   }

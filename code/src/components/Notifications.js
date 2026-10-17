@@ -6,6 +6,7 @@ import { ThemedAlert as Alert, ThemedAlertIcon as AlertIcon, ThemedAlertText as 
 import { ThemedButton as Button, ThemedButtonIcon as ButtonIcon } from './themed/ThemedButton';
 import { ThemedCloseIcon as CloseIcon } from './themed/ThemedFormControls';
 import { ThemedMaterialIcons as MaterialIcons } from './themed/ThemedMaterialIcons';
+import { resolveAlertColors } from './themed/statusStyles';
 import { HStack } from '@/components/ui/hstack';
 import { VStack } from '@/components/ui/vstack';
 import { Pressable } from '@/components/ui/pressable';
@@ -216,7 +217,7 @@ export const DisplayAndroidEndOfSupportMessage = (props) => {
 };
 /** status/colorScheme options: success, error, info, warning **/
 export const DisplaySystemMessage = (props) => {
-     const { neutrals } = useTheme();
+     const { brand, neutrals } = useTheme();
      const queryClient = props.queryClient;
      const updateSystemMessages = props.updateSystemMessages;
      let style = props.style;
@@ -226,10 +227,11 @@ export const DisplaySystemMessage = (props) => {
           style = 'error';
      }
      logDebugMessage("System Message Style is " + style);
+     const { text: closeIconColor } = resolveAlertColors(style, brand, neutrals);
 
      return (
-          <Alert action={style} variant="solid" className="min-h-50 mb-2 rounded">
-               <VStack space="sm" className="w-full p-3">
+          <Alert action={style} variant="solid" className="mx-2 mb-2 rounded">
+               <VStack space="sm" className="w-full p-1">
                     <HStack alignItems="flex-start" justifyContent="space-between">
                          <AlertText action={style} variant="solid" className="mr-2">{props.message}</AlertText>
                          <Pressable
@@ -239,7 +241,7 @@ export const DisplaySystemMessage = (props) => {
                                         updateSystemMessages(result);
                                    });
                               }}>
-                              <CloseIcon color={neutrals.icon} />
+                              <CloseIcon color={closeIconColor} />
                          </Pressable>
                     </HStack>
                </VStack>

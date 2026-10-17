@@ -42,7 +42,7 @@ export const SelfRegistration = () => {
 		(async () => {
 			await getSelfRegistrationForm(libraryUrl).then((response) => {
 				if(response.ok) {
-                         const formFields = Array.isArray(response?.data?.result) ? response.data.result : [];
+                         const formFields = Object.values(response?.data?.result ?? {});
                          setFields(formFields);
                          let object = {};
                           formFields.forEach((section) => {
@@ -154,43 +154,42 @@ export const SelfRegistration = () => {
 							} else if (type === 'enum') {
 								const enumOptions = field.values ?? {};
 								return (
-									<FormControl className="my-2" isRequired={required}>
-										<FormControlLabel><FormControlLabelText>{fieldLabel}</FormControlLabelText></FormControlLabel>
-										<Select
-											name={property}
-											selectedValue={values[property]}
-											accessibilityLabel={description}
-											onValueChange={(value) => {
-												handleInputChange(property, value);
-											}}
-										>
-											<SelectTrigger>
-															{/* TODO(translation): Replace hardcoded placeholder with TranslationService-backed key. */}
-												<SelectInput placeholder="Select option"/>
-											</SelectTrigger>
-											<SelectPortal>
-												<SelectBackdrop />
-												<SelectContent>
-													<SelectDragIndicatorWrapper>
-														<SelectDragIndicator />
-													</SelectDragIndicatorWrapper>
-													<SelectScrollView>
-														{map(values, function (item, index, array) {
-															return <SelectItem key={index} value={index} label={item} selectedValue={values[property]} />;
-														})}
-													</SelectScrollView>
-												</SelectContent>
-											</SelectPortal>
-										</Select>
-										{!isEmpty(description) ? (
+                                             <FormControl className="my-2" isRequired={required}>
+                                                  <FormControlLabel>
+                                                       <FormControlLabelText>{fieldLabel}</FormControlLabelText>
+                                                  </FormControlLabel>
+                                                  <Select
+                                                       name={property}
+                                                       selectedValue={values[property]}
+                                                       accessibilityLabel={description}
+                                                       onValueChange={(value) => {
+                                                            handleInputChange(property, value);
+                                                       }}>
+                                                       <SelectTrigger>
+                                                            {/* TODO(translation): Replace hardcoded placeholder with TranslationService-backed key. */}
+                                                            <SelectInput placeholder="Select option" />
+                                                       </SelectTrigger>
+                                                       <SelectPortal>
+                                                            <SelectBackdrop />
+                                                            <SelectContent>
+                                                                 <SelectDragIndicatorWrapper>
+                                                                      <SelectDragIndicator />
+                                                                 </SelectDragIndicatorWrapper>
+                                                                 <SelectScrollView>
+                                                                      {map(enumOptions, function (item, index, array) {
+                                                                           return <SelectItem key={index} value={index} label={item} selectedValue={values[property]} />;
+                                                                      })}
+                                                                 </SelectScrollView>
+                                                            </SelectContent>
+                                                       </SelectPortal>
+                                                  </Select>
+                                                  {!isEmpty(description) ? (
                                                        <FormControlHelper>
-                                                            <FormControlHelperText>
-                                                                 {description}
-                                                            </FormControlHelperText>
+                                                            <FormControlHelperText>{description}</FormControlHelperText>
                                                        </FormControlHelper>
-										) : null}
-									</FormControl>
-								)
+                                                  ) : null}
+                                             </FormControl>
+                                        );
 							}
 						})}
 							</Box>

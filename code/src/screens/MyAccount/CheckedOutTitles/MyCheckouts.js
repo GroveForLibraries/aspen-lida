@@ -354,7 +354,7 @@ export const MyCheckouts = () => {
                     case "dueDesc":
                          return sortBy.due_desc;
                     case "timesRenewed":
-                         return sortBy.timesRenewed;
+                         return sortBy.times_renewed;
                     case "libraryAccount":
                          return sortBy.library_account;
                     case "sortTitle":

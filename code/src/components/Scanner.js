@@ -32,15 +32,21 @@ export default function Scanner() {
           }
      }, [permission]);
 
+     const scannedRef = React.useRef(false);
+
      const handleBarCodeScanned = ({ type, data }) => {
-          if (!scanned) {
-               data = cleanBarcode(data, type);
-               setScanned(true);
-               if (navigation.canGoBack()) {
-                    navigation.goBack();
-               }
-               navigateStack('BrowseTab', 'SearchResults', { term: data, type: 'catalog', prevRoute: 'DiscoveryScreen', scannerSearch: true, barcodeType: type });
-          }
+          if (scannedRef.current) return;
+          scannedRef.current = true;
+          setScanned(true);
+
+          const term = cleanBarcode(data, type);
+          navigation.replace('SearchResults', {
+               term,
+               type: 'catalog',
+               prevRoute: 'DiscoveryScreen',
+               scannerSearch: true,
+               barcodeType: type,
+          });
      };
 
      if (!permission) {

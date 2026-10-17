@@ -58,7 +58,8 @@ export const Settings_PickupLocations = () => {
 	const language = useActiveLanguage();
 	const { data: userState } = useUserState();
     const user = userState?.user ?? {};
-    const { data: locations } = useLocations();
+    const { data: rawLocations } = useLocations();
+	const locations = Array.isArray(rawLocations) ? rawLocations : [];
 	const { data: sublocations } = useSublocations();
 	const updateLocations = useUpdateLocations();
 	const updateSublocations = useUpdateSublocations();
@@ -145,8 +146,7 @@ export const Settings_PickupLocations = () => {
 		userPickupLocation2Id = String(user.myLocation2Id);
 	}
 
-	const showAlternatePickupLocations = locations.length > 1;
-
+     const showAlternatePickupLocations = (locations?.length ?? 0) > 1;
 	let pickupLocation = '';
 	let pickupLocation1 = '';
 	let pickupLocation2 = '';
@@ -182,7 +182,7 @@ export const Settings_PickupLocations = () => {
 			pickupLocation2 = -1;
 		}
 	} else {
-		pickupLocation = locations[0];
+		pickupLocation = locations?.[0];
 		if (pickupLocation && typeof pickupLocation === 'object') {
 			pickupLocation = pickupLocation.code;
 		}

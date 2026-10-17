@@ -15,8 +15,10 @@ import { useTheme, TOKENS } from '../../themes/theme';
 export const ThemedModalBackdrop = ModalBackdrop;
 /** Re-export of gluestack's ModalHeader, unmodified. */
 export const ThemedModalHeader = ModalHeader;
-/** Re-export of gluestack's ModalBody, unmodified. */
-export const ThemedModalBody = ModalBody;
+export const ThemedModalBody = React.forwardRef(({ style, scrollEnabled, ...props }, ref) => {
+     return <ModalBody ref={ref} {...props} scrollEnabled={scrollEnabled ?? true} showsVerticalScrollIndicator={props.showsVerticalScrollIndicator ?? true} style={style} />;
+});
+ThemedModalBody.displayName = 'ThemedModalBody';
 /** Re-export of gluestack's ModalFooter, unmodified. */
 export const ThemedModalFooter = ModalFooter;
 
@@ -40,7 +42,7 @@ export const ThemedModalContent = React.forwardRef(({ style, ...props }, ref) =>
      const { height: windowHeight } = useWindowDimensions();
      const surfaceBg = neutrals.surface;
 
-     return <ModalContent ref={ref} style={[{ maxWidth: '90%', maxHeight: windowHeight * 0.8, backgroundColor: surfaceBg, padding: 16, boxShadow: TOKENS.primitives.shadows.elevated }, style]} {...props} />;
+     return <ModalContent ref={ref} style={[{ maxWidth: '90%', maxHeight: windowHeight * 0.8, backgroundColor: surfaceBg, padding: 16, boxShadow: TOKENS.primitives.shadows.elevated, overflow: 'hidden' }, style]} {...props} />;
 });
 
 ThemedModalContent.displayName = 'ThemedModalContent';

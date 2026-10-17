@@ -125,7 +125,7 @@ const SelectLinkedAccount = (props) => {
                                                        </SelectDragIndicatorWrapper>
                                                        <SelectScrollView>
                                                             {availableLocations.map((location, index) => {
-                                                                 return <SelectItem label={location.name} value={location.code} key={index} />;
+                                                                 return <SelectItem label={location.name} value={location.code} key={index} selectedValue={location} />;
                                                             })}
                                                        </SelectScrollView>
                                                   </SelectContent>
@@ -150,9 +150,9 @@ const SelectLinkedAccount = (props) => {
                                                        <SelectDragIndicator />
                                                   </SelectDragIndicatorWrapper>
                                                   <SelectScrollView>
-                                                       <SelectItem label={user.displayName} value={user.id} />
+                                                       <SelectItem label={user.displayName} value={user.id} selectedValue={activeAccount} />
                                                        {availableAccounts.map((item, index) => {
-                                                            return <SelectItem label={item.displayName} value={item.id} key={index} />;
+                                                            return <SelectItem label={item.displayName} value={item.id} key={index} selectedValue={activeAccount} />;
                                                        })}
                                                   </SelectScrollView>
                                              </SelectContent>

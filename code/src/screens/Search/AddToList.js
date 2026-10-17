@@ -10,7 +10,6 @@ import { LoadingSpinner } from '../../components/loadingSpinner';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
 import { useTheme } from '../../themes/theme';
-import { Box } from '@/components/ui/box';
 import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../components/themed/ThemedButton';
 import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
 import { Center } from '@/components/ui/center';
@@ -69,6 +68,7 @@ const AddToList = (props) => {
 
      const groups = data?.ok ? (data.data?.result?.groups ?? []) : [];
      const listGroupItems = listGroups?.groups ? Object.values(listGroups.groups) : [];
+     const isListSelectionScreen = screen === 'add-new' && !isEmpty(lists);
 
      let hasListGroups = false;
      if(user.numListGroups) {
@@ -127,15 +127,13 @@ const AddToList = (props) => {
                     size="full"
                >
                     <ModalBackdrop />
-                    <ModalContent>
+                    <ModalContent style={!isListSelectionScreen ? { flex: 1 } : undefined}>
                          {isLoading ? (
                               <LoadingSpinner />
                          ) : screen === 'add-new' && !isEmpty(lists) ? (
                               <>
                                    <ModalHeader>
-                                        <Heading>
-                                             {getTermFromDictionary(language, 'add_to_list')}
-                                        </Heading>
+                                        <Heading>{getTermFromDictionary(language, 'add_to_list')}</Heading>
                                         <ModalCloseButton onPress={closeModal}>
                                              <CloseIcon />
                                         </ModalCloseButton>
@@ -226,62 +224,138 @@ const AddToList = (props) => {
                                              <CloseIcon />
                                         </ModalCloseButton>
                                    </ModalHeader>
-                                   <ModalBody>
-                                        <Box className="p-4">
-                                             <VStack space="md">
+                                   <ModalBody style={{ flex: 1, minHeight: 0, padding: 0 }} scrollEnabled={true} contentContainerStyle={{ padding: 0, paddingBottom: 20, flexGrow: 1 }}>
+                                        <VStack space="md">
+                                             <FormControl>
+                                                  <FormControlLabel>
+                                                       <FormControlLabelText>{getTermFromDictionary(language, 'title')}</FormControlLabelText>
+                                                  </FormControlLabel>
+                                                  <Input style={{ borderColor }}>
+                                                       <InputField id="title" onChangeText={(text) => saveTitle(text)} returnKeyType="next" />
+                                                  </Input>
+                                             </FormControl>
+                                             <FormControl>
+                                                  <FormControlLabel>
+                                                       <FormControlLabelText>{getTermFromDictionary(language, 'description')}</FormControlLabelText>
+                                                  </FormControlLabel>
+                                                  <Textarea id="description" onChangeText={(text) => saveDescription(text)} returnKeyType="next">
+                                                       <TextareaInput />
+                                                  </Textarea>
+                                             </FormControl>
+                                             <FormControl>
+                                                  <FormControlLabel>
+                                                       <FormControlLabelText>{getTermFromDictionary(language, 'access')}</FormControlLabelText>
+                                                  </FormControlLabel>
+                                                  <RadioGroup
+                                                       value={isPublic}
+                                                       onChange={(nextValue) => {
+                                                            saveIsPublic(nextValue);
+                                                       }}>
+                                                       <HStack space="md" className="flex-row items-center w-[75%] max-w-75">
+                                                            <Radio value="1" className="my-1">
+                                                                 <RadioIndicator className="mr-2" style={{ borderColor }}>
+                                                                      <RadioIcon as={MaterialIcons} name="circle" style={{ color: borderColor }} />
+                                                                 </RadioIndicator>
+                                                                 <RadioLabel>{getTermFromDictionary(language, 'private')}</RadioLabel>
+                                                            </Radio>
+                                                            <Radio value="0" className="my-1">
+                                                                 <RadioIndicator className="mr-2" style={{ borderColor }}>
+                                                                      <RadioIcon as={MaterialIcons} name="circle" style={{ color: borderColor }} />
+                                                                 </RadioIndicator>
+                                                                 <RadioLabel>{getTermFromDictionary(language, 'public')}</RadioLabel>
+                                                            </Radio>
+                                                       </HStack>
+                                                  </RadioGroup>
+                                             </FormControl>
+                                             <FormControl className="pb-3">
+                                                  <FormControlLabel>
+                                                       <FormControlLabelText>{getTermFromDictionary(language, 'should_add_to_list_group')}</FormControlLabelText>
+                                                  </FormControlLabel>
+                                                  <Select selectedValue={addToGroup} accessibilityLabel={getTermFromDictionary(language, 'should_add_to_list_group')} onValueChange={(itemValue) => setAddToGroup(itemValue)}>
+                                                       <SelectTrigger>{addToGroup !== '' ? <SelectInput value={addToGroup === 'new' ? getTermFromDictionary(language, 'add_to_list_group_new') : addToGroup === 'existing' ? getTermFromDictionary(language, 'add_to_list_group_existing') : getTermFromDictionary(language, 'add_to_list_group_no')} /> : <SelectInput value={getTermFromDictionary(language, 'add_to_list_group_no')} />}</SelectTrigger>
+                                                       <SelectPortal>
+                                                            <SelectBackdrop />
+                                                            <SelectContent>
+                                                                 <SelectDragIndicatorWrapper>
+                                                                      <SelectDragIndicator />
+                                                                 </SelectDragIndicatorWrapper>
+                                                                 <SelectScrollView>
+                                                                      <SelectItem label={getTermFromDictionary(language, 'add_to_list_group_no')} value="no" key={1} selectedValue={addToGroup} />
+                                                                      <SelectItem label={getTermFromDictionary(language, 'add_to_list_group_new')} value="new" key={2} selectedValue={addToGroup} />
+                                                                      {hasListGroups && <SelectItem label={getTermFromDictionary(language, 'add_to_list_group_existing')} value="existing" key={3} selectedValue={addToGroup} />}
+                                                                 </SelectScrollView>
+                                                            </SelectContent>
+                                                       </SelectPortal>
+                                                  </Select>
+                                             </FormControl>
+                                             {addToGroup === 'new' && (
+                                                  <>
+                                                       <FormControl className="pb-2">
+                                                            <FormControlLabel>
+                                                                 <FormControlLabelText>{getTermFromDictionary(language, 'new_list_group_name')}</FormControlLabelText>
+                                                            </FormControlLabel>
+                                                            <Input style={{ borderColor }}>
+                                                                 <InputField id="newGroupName" onChangeText={(text) => setNewGroupName(text)} defaultValue={newGroupName} />
+                                                            </Input>
+                                                       </FormControl>
+                                                       {hasListGroups && (
+                                                            <FormControl className="pb-2">
+                                                                 <FormControlLabel>
+                                                                      <FormControlLabelText>{getTermFromDictionary(language, 'should_nest_list_group')}</FormControlLabelText>
+                                                                 </FormControlLabel>
+                                                                 <Select selectedValue={nestedGroup} accessibilityLabel={getTermFromDictionary(language, 'should_nest_list_group')} onValueChange={(itemValue) => setNestedGroup(itemValue)}>
+                                                                      <SelectTrigger>
+                                                                           {nestedGroup !== 'no' && nestedGroup !== '' ? (
+                                                                                listGroupItems.map((group) => {
+                                                                                     if (group.id === nestedGroup) {
+                                                                                          return <SelectInput key={group.id} value={group.title} />;
+                                                                                     }
+                                                                                     return null;
+                                                                                })
+                                                                           ) : (
+                                                                                <SelectInput value={getTermFromDictionary(language, 'nest_within_group_no')} />
+                                                                           )}
+                                                                      </SelectTrigger>
+                                                                      <SelectPortal>
+                                                                           <SelectBackdrop />
+                                                                           <SelectContent>
+                                                                                <SelectDragIndicatorWrapper>
+                                                                                     <SelectDragIndicator />
+                                                                                </SelectDragIndicatorWrapper>
+                                                                                <SelectScrollView>
+                                                                                     <SelectItem label={getTermFromDictionary(language, 'nest_within_group_no')} value="no" key={1} selectedValue={nestedGroup} />
+                                                                                     {map(Object.values(groups), function (item, index) {
+                                                                                          return <SelectItem key={index} value={item.id} label={item.title} selectedValue={nestedGroup} />;
+                                                                                     })}
+                                                                                </SelectScrollView>
+                                                                           </SelectContent>
+                                                                      </SelectPortal>
+                                                                 </Select>
+                                                            </FormControl>
+                                                       )}
+                                                  </>
+                                             )}
+                                             {addToGroup === 'existing' && hasListGroups && (
                                                   <FormControl>
                                                        <FormControlLabel>
-                                                            <FormControlLabelText>{getTermFromDictionary(language, 'title')}</FormControlLabelText>
+                                                            <FormControlLabelText>{getTermFromDictionary(language, 'choose_existing_list_group')}</FormControlLabelText>
                                                        </FormControlLabel>
-                                                       <Input style={{ borderColor }}>
-                                                            <InputField id="title" onChangeText={(text) => saveTitle(text)} returnKeyType="next" />
-                                                       </Input>
-                                                  </FormControl>
-                                                  <FormControl>
-                                                       <FormControlLabel>
-                                                            <FormControlLabelText>{getTermFromDictionary(language, 'description')}</FormControlLabelText>
-                                                       </FormControlLabel>
-                                                       <Textarea id="description" onChangeText={(text) => saveDescription(text)} returnKeyType="next">
-                                                            <TextareaInput />
-                                                       </Textarea>
-                                                  </FormControl>
-                                                  <FormControl>
-                                                       <FormControlLabel>
-                                                            <FormControlLabelText>{getTermFromDictionary(language, 'access')}</FormControlLabelText>
-                                                       </FormControlLabel>
-                                                       <RadioGroup
-                                                            value={isPublic}
-                                                            onChange={(nextValue) => {
-                                                                 saveIsPublic(nextValue);
+                                                       <Select
+                                                            selectedValue={existingGroupId !== -1 ? existingGroupId : groups[0]?.id}
+                                                            defaultValue={existingGroupId !== -1 ? existingGroupId : groups[0]?.id}
+                                                            onValueChange={(itemValue) => {
+                                                                 setExistingGroupId(itemValue);
                                                             }}>
-                                                            <HStack space="md" className="flex-row items-center w-[75%] max-w-75">
-                                                                 <Radio value="1" className="my-1">
-                                                                      <RadioIndicator className="mr-2" style={{ borderColor }}>
-                                                                           <RadioIcon as={MaterialIcons} name="circle" style={{ color: borderColor }} />
-                                                                      </RadioIndicator>
-                                                                      <RadioLabel>{getTermFromDictionary(language, 'private')}</RadioLabel>
-                                                                 </Radio>
-                                                                 <Radio value="0" className="my-1">
-                                                                      <RadioIndicator className="mr-2" style={{ borderColor }}>
-                                                                           <RadioIcon as={MaterialIcons} name="circle" style={{ color: borderColor }} />
-                                                                      </RadioIndicator>
-                                                                      <RadioLabel>{getTermFromDictionary(language, 'public')}</RadioLabel>
-                                                                 </Radio>
-                                                            </HStack>
-                                                       </RadioGroup>
-                                                  </FormControl>
-                                                  <FormControl className="pb-3">
-                                                       <FormControlLabel>
-                                                            <FormControlLabelText>{getTermFromDictionary(language, 'should_add_to_list_group')}</FormControlLabelText>
-                                                       </FormControlLabel>
-                                                       <Select selectedValue={addToGroup} accessibilityLabel={getTermFromDictionary(language, 'should_add_to_list_group')} onValueChange={(itemValue) => setAddToGroup(itemValue)}>
                                                             <SelectTrigger>
-                                                                 {addToGroup !== '' ? (
-                                                                      <SelectInput
-                                                                           value={addToGroup === 'new' ? getTermFromDictionary(language, 'add_to_list_group_new') : addToGroup === 'existing' ? getTermFromDictionary(language, 'add_to_list_group_existing') : getTermFromDictionary(language, 'add_to_list_group_no')}
-                                                                      />
+                                                                 {existingGroupId && existingGroupId !== -1 ? (
+                                                                      map(Object.values(groups), function (group) {
+                                                                           if (group.id === existingGroupId) {
+                                                                                return <SelectInput key={group.id} value={group.title} />;
+                                                                           }
+                                                                           return null;
+                                                                      })
                                                                  ) : (
-                                                                      <SelectInput value={getTermFromDictionary(language, 'add_to_list_group_no')} />
+                                                                      <SelectInput value={groups[0]?.title} />
                                                                  )}
                                                             </SelectTrigger>
                                                             <SelectPortal>
@@ -291,109 +365,20 @@ const AddToList = (props) => {
                                                                            <SelectDragIndicator />
                                                                       </SelectDragIndicatorWrapper>
                                                                       <SelectScrollView>
-                                                                           <SelectItem label={getTermFromDictionary(language, 'add_to_list_group_no')} value="no" key={1} selectedValue={addToGroup} />
-                                                                           <SelectItem label={getTermFromDictionary(language, 'add_to_list_group_new')} value="new" key={2} selectedValue={addToGroup} />
-                                                                           {hasListGroups && <SelectItem label={getTermFromDictionary(language, 'add_to_list_group_existing')} value="existing" key={3} selectedValue={addToGroup} />}
+                                                                           {listGroupItems.map((item, index) => {
+                                                                                return <SelectItem key={index} value={item.id} label={item.title} selectedValue={existingGroupId} />;
+                                                                           })}
                                                                       </SelectScrollView>
                                                                  </SelectContent>
                                                             </SelectPortal>
                                                        </Select>
                                                   </FormControl>
-                                                  {addToGroup === 'new' && (
-                                                       <>
-                                                            <FormControl className="pb-2">
-                                                                 <FormControlLabel>
-                                                                      <FormControlLabelText>{getTermFromDictionary(language, 'new_list_group_name')}</FormControlLabelText>
-                                                                 </FormControlLabel>
-                                                                 <Input style={{ borderColor }}>
-                                                                      <InputField id="newGroupName" onChangeText={(text) => setNewGroupName(text)} defaultValue={newGroupName} />
-                                                                 </Input>
-                                                            </FormControl>
-                                                            {hasListGroups && (
-                                                                 <FormControl className="pb-2">
-                                                                      <FormControlLabel>
-                                                                           <FormControlLabelText>{getTermFromDictionary(language, 'should_nest_list_group')}</FormControlLabelText>
-                                                                      </FormControlLabel>
-                                                                      <Select selectedValue={nestedGroup} accessibilityLabel={getTermFromDictionary(language, 'should_nest_list_group')} onValueChange={(itemValue) => setNestedGroup(itemValue)}>
-                                                                           <SelectTrigger>
-                                                                                {nestedGroup !== 'no' && nestedGroup !== '' ? (
-                                                                                     listGroupItems.map((group) => {
-                                                                                          if (group.id === nestedGroup) {
-                                                                                               return <SelectInput key={group.id} value={group.title} />;
-                                                                                          }
-                                                                                          return null;
-                                                                                     })
-                                                                                ) : (
-                                                                                     <SelectInput value={getTermFromDictionary(language, 'nest_within_group_no')} />
-                                                                                )}
-                                                                                          </SelectTrigger>
-                                                                           <SelectPortal>
-                                                                                <SelectBackdrop />
-                                                                                <SelectContent>
-                                                                                     <SelectDragIndicatorWrapper>
-                                                                                          <SelectDragIndicator />
-                                                                                     </SelectDragIndicatorWrapper>
-                                                                                     <SelectScrollView>
-                                                                                          <SelectItem label={getTermFromDictionary(language, 'nest_within_group_no')} value="no" key={1} selectedValue={nestedGroup} />
-                                                                                          {map(Object.values(groups), function (item, index) {
-                                                                                               return <SelectItem key={index} value={item.id} label={item.title} selectedValue={nestedGroup} />;
-                                                                                          })}
-                                                                                     </SelectScrollView>
-                                                                                </SelectContent>
-                                                                           </SelectPortal>
-                                                                      </Select>
-                                                                 </FormControl>
-                                                            )}
-                                                       </>
-                                                  )}
-                                                  {addToGroup === 'existing' && hasListGroups && (
-                                                       <FormControl>
-                                                            <FormControlLabel>
-                                                                 <FormControlLabelText>{getTermFromDictionary(language, 'choose_existing_list_group')}</FormControlLabelText>
-                                                            </FormControlLabel>
-                                                            <Select
-                                                                 selectedValue={existingGroupId !== -1 ? existingGroupId : groups[0]?.id}
-                                                                 defaultValue={existingGroupId !== -1 ? existingGroupId : groups[0]?.id}
-                                                                 onValueChange={(itemValue) => {
-                                                                      setExistingGroupId(itemValue);
-                                                                 }}>
-                                                                 <SelectTrigger>
-                                                                      {existingGroupId && existingGroupId !== -1 ? (
-                                                                           map(Object.values(groups), function (group) {
-                                                                                if (group.id === existingGroupId) {
-                                                                                     return <SelectInput key={group.id} value={group.title} />;
-                                                                                }
-                                                                                return null;
-                                                                           })
-                                                                      ) : (
-                                                                           <SelectInput value={groups[0]?.title} />
-                                                                      )}
-                                                                      </SelectTrigger>
-                                                                 <SelectPortal>
-                                                                      <SelectBackdrop />
-                                                                      <SelectContent>
-                                                                           <SelectDragIndicatorWrapper>
-                                                                                <SelectDragIndicator />
-                                                                           </SelectDragIndicatorWrapper>
-                                                                           <SelectScrollView>
-                                                                                {listGroupItems.map((item, index) => {
-                                                                                     return <SelectItem key={index} value={item.id} label={item.title} selectedValue={existingGroupId} />;
-                                                                                })}
-                                                                           </SelectScrollView>
-                                                                      </SelectContent>
-                                                                 </SelectPortal>
-                                                            </Select>
-                                                       </FormControl>
-                                                  )}
-                                             </VStack>
-                                        </Box>
+                                             )}
+                                        </VStack>
                                    </ModalBody>
                                    <ModalFooter>
                                         <ButtonGroup className="p-4 flex-row justify-end flex-wrap">
-                                             <Button
-                                                  variant="outline"
-                                                  style={{ borderColor: cancelColor }}
-                                                  onPress={closeModal}>
+                                             <Button variant="outline" style={{ borderColor: cancelColor }} onPress={closeModal}>
                                                   <ButtonText style={{ color: cancelColor }}>{getTermFromDictionary(language, 'cancel')}</ButtonText>
                                              </Button>
                                              <Button

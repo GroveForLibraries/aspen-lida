@@ -62,7 +62,7 @@ export const SelectExistingHoldSubLocation = (props) => {
                                                        </SelectDragIndicatorWrapper>
                                                        <SelectScrollView>
                                                             {validSublocations.map((item, index) => {
-                                                                 return <SelectItem value={item.id} label={item.displayName} key={index} />;
+                                                                 return <SelectItem value={item.id} label={item.displayName} key={index} selectedValue={activeSublocation} />;
                                                             })}
                                                        </SelectScrollView>
                                                   </SelectContent>

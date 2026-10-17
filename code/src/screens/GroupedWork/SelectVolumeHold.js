@@ -152,7 +152,7 @@ const SelectVolumeHold = (props) => {
                                                                  </SelectDragIndicatorWrapper>
                                                                  <SelectScrollView>
                                                                       {volumeOptions.map((item, index) => {
-                                                                           return <SelectItem label={item.label} value={item.volumeId} key={index} />;
+                                                                           return <SelectItem label={item.label} value={item.volumeId} key={index} selectedValue={volume} />;
                                                                       })}
                                                                  </SelectScrollView>
                                                             </SelectContent>
@@ -179,7 +179,7 @@ const SelectVolumeHold = (props) => {
                                                                  </SelectDragIndicatorWrapper>
                                                                  <SelectScrollView>
                                                                       {availableLocations.map((location, index) => {
-                                                                           return <SelectItem label={location.name} value={location.code} key={index} />;
+                                                                           return <SelectItem label={location.name} value={location.code} key={index} selectedValue={location} />;
                                                                       })}
                                                                  </SelectScrollView>
                                                             </SelectContent>
@@ -205,9 +205,9 @@ const SelectVolumeHold = (props) => {
                                                                       <SelectDragIndicator />
                                                                  </SelectDragIndicatorWrapper>
                                                                  <SelectScrollView>
-                                                                      <SelectItem label={user.displayName} value={user.id} />
+                                                                      <SelectItem label={user.displayName} value={user.id} selectedValue={activeAccount} />
                                                                       {availableAccounts.map((item, index) => {
-                                                                           return <SelectItem label={item.displayName} value={item.id} key={index} />;
+                                                                           return <SelectItem label={item.displayName} value={item.id} key={index} selectedValue={activeAccount} />;
                                                                       })}
                                                                  </SelectScrollView>
                                                             </SelectContent>

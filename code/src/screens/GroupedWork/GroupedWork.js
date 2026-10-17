@@ -125,7 +125,7 @@ export const GroupedWorkScreen = () => {
                ) : (
                     <ScrollView>
                          <Box style={{ height: 150, width: '100%', backgroundColor: neutrals.canvas, zIndex: -1, position: 'absolute', left: 0, top: 0 }} />
-                         {safeSystemMessages.length > 0 ? <Box className="p-2">{showSystemMessage()}</Box> : null}
+                         {safeSystemMessages.length > 0 ? <Box>{showSystemMessage()}</Box> : null}
                          <DisplayGroupedWork data={data.results} initialFormat={data.format} updateFormat={data.format} />
                     </ScrollView>
                )}
