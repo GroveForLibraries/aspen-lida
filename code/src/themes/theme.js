@@ -1,4 +1,5 @@
 import React from 'react';
+import * as SecureStore from 'expo-secure-store';
 import { Uniwind } from 'uniwind';
 import { GLOBALS } from '../util/globals';
 import {
@@ -8,8 +9,8 @@ import {
      useResetThemeState,
 } from '../hooks/useThemeData';
 import { getThemeInfo } from '../util/api/system';
-import { loadThemeCatalog } from '../util/db';
-import { buildSwatchFromThemeTokens } from '../helpers/helpers';
+import { loadThemeCatalog, loadUserThemePreference } from '../util/db';
+import { buildSwatchFromThemeTokens, parseStoredNumber } from '../helpers/helpers';
 import { TOKENS } from './tokens';
 
 export { TOKENS };
@@ -264,7 +265,7 @@ export function runExclusiveThemeInit(fn) {
  * Fetches theme info for a library/location and builds a ready-to-apply theme runtime from it.
  * @param url library base URL (optional)
  * @param locationId library location id (optional)
- * @returns {Promise<{theme, themeColors, themeId, locationId, header}>}
+ * @returns {Promise<{theme, themeColors, themeId, locationId, header, baseMode}>}
  */
 export async function buildThemeForLibrary(url = null, locationId = null) {
      const response = await getThemeInfo(url, locationId);
@@ -276,7 +277,22 @@ export async function buildThemeForLibrary(url = null, locationId = null) {
           themeId: response?.themeId ?? Number(GLOBALS.themeId ?? 1),
           locationId: response?.locationId ?? null,
           header: response?.header ?? null,
+          baseMode: response?.baseMode === 'dark' || response?.baseMode === 'light' ? response.baseMode : null,
      };
+}
+
+/**
+ * Picks the color mode to apply for a freshly loaded theme: the theme's own baseMode when it
+ * defines one, otherwise the previously stored mode (defaulting to light).
+ * @param baseMode 'light' | 'dark' | null
+ * @param storedMode previously persisted color mode
+ * @returns {'light'|'dark'}
+ */
+export function resolveColorModeForTheme(baseMode, storedMode) {
+     if (baseMode === 'dark' || baseMode === 'light') {
+          return baseMode;
+     }
+     return storedMode === 'dark' ? 'dark' : 'light';
 }
 
 /**
@@ -302,6 +318,28 @@ export function buildThemeConfigFromCatalogEntry(themeEntry = {}) {
           themeColors,
           theme: buildThemeRuntime(themeColors),
      };
+}
+
+/**
+ * Resolves the locally stored preferred theme for a location by combining theme_catalog with the
+ * current user's saved theme preference. Falls back to the first available catalog theme.
+ * @param locationId
+ * @returns {Promise<null|{id, themeId, name, baseMode, logo, header, themeColors, theme}>}
+ */
+export async function loadPreferredThemeConfigForLocation(locationId) {
+     const resolvedLocationId = locationId != null ? Number(locationId) : parseStoredNumber(await SecureStore.getItemAsync('locationId'));
+     const themes = await loadThemeCatalog(resolvedLocationId);
+     if (!Array.isArray(themes) || themes.length === 0) {
+          return null;
+     }
+
+     const storedPreference = await loadUserThemePreference(resolvedLocationId);
+     const preferredThemeId = storedPreference?.themeId != null ? Number(storedPreference.themeId) : null;
+     const selectedTheme =
+          (preferredThemeId != null && themes.find((theme) => Number(theme.id) === preferredThemeId)) ||
+          themes[0];
+
+     return selectedTheme ? buildThemeConfigFromCatalogEntry(selectedTheme) : null;
 }
 
 /**
@@ -393,9 +431,12 @@ export function useTheme() {
           return runExclusiveThemeInit(async () => {
                const builtTheme = await buildThemeForLibrary(url, locationId);
                await updateTheme(builtTheme.theme, builtTheme.themeId, builtTheme.locationId, builtTheme.header);
+               if (builtTheme.baseMode) {
+                    await updateColorMode(builtTheme.baseMode);
+               }
                return builtTheme;
           });
-     }, [updateTheme]);
+     }, [updateTheme, updateColorMode]);
 
      return {
           theme,

@@ -221,13 +221,13 @@ const Account = ({ account, type }) => {
                </Text>
                {type === 'viewer' && user.removeLinkedAccountRule === 0 ? null : (
                     <Button
-                        style={{ backgroundColor: neutralPairs.danger }}
+                         colorScheme="danger"
                          isLoading={isRemoving}
                          isLoadingText={getTermFromDictionary(language, 'removing', true)}
                          size="sm"
                          onPress={removeAccount}
                     >
-                        <ButtonText style={{ color: '#ffffff' }}>{getTermFromDictionary(language, 'remove')}</ButtonText>
+                        <ButtonText>{getTermFromDictionary(language, 'remove')}</ButtonText>
                     </Button>
                )}
           </HStack>

@@ -101,9 +101,6 @@ export const MyCheckout = (props) => {
           renewMessage = checkout.renewError;
      }
 
-     const key = 'medium_' + checkout.source + '_' + checkout.groupedWorkId;
-     let url = library.baseUrl + '/bookcover.php?id=' + checkout.fullId + '&size=medium';
-
      let itemId = checkout.itemId;
      if (checkout.renewalId) {
           itemId = checkout.renewalId;
@@ -120,17 +117,11 @@ export const MyCheckout = (props) => {
 
 
      return (
-         <Pressable onPress={toggle} style={{ borderBottomWidth: 1, borderBottomColor: borderColor }} className="py-2">
-              <HStack space="sm" className="w-[75%]">
-                    <Image
-                         alt={checkout.title}
-                         source={url}
-                         style={{ width: 100.0, height: 150.0 }}
-                         className="rounded-lg"
-                         placeholder={blurhash}
-                         transition={1000}
-                         contentFit="cover"
-                    />
+          <Pressable onPress={toggle} style={{ borderBottomWidth: 1, borderBottomColor: borderColor }} className="py-2">
+               <HStack space="sm" className="w-[75%]">
+                    {checkout.coverUrl ? (
+                    <Image alt={checkout.title} source={checkout.coverUrl} style={{ width: 100.0, height: 150.0 }} className="rounded-lg" placeholder={blurhash} transition={1000} contentFit="cover" />
+                    ) : null}
                     <VStack>
                          {getTitle(checkout.title)}
                          {isOverdue(checkout.overdue)}
@@ -154,12 +145,11 @@ export const MyCheckout = (props) => {
                                    onPress={() => {
                                         openGroupedWork(checkout.groupedWorkId, checkout.title);
                                         toggle();
-                                   }}
-                                   >
+                                   }}>
                                    <MaterialIcons name="search" size={18} className="mr-1" />
                                    <ActionsheetItemText>{getTermFromDictionary(language, 'view_item_details')}</ActionsheetItemText>
                               </ActionsheetItem>
-                         ): null}
+                         ) : null}
                          {renewMessage ? (
                               <ActionsheetItem
                                    className="w-full"
@@ -183,7 +173,8 @@ export const MyCheckout = (props) => {
                                                        source: checkout.source ?? null,
                                                        itemId: itemId ?? null,
                                                        userId: checkout.userId ?? null,
-                                                       renewType: 'single' });
+                                                       renewType: 'single',
+                                                  });
                                              }
 
                                              if (result?.confirmRenewalFee && result.confirmRenewalFee) {
@@ -194,8 +185,7 @@ export const MyCheckout = (props) => {
 
                                              toggle();
                                         });
-                                   }}
-                                   >
+                                   }}>
                                    <MaterialIcons name="autorenew" size={18} className="mr-1" />
                                    <ActionsheetItemText>{stripHTML(renewMessage)}</ActionsheetItemText>
                               </ActionsheetItem>
@@ -210,8 +200,7 @@ export const MyCheckout = (props) => {
                                              setAccess(false);
                                              toggle();
                                         });
-                                   }}
-                                   >
+                                   }}>
                                    <MaterialIcons name="book" size={18} className="mr-1" />
                                    <CheckoutAccessLabel checkout={checkout} libbyReaderName={libbyReaderName} baseUrl={library.baseUrl} language={language} color={textColor}></CheckoutAccessLabel>
                               </ActionsheetItem>
@@ -233,8 +222,7 @@ export const MyCheckout = (props) => {
                                                   setAccess(false);
                                                   toggle();
                                              });
-                                        }}
-                                        >
+                                        }}>
                                         <MaterialIcons name="book" size={18} className="mr-1" />
                                         <CheckoutAccessLabel checkout={checkout} libbyReaderName={libbyReaderName} baseUrl={library.baseUrl} language={language} color={textColor}></CheckoutAccessLabel>
                                    </ActionsheetItem>
@@ -248,8 +236,7 @@ export const MyCheckout = (props) => {
                                                   reloadCheckouts();
                                                   toggle();
                                              });
-                                        }}
-                                        >
+                                        }}>
                                         <MaterialIcons name="logout" size={18} className="mr-1" />
                                         <CheckoutAccessLabel checkout={checkout} libbyReaderName={libbyReaderName} baseUrl={library.baseUrl} language={language} color={textColor}></CheckoutAccessLabel>
                                         <ActionsheetItemText>{getTermFromDictionary(language, 'checkout_return_now')}</ActionsheetItemText>
@@ -268,8 +255,7 @@ export const MyCheckout = (props) => {
                                                   reloadCheckouts();
                                                   toggle();
                                              });
-                                        }}
-                                        >
+                                        }}>
                                         <MaterialIcons name="logout" size={18} className="mr-1" />
                                         <ActionsheetItemText>{getTermFromDictionary(language, 'checkout_return_now')}</ActionsheetItemText>
                                    </ActionsheetItem>

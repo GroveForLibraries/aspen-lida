@@ -14,10 +14,10 @@ import App from './src/components/navigation';
 import { AuthProvider } from './src/context/AuthContext';
 import { CheckoutsProvider, GroupedWorkProvider, HoldsProvider, SearchProvider, SystemMessagesProvider } from './src/context/initialContext';
 import { SplashScreenNative } from './src/screens/Auth/SplashNative';
-import { buildThemeForLibrary, runExclusiveThemeInit, useThemeForDisplay } from './src/themes/theme';
+import { buildThemeForLibrary, loadPreferredThemeConfigForLocation, resolveColorModeForTheme, runExclusiveThemeInit, useTheme } from './src/themes/theme';
 import { ToastRegistrar } from '@/src/components/feedback';
 import { logDebugMessage, logErrorMessage } from './src/util/logging.js';
-import { initDatabase, isStoredThemeIdMatch, loadLibraryUrl, loadThemeState, saveThemeState } from './src/util/db';
+import { initDatabase, loadLibraryUrl, loadLocation, loadThemeState } from './src/util/db';
 import { GLOBALS } from './src/util/globals';
 
 logDebugMessage("1 Enabling Screens, react-native-screens");
@@ -102,7 +102,7 @@ if (__DEV__) {
  */
 export default function AppContainer() {
      const [isLoading, setLoading] = React.useState(true);
-     const { colorMode, themeVars, textColor } = useThemeForDisplay();
+     const { colorMode, themeVars, updateTheme, updateColorMode } = useTheme();
 
      const [dbReady, setDbReady] = React.useState(false);
      const persistTimeoutRef = React.useRef(null);
@@ -159,31 +159,33 @@ export default function AppContainer() {
                     await restorePersistedQueries();
                     await runExclusiveThemeInit(async () => {
                          const current = await loadThemeState();
+                          const currentLocation = await loadLocation();
+                          const currentLocationId = currentLocation?.locationId != null ? Number(currentLocation.locationId) : null;
                          const mode = current?.colorMode === 'dark' ? 'dark' : 'light';
                          const persistedLibraryUrl = await loadLibraryUrl();
                          const themeUrl = persistedLibraryUrl || GLOBALS.url || Constants.expoConfig.extra.apiUrl;
+                          const preferredTheme = await loadPreferredThemeConfigForLocation(currentLocationId);
+
+                          if (preferredTheme) {
+                               logDebugMessage(`Applying stored preferred theme themeId=${preferredTheme.themeId} during app startup`);
+                               const resolvedMode = resolveColorModeForTheme(preferredTheme.baseMode, mode);
+                               await updateTheme(preferredTheme.theme, preferredTheme.themeId, currentLocationId, preferredTheme.header);
+                               await updateColorMode(resolvedMode);
+                               return;
+                          }
 
                          if (!themeUrl) {
                               logDebugMessage('Skipping startup theme fetch because no library URL is available yet');
                          } else {
                               logDebugMessage(`Building theme for current launch using url=${themeUrl}`);
-                              const builtTheme = await buildThemeForLibrary(themeUrl);
-                              await saveThemeState({
-                                   themeId: builtTheme.themeId,
-                                   locationId: builtTheme.locationId,
-                                   colorMode: mode,
-                                   textColor,
-                                   themeColors: builtTheme.themeColors,
-                                   header: builtTheme.header,
-                              });
+                               const builtTheme = await buildThemeForLibrary(themeUrl, currentLocationId);
+                              const resolvedMode = resolveColorModeForTheme(builtTheme.baseMode, mode);
+                               await updateTheme(builtTheme.theme, builtTheme.themeId, builtTheme.locationId, builtTheme.header);
+                               await updateColorMode(resolvedMode);
                          }
 
                          if (!themeUrl && (!current?.textColor || !current?.colorMode)) {
-                              await saveThemeState({
-                                   ...current,
-                                   colorMode: mode,
-                                   textColor,
-                              });
+                               await updateColorMode(mode);
                          }
                     });
                } catch (e) {
@@ -197,7 +199,7 @@ export default function AppContainer() {
           return () => {
                active = false;
           };
-     }, [dbReady]);
+     }, [dbReady, updateColorMode, updateTheme]);
 
      React.useEffect(() => {
           const unsubscribe = queryClient.getQueryCache().subscribe(() => {

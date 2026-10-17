@@ -1,8 +1,23 @@
+import * as SecureStore from 'expo-secure-store';
 import { getDb } from '../sqlite';
 import { safeStringify } from '../serialize';
 import { getCurrentLocationId, setCurrentLocationId } from '../sessionContext';
 import { logDebugMessage } from '../../logging';
-import { boolToInt, intToBool, numberOrNull, safeParse } from '../../../helpers/helpers';
+import { boolToInt, intToBool, numberOrNull, parseStoredNumber, safeParse } from '../../../helpers/helpers';
+
+async function resolveCurrentLocationId() {
+     const currentLocationId = numberOrNull(getCurrentLocationId());
+     if (currentLocationId !== null) {
+          return currentLocationId;
+     }
+
+     const storedLocationId = parseStoredNumber(await SecureStore.getItemAsync('locationId'));
+     if (storedLocationId !== null) {
+          setCurrentLocationId(storedLocationId);
+     }
+
+     return storedLocationId;
+}
 
 async function ensureLibraryBranchRow(db, now, locationId) {
      if (locationId == null) return;
@@ -58,7 +73,7 @@ export async function saveLocation(location = {}) {
  * Loads the current location from database.
  */
 export async function loadLocation() {
-     const locationId = getCurrentLocationId();
+     const locationId = await resolveCurrentLocationId();
      if (locationId == null) return null;
 
      const db = await getDb();
@@ -66,7 +81,7 @@ export async function loadLocation() {
           `SELECT location_json FROM library_branch_state WHERE location_id = ? LIMIT 1;`,
           [locationId]
      );
-     return safeParse(row?.location_json);
+     return safeParse(row?.location_json) ?? { locationId };
 }
 
 /**

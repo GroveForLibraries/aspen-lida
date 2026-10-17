@@ -10,7 +10,20 @@ const ButtonActionContext = React.createContext({ colorScheme: undefined, varian
 
 const ButtonGroupSizeContext = React.createContext(undefined);
 
-function resolveActionColors(brand, colorScheme, variant) {
+function resolveActionColors(brand, neutralPairs, colorScheme, variant) {
+     if (colorScheme === 'danger' || colorScheme === 'warning') {
+          const accentColor = neutralPairs?.[colorScheme] ?? (colorScheme === 'warning' ? '#f59e0b' : '#ef4444');
+          const accentTextColor = neutralPairs?.white ?? '#ffffff';
+
+          if (variant === 'outline') {
+               return { borderColor: accentColor, textColor: accentColor };
+          }
+          if (variant === 'link' || variant === 'ghost') {
+               return { textColor: accentColor };
+          }
+          return { backgroundColor: accentColor, textColor: accentTextColor };
+     }
+
      const scale = brand?.[colorScheme];
      if (!scale) {
           return null;
@@ -57,8 +70,8 @@ export const ThemedButton = React.forwardRef(({ size, colorScheme, variant, clas
      const groupSize = React.useContext(ButtonGroupSizeContext);
      const resolvedSize = size ?? groupSize ?? 'md';
      const sizeStyle = resolveButtonSizeStyle(resolvedSize);
-     const { brand } = useTheme();
-     const actionColors = resolveActionColors(brand, colorScheme, variant);
+     const { brand, neutralPairs } = useTheme();
+     const actionColors = resolveActionColors(brand, neutralPairs, colorScheme, variant);
      const mergedStyle = Array.isArray(style)
           ? Object.assign({}, sizeStyle.container, actionColors ? { backgroundColor: actionColors.backgroundColor, borderColor: actionColors.borderColor } : null, ...style.filter(Boolean))
           : { ...sizeStyle.container, ...(actionColors ? { backgroundColor: actionColors.backgroundColor, borderColor: actionColors.borderColor } : null), ...style };
@@ -107,8 +120,8 @@ export const ThemedButtonText = React.forwardRef(({ className, style, ...props }
      const { size: parentSize } = useStyleContext(SCOPE);
      const sizeStyle = resolveButtonSizeStyle(parentSize);
      const { colorScheme, variant } = React.useContext(ButtonActionContext);
-     const { brand } = useTheme();
-     const actionColors = resolveActionColors(brand, colorScheme, variant);
+     const { brand, neutralPairs } = useTheme();
+     const actionColors = resolveActionColors(brand, neutralPairs, colorScheme, variant);
 
      const fontWeight = Platform.OS === 'android' ? '700' : '600';
 

@@ -106,7 +106,7 @@ export const MySavedSearches = () => {
      };
 
      return (
-          <ScreenContainer>
+          <ScreenContainer className="p-0 m-0 pt-2">
                <Box>
                     {showSystemMessage()}
                     {isFetching && (!savedSearches || savedSearches.length === 0) ? (

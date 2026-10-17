@@ -1,6 +1,6 @@
 import React from 'react';
 import { Radio, RadioGroup, RadioIcon, RadioIndicator, RadioLabel } from '@/components/ui/radio';
-import { useTheme } from '../../themes/theme';
+import { TOKENS, useTheme } from '../../themes/theme';
 
 /** Re-export of gluestack's Radio, unmodified. Supports the `sm`/`md`/`lg` sizes (16/20/24px indicator). */
 export const ThemedRadio = Radio;
@@ -8,9 +8,10 @@ export const ThemedRadio = Radio;
 export const ThemedRadioGroup = RadioGroup;
 /** Wraps gluestack's RadioIcon (the selected-state dot), filling it with the theme's brand primary color. */
 export const ThemedRadioIcon = React.forwardRef(({ className, style, ...props }, ref) => {
-     const { brand } = useTheme();
+     const { textColor, colorMode } = useTheme();
+     const inputColors = TOKENS.componentTokens.input[colorMode === 'dark' ? 'dark' : 'light'];
 
-     return <RadioIcon ref={ref} className={['fill-transparent', className].filter(Boolean).join(' ')} style={[{ color: brand.primary[500] }, style]} {...props} />;
+     return <RadioIcon ref={ref} className={['fill-transparent', className].filter(Boolean).join(' ')} style={[{ color: textColor, borderColor: inputColors.borderDefault }, style]} {...props} />;
 });
 
 ThemedRadioIcon.displayName = 'ThemedRadioIcon';
@@ -26,9 +27,10 @@ ThemedRadioLabel.displayName = 'ThemedRadioLabel';
 
 /** Wraps gluestack's RadioIndicator, giving it a 2px border colored with the theme's border color. */
 export const ThemedRadioIndicator = React.forwardRef(({ className, style, ...props }, ref) => {
-     const { neutrals } = useTheme();
+     const { colorMode } = useTheme();
+     const inputColors = TOKENS.componentTokens.input[colorMode === 'dark' ? 'dark' : 'light'];
 
-     return <RadioIndicator ref={ref} className={['border-2', className].filter(Boolean).join(' ')} style={[{ borderColor: neutrals.border }, style]} {...props} />;
+     return <RadioIndicator ref={ref} className={['border-2', className].filter(Boolean).join(' ')} style={[{ borderColor: inputColors.borderDefault }, style]} {...props} />;
 });
 
 ThemedRadioIndicator.displayName = 'ThemedRadioIndicator';

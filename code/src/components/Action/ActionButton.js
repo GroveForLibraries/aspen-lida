@@ -27,12 +27,13 @@ import { ThemedCloseIcon as CloseIcon } from '../themed/ThemedFormControls';
  * @constructor
  */
 export const ActionButton = (data) => {
-     const { textColor } = useTheme();
+     const { neutralPairs, textColor, colorMode } = useTheme();
      const library = useLibrary();
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const [showIllUnavailableModal, setShowIllUnavailableModal] = useState(false);
 
+     const backgroundColor = colorMode === 'light' ?  neutralPairs.surface.light : neutralPairs.surface.dark;
      const action = data.actions;
      const {
           volumeInfo,

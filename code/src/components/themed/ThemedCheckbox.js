@@ -4,7 +4,7 @@ import { Checkbox, CheckboxGroup, CheckboxIcon, CheckboxIndicator, CheckboxLabel
 // `defaultIsChecked`, and CheckboxGroup value-membership alike.
 import { useCheckbox } from '@gluestack-ui/core/lib/esm/checkbox/creator/CheckboxProvider';
 import { ThemedMaterialIcons as MaterialIcons } from './ThemedMaterialIcons';
-import { useTheme } from '../../themes/theme';
+import { TOKENS, useTheme } from '../../themes/theme';
 
 // Per-size Tailwind classes for the indicator box, its check icon, and the label text,
 // keyed by the `size` prop ('sm' | 'md' | 'lg').
@@ -47,10 +47,12 @@ export const ThemedCheckboxIndicator = React.forwardRef(({ className, style, ...
      const size = React.useContext(CheckboxSizeContext);
      const { isChecked } = useCheckbox('CheckboxContext');
      const sizeStyle = resolveCheckboxSizeStyle(size);
-     const { brand } = useTheme();
+     const { neutrals, colorMode } = useTheme();
+     const inputColors = TOKENS.componentTokens.input[colorMode === 'dark' ? 'dark' : 'light'];
+
      const checkedStyle = isChecked
-          ? { borderColor: brand.primary[500], backgroundColor: brand.primary[500] }
-          : { borderColor: brand.primary[500] };
+          ? { borderColor: inputColors.borderDefault, backgroundColor: neutrals.surface }
+          : { borderColor: inputColors.borderDefault };
 
      return <CheckboxIndicator ref={ref} className={[sizeStyle.indicator, CHECKED_COLOR_NEUTRALIZER, className].filter(Boolean).join(' ')} style={[{ marginRight: 8 }, checkedStyle, style]} {...props} />;
 });
@@ -63,9 +65,9 @@ export const ThemedCheckboxIndicator = React.forwardRef(({ className, style, ...
 export const ThemedCheckboxIcon = React.forwardRef(({ as, name, className, style, ...props }, ref) => {
      const size = React.useContext(CheckboxSizeContext);
      const sizeStyle = resolveCheckboxSizeStyle(size);
-     const { brand } = useTheme();
+     const { textColor } = useTheme();
 
-     return <CheckboxIcon ref={ref} as={as ?? MaterialIcons} name={name ?? 'check'} className={[sizeStyle.icon, 'text-transparent', className].filter(Boolean).join(' ')} style={[{ color: brand.primary['500-text'] }, style]} {...props} />;
+     return <CheckboxIcon ref={ref} as={as ?? MaterialIcons} name={name ?? 'check'} className={[sizeStyle.icon, 'text-transparent', className].filter(Boolean).join(' ')} style={[{ color: textColor }, style]} {...props} />;
 });
 
 /**
