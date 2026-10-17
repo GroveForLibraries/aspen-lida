@@ -8,7 +8,6 @@ import { HStack } from '@/components/ui/hstack';
 import { Spinner } from '@/components/ui/spinner';
 import { ThemedText as Text } from '@/src/components/themed/ThemedText';
 import {
-     useUpdateThemeColorMode,
      useUpdateThemeColors,
      useUpdateThemeColorMode as usePersistThemeColorMode,
      useAvailableThemes,
@@ -88,12 +87,11 @@ export function UseColorMode(props) {
  * @param showText whether to show the active theme's name next to the trigger icon
  */
 export const ThemeSwitcher = ({ showText = true } = {}) => {
-     const { brand, neutralPairs, neutrals, themeId, colorMode, textColor } = useTheme();
+     const { brand, neutralPairs, neutrals, themeId, colorMode, textColor, updateColorMode } = useTheme();
      const location = useLibraryLocation();
      const themes = useAvailableThemes(location?.locationId);
      const safeThemes = Array.isArray(themes) ? themes : [];
      const updateThemeColors = useUpdateThemeColors();
-     const updateColorMode = useUpdateThemeColorMode();
 
      const [isThemeMenuOpen, setIsThemeMenuOpen] = React.useState(false);
      const [isSwitchingTheme, setIsSwitchingTheme] = React.useState(false);
