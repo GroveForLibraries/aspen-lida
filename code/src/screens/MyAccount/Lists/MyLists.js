@@ -43,12 +43,14 @@ const LISTS_STALE_MS = 6 * 60 * 60 * 1000; // 6 hours
  */
 export const MyLists = () => {
      const navigation = useNavigation();
-     const hasPendingChanges = useRoute().params.hasPendingChanges ?? false;
+     const route = useRoute();
+     const hasPendingChanges = route.params?.hasPendingChanges ?? false;
+     const targetListGroupId = route.params?.targetListGroupId ?? null;
      const { data: userState } = useUserState();
      const user = userState?.user ?? {};
      const library = useLibrary();
-     const { data: lists } = useLists();
-     const { data: listGroups } = useListGroups();
+     const { data: lists, dataUpdatedAt: listsUpdatedAt } = useLists();
+     const { data: listGroups, dataUpdatedAt: listGroupsUpdatedAt } = useListGroups();
      const updateLists = useUpdateLists();
      const updateListGroups = useUpdateListGroups();
      const language = useActiveLanguage();
@@ -167,6 +169,20 @@ export const MyLists = () => {
           }
      }, [library.baseUrl, language, pageSize]);
 
+     // ─── Keep the selected group's detail view in sync ──────────────────────────
+     const isInitialDataSyncRef = React.useRef(true);
+     React.useEffect(() => {
+          if (isInitialDataSyncRef.current) {
+               isInitialDataSyncRef.current = false;
+               return;
+          }
+          const groupId = currentListGroupRef.current;
+          if (groupId !== -1 && groupId !== '-1' && groupId != null) {
+               updateSelectedListGroup(groupId);
+          }
+          // eslint-disable-next-line react-hooks/exhaustive-deps
+     }, [listsUpdatedAt, listGroupsUpdatedAt]);
+
      // ─── Focus effect: stale check + pending-changes handling ───────────────────
 
      useFocusEffect(
@@ -177,19 +193,24 @@ export const MyLists = () => {
                const currentListGroupVal = currentListGroupRef.current;
                const isStale = !listsLastFetchedAt.current || (Date.now() - listsLastFetchedAt.current > LISTS_STALE_MS);
                const isEmpty = !currentLists?.lists?.length;
-               const shouldFetch = hasPendingChanges || isEmpty || isStale;
+               const hasTargetGroup = targetListGroupId != null;
+               const shouldFetch = hasPendingChanges || isEmpty || isStale || hasTargetGroup;
 
                if (shouldFetch) {
                     fetchListsAndGroups(1).then(() => {
-                         // If a list group was active and changes happened, reload it
-                         if (hasPendingChanges && currentListGroupVal !== -1) {
+                         // Prefer the explicit target group (e.g. a list was just moved to it)
+                         // over whatever group happened to be selected previously.
+                         if (hasTargetGroup) {
+                              updateSelectedListGroup(targetListGroupId);
+                         } else if (hasPendingChanges && currentListGroupVal !== -1) {
                               updateSelectedListGroup(currentListGroupVal);
                          }
                     });
-                    if (hasPendingChanges) {
-                         navigation.setParams({ hasPendingChanges: false });
+                    if (hasPendingChanges || hasTargetGroup) {
+                         navigation.setParams({ hasPendingChanges: false, targetListGroupId: null });
                     }
                } else {
+
                     // Use cached pagination info
                     if (currentLists && !hasListGroupsRef.current) {
                          setPage(currentLists.page_current ?? 1);
@@ -205,7 +226,7 @@ export const MyLists = () => {
                     autoSelectedOnFocus.current = true;
                     updateSelectedListGroup(defaultListGroup);
                }
-          }, [hasPendingChanges, defaultListGroup, fetchListsAndGroups, updateSelectedListGroup, navigation, language])
+          }, [hasPendingChanges, targetListGroupId, defaultListGroup, fetchListsAndGroups, updateSelectedListGroup, navigation, language])
      );
 
      // ─── Pagination ─────────────────────────────────────────────────────────────
@@ -377,7 +398,7 @@ export const MyLists = () => {
                     {showSystemMessage()}
                     <ScrollView horizontal className="px-2">
                          <ButtonGroup space="sm">
-                              <CreateList setLoading={setLoading} />
+                              <CreateList setLoading={setLoading} updateSelectedListGroup={updateSelectedListGroup} />
                               <CreateListGroup setLoading={setLoading} updateSelectedListGroup={updateSelectedListGroup} />
                          </ButtonGroup>
                     </ScrollView>
