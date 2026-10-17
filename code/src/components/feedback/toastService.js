@@ -46,6 +46,7 @@ function showToast({
      const showConfig = {
           id: toastId,
           placement: 'bottom',
+          containerStyle: { marginBottom: 32 },
           duration,
           render,
      };
