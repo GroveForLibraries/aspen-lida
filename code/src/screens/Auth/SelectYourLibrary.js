@@ -172,12 +172,12 @@ const Item = (data) => {
                               className="rounded-[999px]"
                          />
                     )}
-                    <VStack>
-                         <Text bold size="sm">
+                    <VStack className="flex-1 shrink">
+                         <Text bold size="sm" style={{ flexShrink: 1 }}>
                               {library.name}
                          </Text>
                          {isCommunity ? (
-                              <Text size="sm">
+                              <Text size="sm" style={{ flexShrink: 1 }}>
                                    {library.librarySystem}
                               </Text>
                          ) : null}
