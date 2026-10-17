@@ -133,6 +133,9 @@ jest.mock('../src/themes/theme', () => {
                themeColors,
                themeId: 1,
           })),
+          loadPreferredThemeConfigForLocation: jest.fn(() => Promise.resolve(null)),
+          resolveColorModeForTheme: jest.fn((baseMode, storedMode) => baseMode ?? storedMode ?? 'light'),
+          runExclusiveThemeInit: jest.fn(async (fn) => fn()),
           useThemeForDisplay: jest.fn(() => ({
                theme: compatibilityTheme,
                themeColors,
@@ -154,6 +157,22 @@ jest.mock('../src/themes/theme', () => {
                resetTheme: jest.fn(),
           })),
           useColorModeValue: jest.fn((lightValue) => lightValue),
+          TOKENS: {
+               primitives: {
+                    lineHeights: {
+                         sm: 20,
+                         md: 24,
+                         lg: 28,
+                         xl: 32,
+                         '2xl': 36,
+                    },
+               },
+               semanticTokens: {
+                    light: {
+                         border: '#6b7280',
+                    },
+               },
+          },
           UI_COLOR_FALLBACKS: uiColors,
      };
 });
@@ -270,6 +289,11 @@ jest.mock('../src/util/db', () => ({
      })),
      saveThemeState: jest.fn(() => Promise.resolve()),
      isStoredThemeIdMatch: jest.fn(() => Promise.resolve(false)),
+      findCachedUserIdForUsername: jest.fn(() => Promise.resolve(null)),
+      backfillLegacyUserId: jest.fn(() => Promise.resolve()),
+      getCurrentLibraryId: jest.fn(() => 123),
+      setCurrentUserId: jest.fn(),
+      setCurrentLocationId: jest.fn(),
      setCurrentLibraryId: jest.fn(),
 }));
 

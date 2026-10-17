@@ -17,7 +17,7 @@ import { ThemedSelect as Select, ThemedSelectBackdrop as SelectBackdrop, ThemedS
  * @constructor
  */
 export const SelectVolume = (props) => {
-     const { language, id, holdType, setHoldType, volume, setVolume, shouldLoad, promptForHoldType } = props;
+     const { language, id, holdType, setHoldType, volume, setVolume, shouldLoad, promptForHoldType, neutrals, textColor } = props;
      const library = useLibrary();
 
      const { status, data, error, isFetching } = useQuery({
@@ -26,7 +26,7 @@ export const SelectVolume = (props) => {
           enabled: !!shouldLoad,
      });
      const volumeOptions = Object.values(data ?? {});
-
+     const borderColor = neutrals.border;
      return (
           <>
                {status === 'loading' || isFetching ? (
@@ -42,15 +42,15 @@ export const SelectVolume = (props) => {
                                         onChange={(nextValue) => {
                                              setHoldType(nextValue);
                                         }}>
-                                        <Radio value="item" size="sm" className="mb-2">
-                                             <RadioIndicator className="mr-2">
-                                                  <RadioIcon as={MaterialIcons} name="circle" />
+                                        <Radio value="item" className="mb-2">
+                                             <RadioIndicator className="mr-2" style={{ borderColor }}>
+                                                  <RadioIcon as={MaterialIcons} name="circle" style={{ color: textColor }} />
                                              </RadioIndicator>
                                              <RadioLabel>{getTermFromDictionary(language, 'first_available')}</RadioLabel>
                                         </Radio>
-                                        <Radio value="volume" size="sm">
-                                             <RadioIndicator className="mr-2">
-                                                  <RadioIcon as={MaterialIcons} name="circle" />
+                                        <Radio value="volume" className="mb-2">
+                                             <RadioIndicator className="mr-2" style={{ borderColor }}>
+                                                  <RadioIcon as={MaterialIcons} name="circle" style={{ color: textColor }} />
                                              </RadioIndicator>
                                              <RadioLabel>{getTermFromDictionary(language, 'specific_volume')}</RadioLabel>
                                         </Radio>
@@ -62,9 +62,7 @@ export const SelectVolume = (props) => {
                                    <FormControlLabel>
                                         <FormControlLabelText>{getTermFromDictionary(language, 'select_volume')}</FormControlLabelText>
                                    </FormControlLabel>
-                                   <Select
-                                        selectedValue={volume}
-                                        onValueChange={(itemValue) => setVolume(itemValue)}>
+                                   <Select selectedValue={volume} onValueChange={(itemValue) => setVolume(itemValue)}>
                                         <SelectTrigger>
                                              <SelectInput placeholder={getTermFromDictionary(language, 'select_volume')} />
                                         </SelectTrigger>
@@ -74,7 +72,7 @@ export const SelectVolume = (props) => {
                                                   <SelectDragIndicatorWrapper>
                                                        <SelectDragIndicator />
                                                   </SelectDragIndicatorWrapper>
-                                                   {volumeOptions.map((item, index) => {
+                                                  {volumeOptions.map((item, index) => {
                                                        return <SelectItem label={item.label} value={item.volumeId} key={index} />;
                                                   })}
                                              </SelectContent>

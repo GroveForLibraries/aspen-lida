@@ -3,6 +3,7 @@ import * as m260800 from './26.08.00';
 import * as m2608001 from './26.08.01';
 import * as m260900 from './26.09.00';
 import * as m2609001 from './26.09.01';
+import * as m261000 from './26.10.00';
 
 /**
  * Compare two release keys in the format of "major.minor.patch" and sort them in ascending order.
@@ -26,4 +27,4 @@ export function compareReleaseKeys(a, b) {
      return 0;
 }
 
-export const versionUpdates = [m260600, m260800, m2608001, m260900, m2609001].sort(compareReleaseKeys);
+export const versionUpdates = [m260600, m260800, m2608001, m260900, m2609001, m261000].sort(compareReleaseKeys);

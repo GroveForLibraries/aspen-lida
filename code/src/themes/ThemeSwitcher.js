@@ -8,7 +8,6 @@ import { HStack } from '@/components/ui/hstack';
 import { Spinner } from '@/components/ui/spinner';
 import { ThemedText as Text } from '@/src/components/themed/ThemedText';
 import {
-     useUpdateThemeColorMode,
      useUpdateThemeColors,
      useUpdateThemeColorMode as usePersistThemeColorMode,
      useAvailableThemes,
@@ -16,6 +15,7 @@ import {
 import { useLibraryLocation } from '../hooks/useLibraryBranchData';
 import { logDebugMessage } from '../util/logging.js';
 import { buildThemeConfigFromCatalogEntry, useTheme, useThemeForDisplay } from './theme';
+import {saveUserThemePreference} from "@/src/util/db";
 
 /** Back-chevron icon, colored for contrast against a branded header background. */
 export const BackIcon = (props) => {
@@ -87,12 +87,11 @@ export function UseColorMode(props) {
  * @param showText whether to show the active theme's name next to the trigger icon
  */
 export const ThemeSwitcher = ({ showText = true } = {}) => {
-     const { brand, neutralPairs, neutrals, themeId, colorMode, textColor } = useTheme();
+     const { brand, neutralPairs, neutrals, themeId, colorMode, textColor, updateColorMode } = useTheme();
      const location = useLibraryLocation();
      const themes = useAvailableThemes(location?.locationId);
      const safeThemes = Array.isArray(themes) ? themes : [];
      const updateThemeColors = useUpdateThemeColors();
-     const updateColorMode = useUpdateThemeColorMode();
 
      const [isThemeMenuOpen, setIsThemeMenuOpen] = React.useState(false);
      const [isSwitchingTheme, setIsSwitchingTheme] = React.useState(false);
@@ -110,6 +109,7 @@ export const ThemeSwitcher = ({ showText = true } = {}) => {
                if (builtTheme.baseMode === 'dark' || builtTheme.baseMode === 'light') {
                     await updateColorMode(builtTheme.baseMode);
                }
+               await saveUserThemePreference(location?.locationId, builtTheme.themeId);
           } catch (error) {
                logDebugMessage('Theme switch failed');
                logDebugMessage(error);

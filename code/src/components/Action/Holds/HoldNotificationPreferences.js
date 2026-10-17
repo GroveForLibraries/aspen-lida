@@ -117,9 +117,9 @@ export const HoldNotificationPreferences = (props) => {
                                                        <SelectScrollView>
                                                             {smsCarriers.map((carrier, index) => {
                                                                  if (index === smsCarrier) {
-                                                                      return <SelectItem key={index} label={carrier} value={index} style={{ backgroundColor: brand.tertiary[300] }} textStyle={{ color: brand.tertiary['500-text'] }} />;
+                                                                      return <SelectItem key={index} label={carrier} value={index} selectedValue={smsCarrier} />;
                                                                  }
-                                                                 return <SelectItem key={index} label={carrier} value={index} style={{ backgroundColor: smsCarrier === index ? brand.tertiary[300] : 'transparent' }} textStyle={{ color: smsCarrier === index ? brand.tertiary['500-text'] : textColor }} />;
+                                                                 return <SelectItem key={index} label={carrier} value={index} selectedValue={smsCarrier} />;
                                                             })}
                                                        </SelectScrollView>
                                                   </SelectContent>

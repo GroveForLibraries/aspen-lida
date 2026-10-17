@@ -455,8 +455,8 @@ export const SelfCheckOut = () => {
                                    <Text>{getTermFromDictionary(language, 'finish_checkout_session_body')}</Text>
                               </ModalBody>
                               <ModalFooter>
-                                   <ButtonGroup space="sm">
-                                        <Button onPress={() => startNewSession()} colorScheme="primary" className="mr-5">
+                                   <ButtonGroup space="sm" size="sm">
+                                        <Button onPress={() => startNewSession()} colorScheme="primary">
                                              <ButtonText>{getTermFromDictionary(language, 'start_new_session')}</ButtonText>
                                         </Button>
                                         <Button colorScheme="primary" onPress={() => goToCheckouts()}>

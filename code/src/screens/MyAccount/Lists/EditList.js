@@ -9,7 +9,7 @@ import { deleteList, editList, getLists } from '@/src/util/api/list';
 import { refreshProfile } from '@/src/util/api/user';
 import { toArray } from '@/src/helpers/helpers';
 import { useActiveLanguage } from '@/src/hooks/useLanguageData';
-import { useTheme } from '@/src/themes/theme';
+import { TOKENS, useTheme } from '@/src/themes/theme';
 import { ThemedCloseIcon as CloseIcon, ThemedFormControl as FormControl, ThemedInput as Input, ThemedInputField as InputField, ThemedFormControlLabelText as FormControlLabelText, ThemedFormControlLabel as FormControlLabel } from '@/src/components/themed/ThemedFormControls';
 import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../../components/themed/ThemedButton';
 import { ThemedButtonGroup as ButtonGroup } from '@/src/components/themed/ThemedButton';
@@ -46,9 +46,10 @@ const EditList = (props) => {
       const [description, setDescription] = React.useState(data.description);
       const [isPublic, setPublic] = React.useState(data.public);
       const [listGroupId, setListGroupId] = React.useState(data.listGroupId);
-      const { brand, textColor, neutrals } = useTheme();
+      const { brand, textColor, neutrals, colorMode } = useTheme();
+     const inputColors = TOKENS.componentTokens.input[colorMode === 'dark' ? 'dark' : 'light'];
 
-      const user = userState?.user ?? {};
+     const user = userState?.user ?? {};
       const borderColor = neutrals.border;
 
      React.useLayoutEffect(() => {
@@ -88,7 +89,7 @@ const EditList = (props) => {
                                    <FormControlLabel>
                                         <FormControlLabelText>{getTermFromDictionary(language, 'title')}</FormControlLabelText>
                                    </FormControlLabel>
-                                   <Input style={{ borderColor }}><InputField id="title" defaultValue={data.title} autoComplete="off" onChangeText={(text) => setTitle(text)} /></Input>
+                                   <Input><InputField id="title" defaultValue={data.title} autoComplete="off" onChangeText={(text) => setTitle(text)} /></Input>
                               </FormControl>
                               <FormControl>
                                    <FormControlLabel><FormControlLabelText>{getTermFromDictionary(language, 'description')}</FormControlLabelText></FormControlLabel>
@@ -105,14 +106,14 @@ const EditList = (props) => {
                                         }}>
                                         <HStack className="flex-row items-center w-[75%] max-w-75" space="md">
                                              <Radio value="false" className="my-1">
-                                                  <RadioIndicator className="mr-2" style={{ borderColor }}>
-                                                       <RadioIcon as={MaterialIcons} name="circle" style={{ color: borderColor }} />
+                                                  <RadioIndicator className="mr-2">
+                                                       <RadioIcon as={MaterialIcons} name="circle" />
                                                   </RadioIndicator>
                                                   <RadioLabel>{getTermFromDictionary(language, 'private')}</RadioLabel>
                                              </Radio>
                                              <Radio value="true" className="my-1">
-                                                  <RadioIndicator className="mr-2" style={{ borderColor }}>
-                                                       <RadioIcon as={MaterialIcons} name="circle" style={{ color: borderColor }} />
+                                                  <RadioIndicator className="mr-2">
+                                                       <RadioIcon as={MaterialIcons} name="circle" />
                                                   </RadioIndicator>
                                                   <RadioLabel>{getTermFromDictionary(language, 'public')}</RadioLabel>
                                              </Radio>

@@ -453,9 +453,9 @@ export const MyHolds = () => {
 
           if (section === 'ready') {
                return (
-                   <Box className="p-2">
+                   <Box>
                          <ScrollView horizontal>
-                              <HStack space="sm" className="items-center">
+                              <HStack space="sm" className="items-center p-2">
                                    <Box style={{ width: readySortLength }}>
                                         <Select
                                              name="sortBy"
@@ -509,10 +509,10 @@ export const MyHolds = () => {
           };
 
           return (
-               <Box className={section === 'none' ? 'px-2 py-2' : 'px-2 py-2'} style={{ backgroundColor: surfaceBg, borderBottomWidth: 1, borderColor, flexWrap: 'nowrap' }}>
+               <Box className="pt-2" style={{ backgroundColor: surfaceBg, borderBottomWidth: 1, borderColor, flexWrap: 'nowrap' }}>
                     {showSystemMessage()}
                     <ScrollView horizontal>
-                         <HStack space="sm" className="items-center">
+                         <HStack space="sm" className="items-center p-2">
                               <Button
                                    size="sm"
                                    variant="outline"
@@ -522,7 +522,7 @@ export const MyHolds = () => {
                                    }}>
                                    <ButtonText style={{ color: textColor }}>{getTermFromDictionary(language, 'holds_reload')}</ButtonText>
                               </Button>
-                              <Box style={{ width: 245 }}>
+                              <Box style={{ width: 250 }}>
                                    <Select name="holdSource" selectedValue={holdSource} defaultValue={holdSource} initialLabel="Test" accessibilityLabel="Filter By Source" onValueChange={(itemValue) => toggleHoldSource(itemValue)}>
                                         <SelectTrigger size="sm">
                                              <SelectInput value={holdSourceLabel()}/>
@@ -587,7 +587,7 @@ export const MyHolds = () => {
      const noHolds = (title) => {
           if (title === 'Pending') {
                return (
-                   <Center className="py-2">
+                   <Center className="p-2">
                         <Text bold size="lg">
                               {getTermFromDictionary(language, 'pending_holds_none')}
                          </Text>
@@ -595,7 +595,7 @@ export const MyHolds = () => {
                );
           } else {
                return (
-                   <Center className="py-2">
+                   <Center className="p-2">
                         <Text bold size="lg">
                               {getTermFromDictionary(language, 'holds_ready_for_pickup_none')}
                          </Text>

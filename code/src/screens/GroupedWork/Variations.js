@@ -42,6 +42,7 @@ export const Variations = (props) => {
      const library = useLibrary();
      const language = useActiveLanguage();
      const { textColor } = useTheme();
+     const updateUserProfile = useUpdateUserProfile();
 
      const [isLoading, setLoading] = React.useState(false);
      const [confirmingHold, setConfirmingHold] = React.useState(false);
@@ -98,6 +99,8 @@ export const Variations = (props) => {
 
      // 3. Render
      const variations = data?.variations ? (Array.isArray(data.variations) ? data.variations : Object.values(data.variations)) : [];
+
+     const holdItems = holdSelectItemResponse?.items ? (Array.isArray(holdSelectItemResponse.items) ? holdSelectItemResponse.items : Object.values(holdSelectItemResponse.items)) : [];
 
      return (
           <>
@@ -197,28 +200,24 @@ export const Variations = (props) => {
                                                        variant="solid"
                                                        colorScheme="primary"
                                                        onPress={async () => {
-                                                            setConfirmingHold(true);
-                                                            await confirmHold(holdConfirmationResponse.recordId, holdConfirmationResponse.confirmationId, language, library.baseUrl).then(async (result) => {
+                                                            setPlacingItemHold(true);
+                                                            try {
+                                                                 const result = await placeHold(library.baseUrl, selectedItem, 'ils', holdSelectItemResponse.patronId, holdSelectItemResponse.pickupLocation, holdSelectItemResponse.sublocation, false, '', 'item', null, null, null, holdSelectItemResponse.bibId, language);
                                                                  setResponse(result);
-                                                                 queryClient.invalidateQueries({ queryKey: ['holds', library.baseUrl, language] });
-                                                                 await refreshProfile(library.baseUrl).then(async (data) => {
-                                                                      if (data.ok) {
-                                                                           await updateUserProfile(data.data.result.profile);
-                                                                           queryClient.invalidateQueries({ queryKey: ['records'] });
-                                                                           queryClient.invalidateQueries({ queryKey: ['variation'] });
-                                                                      } else {
-                                                                           logWarnMessage('Could not refresh profile after placing hold or checkout from linked account');
-                                                                           logDebugMessage(data);
-                                                                           getErrorMessage(data.code ?? 0, data.problem);
-                                                                      }
-                                                                 });
-
-                                                                 setHoldConfirmationIsOpen(false);
-                                                                 setConfirmingHold(false);
-                                                                 if (result) {
-                                                                      setResponseIsOpen(true);
+                                                                 queryClient.invalidateQueries({ queryKey: ['holds'] });
+                                                                 const profile = await refreshProfile(library.baseUrl);
+                                                                 if (profile.ok) {
+                                                                      await updateUserProfile(profile.data.result.profile);
+                                                                      queryClient.invalidateQueries({ queryKey: ['variation'] });
+                                                                 } else {
+                                                                      logWarnMessage('Could not refresh profile after placing item hold from variation selection');
                                                                  }
-                                                            });
+                                                                 if (result) setResponseIsOpen(true);
+                                                            } finally {
+                                                                 setHoldItemSelectIsOpen(false);
+                                                                 setPlacingItemHold(false);
+                                                                 setSelectedItem('');
+                                                            }
                                                        }}>
                                                        <ButtonText>{getTermFromDictionary(language, 'confirm_place_hold')}</ButtonText>
                                                   </Button>
@@ -251,16 +250,11 @@ export const Variations = (props) => {
                                                                       <SelectDragIndicator />
                                                                  </SelectDragIndicatorWrapper>
                                                                  <SelectScrollView>
-                                                                      {(holdSelectItemResponse.items || []).map((item, index) => {
-                                                                           let itemLabel = "";
-                                                                           if (item.location) {
-                                                                                itemLabel = item.location + " - ";
-                                                                           }
+                                                                      {holdItems.map((item, index) => {
+                                                                           let itemLabel = item.location ? `${item.location} - ` : '';
                                                                            itemLabel += item.callNumber;
-                                                                           if (item.status) {
-                                                                                itemLabel += " - " + item.status;
-                                                                           }
-                                                                          return <SelectItem label={itemLabel} value={item.itemNumber} key={index} textStyle={{ color: textColor }} />;
+                                                                           if (item.status) itemLabel += ` - ${item.status}`;
+                                                                           return <SelectItem label={itemLabel} value={item.itemNumber} key={item.itemNumber ?? index} />;
                                                                       })}
                                                                  </SelectScrollView>
                                                             </SelectContent>
