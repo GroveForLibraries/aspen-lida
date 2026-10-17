@@ -398,15 +398,15 @@ export const getDateLastUsed = (date, checkedOut) => {
  */
 export const willAutoRenew = (props) => {
      const language = useActiveLanguage();
-     const {} = useTheme();
+     const {neutrals} = useTheme();
      if (props.autoRenew === 1 || props.autoRenew === '1') {
           return (
-               <Box style={{ marginTop: 1, padding: 2, backgroundColor: '#f5f5f5' }}>
+               <Box style={{ marginTop: 1, padding: 2, backgroundColor: neutrals.surfaceMuted }}>
                     <Text size="xs">
-                         <Text bold size="xs">
+                         <Text bold size="xs" color={neutrals.iconMuted}>
                               {getTermFromDictionary(language, 'if_eligible_auto_renew')}:
-                         </Text>
-                         {' '}{props.renewalDate}
+                         </Text>{' '}
+                         {props.renewalDate}
                     </Text>
                </Box>
           );

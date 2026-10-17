@@ -4,7 +4,7 @@ import { ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/Th
 import { Platform } from 'react-native';
 import { freezeHold, freezeHolds } from '@/src/util/api/user';
 import { getTermFromDictionary } from '@/src/translations/TranslationService';
-import {logWarnMessage} from '@/src/util/logging';
+import { logDebugMessage } from '@/src/util/logging';
 import { useActiveLanguage } from '@/src/hooks/useLanguageData';
 import { useTheme } from '@/src/themes/theme';
 import { ThemedCloseIcon as CloseIcon, ThemedFormControl as FormControl, ThemedFormControlLabelText as FormControlLabelText, ThemedFormControlLabel as FormControlLabel } from '@/src/components/themed/ThemedFormControls';
@@ -68,7 +68,7 @@ export const SelectThawDate = (props) => {
      const onSelectDate = (date) => {
           hideDatePicker();
           setLoading(true);
-          logWarnMessage('A date has been picked: ', date);
+          logDebugMessage('A date has been picked: ', date);
           setDate(date);
           onClose();
           if (data) {

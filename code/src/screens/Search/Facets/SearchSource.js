@@ -10,7 +10,7 @@ import {logDebugMessage} from '@/src/util/logging';
 import { useActiveLanguage } from '@/src/hooks/useLanguageData';
 import { useTheme } from '@/src/themes/theme';
 import { useLibrary } from '@/src/hooks/useLibrarySystemData';
-import { Box } from '@/components/ui/box';
+import { VStack } from '@/components/ui/vstack';
 import { HStack } from '@/components/ui/hstack';
 import { Pressable } from '@/components/ui/pressable';
 import { ThemedText as Text } from '@/src/components/themed/ThemedText';
@@ -26,7 +26,7 @@ export const SearchSourceScreen = () => {
      const library = useLibrary();
      const language = useActiveLanguage();
      const { currentSource, sources, updateCurrentSource, updateIndexes, updateCurrentIndex } = React.useContext(SearchContext);
-     const { brand } = useTheme();
+     const { textColor } = useTheme();
      logDebugMessage('currentSource: ' + currentSource);
 
      const search = async () => {
@@ -57,21 +57,21 @@ export const SearchSourceScreen = () => {
      return (
           <ScreenContainer className="pt-5">
                <ScrollView>
-                    <Box>
+                    <VStack space="sm">
                          {map(sources, function (source, index, array) {
                               if (index === 'events' || index === 'local') {
                                    return (
                                        <Pressable key={index} className="p-[2px] py-2" onPress={() => updateSource(index)}>
                                              {currentSource === index ? (
                                                  <HStack space="sm" className="justify-start items-center">
-                                                      <MaterialIcons name="radio-button-checked" size={20} color={brand.primary[600]} />
+                                                      <MaterialIcons name="radio-button-checked" size={20} color={textColor} />
                                                       <Text className="ml-2">
                                                             {source.name}
                                                        </Text>
                                                   </HStack>
                                              ) : (
                                                  <HStack space="sm" className="justify-start items-center">
-                                                      <MaterialIcons name="radio-button-unchecked" size={20} color={brand.primary[200]} />
+                                                      <MaterialIcons name="radio-button-unchecked" size={20} color={textColor} />
                                                       <Text className="ml-2">
                                                             {source.name}
                                                        </Text>
@@ -81,7 +81,7 @@ export const SearchSourceScreen = () => {
                                    );
                               }
                          })}
-                    </Box>
+                    </VStack>
                </ScrollView>
           </ScreenContainer>
      );

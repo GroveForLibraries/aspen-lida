@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { useWindowDimensions } from 'react-native';
+import { StatusBar as NativeStatusBar, useWindowDimensions } from 'react-native';
+import chroma from 'chroma-js';
 import { useLibrary } from '../hooks/useLibrarySystemData';
 import { Image } from 'expo-image';
 import { ThemedText as Text } from '@/src/components/themed/ThemedText';
@@ -87,8 +88,18 @@ function resolveHeaderLogoBar({ header, library, width }) {
      }
 }
 
+function resolveStatusBarStyle(backgroundColor, fallbackTextColor) {
+     if (chroma.valid(backgroundColor)) {
+          const contrastOnWhite = chroma.contrast(backgroundColor, '#ffffff');
+          const contrastOnBlack = chroma.contrast(backgroundColor, '#000000');
+          return contrastOnWhite >= contrastOnBlack ? 'light' : 'dark';
+     }
+
+     return fallbackTextColor === '#000000' ? 'dark' : 'light';
+}
+
 export default function TitleWithLogo(props) {
-     const { brand, header } = useTheme();
+     const { brand, header, colorMode } = useTheme();
      const textColor = brand.primary['500-text'];
      const bg = brand.primary[500];
      const navigation = useNavigation();
@@ -98,6 +109,22 @@ export default function TitleWithLogo(props) {
      const { width } = useWindowDimensions();
      const headerLogoBar = resolveHeaderLogoBar({ header, library, width });
      const safeAreaBackgroundColor = headerLogoBar?.backgroundColor ?? bg;
+     const statusBarStyle = resolveStatusBarStyle(safeAreaBackgroundColor, textColor);
+     const nativeStatusBarStyle = statusBarStyle === 'light' ? 'light-content' : 'dark-content';
+
+     React.useEffect(() => {
+          const applyStatusBarStyle = () => {
+               NativeStatusBar.setBarStyle(nativeStatusBarStyle, true);
+          };
+
+          applyStatusBarStyle();
+          const timeoutId = setTimeout(applyStatusBarStyle, 0);
+
+          return () => {
+               clearTimeout(timeoutId);
+               NativeStatusBar.setBarStyle(colorMode === 'dark' ? 'light-content' : 'dark-content', true);
+          };
+     }, [colorMode, nativeStatusBarStyle, safeAreaBackgroundColor]);
 
      return (
           <VStack style={{ paddingTop: insets.top, paddingLeft: insets.left, paddingRight: insets.right, backgroundColor: safeAreaBackgroundColor }}>

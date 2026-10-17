@@ -4,7 +4,7 @@ import * as SecureStore from 'expo-secure-store';
 import React from 'react';
 import * as Sentry from '@sentry/react-native';
 import { SystemMessagesContext } from '../../context/initialContext';
-import { buildThemeForLibrary, runExclusiveThemeInit, useTheme, TOKENS } from '../../themes/theme';
+import { buildThemeForLibrary, resolveColorModeForTheme, runExclusiveThemeInit, useTheme, TOKENS, loadPreferredThemeConfigForLocation } from '../../themes/theme';
 import {
      getTermFromDictionary,
      setTranslationsLibrary } from '../../translations/TranslationService';
@@ -24,26 +24,7 @@ import { LIBRARY } from '../../util/globals';
 import {CatalogOffline} from './CatalogOffline';
 import {ForceLogout} from './ForceLogout';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {
-     loadAllUserData,
-     loadAllLibraryBranchData,
-     saveUserProfile,
-     saveAllLibraryBranchData,
-     loadAllLibrarySystemData,
-     loadAllLanguageData,
-     saveCatalogStatus,
-     saveLibrary,
-     saveMenu,
-     saveHomeScreenLinks,
-     loadBrowseCategories,
-     loadThemeState,
-     saveThemeState,
-     loadLocation,
-     setCurrentUserId,
-     setCurrentLocationId,
-     getCurrentLibraryId,
-     findCachedUserIdForUsername,
-     backfillLegacyUserId} from '../../util/db';
+import { loadAllUserData, loadAllLibraryBranchData, saveUserProfile, saveAllLibraryBranchData, loadAllLibrarySystemData, loadAllLanguageData, saveCatalogStatus, saveLibrary, saveMenu, saveHomeScreenLinks, loadBrowseCategories, loadThemeState, saveThemeState, loadLocation, setCurrentUserId, setCurrentLocationId, getCurrentLibraryId, findCachedUserIdForUsername, backfillLegacyUserId } from '../../util/db';
 import { useUpdateLibraryVersion, useUpdateCatalogStatus, useAppSettings } from '../../hooks/useLibrarySystemData';
 import {
      useUpdateBrowseCategories,
@@ -180,7 +161,7 @@ export const LoadingScreen = () => {
 
      const insets = useSafeAreaInsets();
      const { neutralPairs, brand } = useTheme();
-     const borderColor = neutralPairs?.border?.light ?? TOKENS.semanticTokens.light.border;
+     const borderColor = neutralPairs?.border?.light ?? TOKENS?.semanticTokens?.light?.border ?? '#6b7280';
 
      const numSteps = 14;
 
@@ -666,22 +647,40 @@ export const LoadingScreen = () => {
                          const currentLocationId = currentLocation?.locationId != null ? Number(currentLocation.locationId) : null;
                          const mode = currentThemeState?.colorMode === 'dark' ? 'dark' : 'light';
                          await updateColorMode(mode);
-                         if (LIBRARY.url) {
+                          const preferredTheme = await loadPreferredThemeConfigForLocation(currentLocationId);
+
+                         if (preferredTheme) {
+                              const resolvedMode = resolveColorModeForTheme(preferredTheme.baseMode, mode);
+
+                              await saveThemeState({
+                                   themeId: preferredTheme.themeId,
+                                   locationId: currentLocationId,
+                                   colorMode: resolvedMode,
+                                   textColor: resolvedMode === 'dark' ? 'textLight50' : 'textLight950',
+                                   themeColors: preferredTheme.themeColors,
+                                   header: preferredTheme.header,
+                              });
+
+                              await updateTheme(preferredTheme.theme, preferredTheme.themeId, currentLocationId, preferredTheme.header);
+
+                              if (resolvedMode !== mode) {
+                                   await updateColorMode(resolvedMode);
+                              }
+                         } else if (LIBRARY.url) {
                               const builtTheme = await buildThemeForLibrary(LIBRARY.url, currentLocationId);
+                              const resolvedMode = resolveColorModeForTheme(builtTheme.baseMode, mode);
                               await saveThemeState({
                                    themeId: builtTheme.themeId,
                                    locationId: builtTheme.locationId,
-                                   colorMode: mode,
-                                   textColor: mode === 'dark' ? 'textLight50' : 'textLight950',
+                                   colorMode: resolvedMode,
+                                   textColor: resolvedMode === 'dark' ? 'textLight50' : 'textLight950',
                                    themeColors: builtTheme.themeColors,
-                                   header: builtTheme.header });
+                                   header: builtTheme.header,
+                              });
                               await updateTheme(builtTheme.theme, builtTheme.themeId, builtTheme.locationId, builtTheme.header);
-                         } else if (currentThemeState?.themeColors?.primary && currentThemeState?.themeColors?.secondary && currentThemeState?.themeColors?.tertiary) {
-                            await updateTheme({
-                              tokens: {
-                                   colors: currentThemeState.themeColors,
-                              },
-                         }, currentThemeState.themeId, currentThemeState.locationId, currentThemeState.header);
+                              if (resolvedMode !== mode) {
+                                   await updateColorMode(resolvedMode);
+                              }
                          }
                     });
                } catch (e) {
@@ -1147,7 +1146,7 @@ export const LoadingScreen = () => {
                               {loadingText}
                          </Heading>
                          <Progress value={progress} size="md" testID="progress-bar" style={{ width: '100%', backgroundColor: borderColor }}>
-                              <ProgressFilledTrack style={{ backgroundColor: brand.primary[500] }} />
+                              <ProgressFilledTrack style={{ backgroundColor: brand?.primary?.[500] ?? '#1d4ed8' }} />
                          </Progress>
                     </VStack>
                </Box>

@@ -102,7 +102,7 @@ export const MyNotificationHistory = () => {
      const Empty = () => {
           return (
                <>
-                   {systemMessagesForScreen.length > 0 ? <Box className="p-2">{showSystemMessage()}</Box> : null}
+                   {systemMessagesForScreen.length > 0 ? <Box className="pt-2">{showSystemMessage()}</Box> : null}
                    <Center className="flex-1 p-5">
                         <Heading className="pt-5">{getTermFromDictionary(language, 'notification_history_empty')}</Heading>
                     </Center>
@@ -149,8 +149,8 @@ export const MyNotificationHistory = () => {
      };
 
      return (
-          <ScreenContainer>
-               {systemMessagesForScreen.length > 0 ? <Box className="p-2">{showSystemMessage()}</Box> : null}
+          <ScreenContainer className="p-0 m-0 px-2">
+               {systemMessagesForScreen.length > 0 ? <Box className="pt-2">{showSystemMessage()}</Box> : null}
                {isFetching && !inbox?.length ? (
                     loadingSpinner()
                ) : fetchError ? (

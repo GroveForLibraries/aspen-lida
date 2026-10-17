@@ -25,7 +25,7 @@ import { refreshProfile, updateScreenBrightnessStatus } from '@/src/util/api/use
 import { formatDiscoveryVersion, orderByFields, parseToDate } from '@/src/helpers/helpers';
 import { logDebugMessage, logErrorMessage } from '@/src/util/logging';
 import { useActiveLanguage } from '@/src/hooks/useLanguageData';
-import { useTheme } from '@/src/themes/theme';
+import { TOKENS, useTheme } from '@/src/themes/theme';
 import { useTranslationWithValues } from '@/src/hooks/useTranslationWithValues';
 
 let lastLibraryCardBlurRunAt = 0;
@@ -705,7 +705,7 @@ const BarcodeModal = ({ card, showModal, closeModal, language }) => {
      };
 
      const modalBg = neutrals.surface;
-     const barcodeBg = neutrals.surfaceMuted;
+     const barcodeBg = TOKENS.primitives.singletons.lightWarmGray;
 
      return (
           <Modal isOpen={showModal} onClose={closeModal} size="full">

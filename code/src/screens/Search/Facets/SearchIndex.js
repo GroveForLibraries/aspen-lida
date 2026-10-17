@@ -6,7 +6,7 @@ import { ThemedScrollView as ScrollView } from '@/src/components/themed/ThemedSc
 import { SearchContext } from '@/src/context/initialContext';
 import {logDebugMessage} from '@/src/util/logging';
 import { useTheme } from '@/src/themes/theme';
-import { Box } from '@/components/ui/box';
+import { VStack } from '@/components/ui/vstack';
 import { HStack } from '@/components/ui/hstack';
 import { Pressable } from '@/components/ui/pressable';
 import { ThemedText as Text } from '@/src/components/themed/ThemedText';
@@ -19,7 +19,7 @@ import { ScreenContainer } from '@/src/components/ScreenContainer';
  */
 export const SearchIndexScreen = () => {
      const navigation = useNavigation();
-     const { brand } = useTheme();
+     const { textColor } = useTheme();
      const { currentIndex, indexes, updateCurrentSource, updateIndexes, updateCurrentIndex } = React.useContext(SearchContext);
 
      logDebugMessage('currentIndex: ' + currentIndex);
@@ -37,29 +37,25 @@ export const SearchIndexScreen = () => {
      return (
           <ScreenContainer className="pt-5">
                <ScrollView>
-                    <Box>
+                    <VStack space="sm">
                          {map(indexes, function (obj, index, array) {
                               return (
                                    <Pressable key={index} className="p-[2px] py-2" onPress={() => updateIndex(index)}>
                                         {currentIndex === index ? (
-                                            <HStack space="sm" className="justify-start items-center">
-                                                 <MaterialIcons name="radio-button-checked" size={20} color={brand.primary[600]} />
-                                                 <Text className="ml-2">
-                                                       {obj}
-                                                  </Text>
+                                             <HStack space="sm" className="justify-start items-center">
+                                                  <MaterialIcons name="radio-button-checked" size={20} color={textColor} />
+                                                  <Text className="ml-2">{obj}</Text>
                                              </HStack>
                                         ) : (
-                                            <HStack space="sm" className="justify-start items-center">
-                                                 <MaterialIcons name="radio-button-unchecked" size={20} color={brand.primary[200]} />
-                                                 <Text className="ml-2">
-                                                       {obj}
-                                                  </Text>
+                                             <HStack space="sm" className="justify-start items-center">
+                                                  <MaterialIcons name="radio-button-unchecked" size={20} color={textColor} />
+                                                  <Text className="ml-2">{obj}</Text>
                                              </HStack>
                                         )}
                                    </Pressable>
                               );
                          })}
-                    </Box>
+                    </VStack>
                </ScrollView>
           </ScreenContainer>
      );
