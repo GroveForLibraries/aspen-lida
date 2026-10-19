@@ -39,7 +39,6 @@ export const MyLibraryCard = () => {
      const [currentCardIndex, setCurrentCardIndex] = React.useState(0);
      const [showBarcodeModal, setShowBarcodeModal] = React.useState(false);
      const [selectedCard, setSelectedCard] = React.useState(null);
-     const [showModal, setShowModal] = React.useState(true);
      const progressValue = useSharedValue(0);
      const carouselRef = React.useRef();
      const hasOpenModalRef = React.useRef(false);
@@ -178,7 +177,7 @@ export const MyLibraryCard = () => {
      );
 
      if (shouldRequestPermissions) {
-          return <PermissionsPrompt promptTitle="permissions_screen_brightness_title" promptBody="permissions_screen_brightness_body" setShouldRequestPermissions={setShouldRequestPermissions} updateStatus={updateStatus} setShowModal={setShowModal}/>;
+          return <PermissionsPrompt promptTitle="permissions_screen_brightness_title" promptBody="permissions_screen_brightness_body" setShouldRequestPermissions={setShouldRequestPermissions} updateStatus={updateStatus} />;
      }
 
      const version = formatDiscoveryVersion(library.discoveryVersion);

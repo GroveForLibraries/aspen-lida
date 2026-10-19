@@ -23,12 +23,16 @@ export const PermissionsPrompt = (data) => {
      const [isOpen, setIsOpen] = React.useState(true);
      const onClose = () => {
           updateStatus();
-          setShowModal(false);
+          if (setShowModal) {
+               setShowModal(false);
+          }
           setShouldRequestPermissions(false);
           setIsOpen(false);
-          setTimeout(() => {
-               setShowModal(true);
-          }, 300);
+          if (setShowModal) {
+               setTimeout(() => {
+                    setShowModal(true);
+               }, 300);
+          }
      };
      const cancelRef = React.useRef(null);
      return (
