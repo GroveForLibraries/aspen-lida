@@ -77,7 +77,9 @@ export const SelectYourLibrary = (payload) => {
      }
 
      if (shouldRequestPermissions && showModal) {
-          return <PermissionsPrompt promptTitle="permissions_location_title" promptBody="permissions_location_body" setShouldRequestPermissions={setShouldRequestPermissions} updateStatus={updateStatus} />;
+          return (
+               <PermissionsPrompt promptTitle="permissions_location_title" promptBody="permissions_location_body" setShouldRequestPermissions={setShouldRequestPermissions} updateStatus={updateStatus} setShowModal={setShowModal} />
+          );
      }
 
      return (
