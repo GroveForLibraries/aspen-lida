@@ -17,14 +17,18 @@ import { ThemedCloseIcon as CloseIcon } from '@/src/components/themed/ThemedForm
  * @constructor
  */
 export const PermissionsPrompt = (data) => {
-     const { promptTitle, promptBody, setShouldRequestPermissions, updateStatus } = data;
+     const { promptTitle, promptBody, setShouldRequestPermissions, updateStatus, setShowModal } = data;
      const { neutralPairs } = useTheme();
      const language = useActiveLanguage();
      const [isOpen, setIsOpen] = React.useState(true);
      const onClose = () => {
           updateStatus();
+          setShowModal(false);
           setShouldRequestPermissions(false);
           setIsOpen(false);
+          setTimeout(() => {
+               setShowModal(true);
+          }, 300);
      };
      const cancelRef = React.useRef(null);
      return (
