@@ -696,5 +696,6 @@
   "scanner": "Scanner",
   "hidden_categories": "You currently have these categories hidden",
   "show_these_browse_categories": "Show These Browse Categories",
-  "manage_hidden_browse_categories": "Manage Hidden Browse Categories"
+  "manage_hidden_browse_categories": "Manage Hidden Browse Categories",
+  "no_hidden_browse_categories": "You don't have any hidden browse categories."
 }

@@ -1,10 +1,10 @@
 import React from 'react';
 import { Box } from '@/components/ui/box';
+import { Center } from '@/components/ui/center';
 import { FlatList } from '@/components/ui/flat-list';
-import { HStack } from '@/components/ui/hstack';
 import { ThemedCheckbox as Checkbox, ThemedCheckboxIcon as CheckboxIcon, ThemedCheckboxIndicator as CheckboxIndicator, ThemedCheckboxLabel as CheckboxLabel } from '@/src/components/themed/ThemedCheckbox';
 import { ThemedButton as Button, ThemedButtonText as ButtonText } from '@/src/components/themed/ThemedButton';
-import { ThemedFormControl as FormControl, ThemedInput as Input, ThemedInputField as InputField, ThemedFormControlLabelText as FormControlLabelText, ThemedFormControlHelper as FormControlHelper, ThemedFormControlHelperText as FormControlHelperText, ThemedFormControlLabel as FormControlLabel } from '@/src/components/themed/ThemedFormControls';
+import { ThemedFormControl as FormControl } from '@/src/components/themed/ThemedFormControls';
 import { ThemedText as Text } from '@/src/components/themed/ThemedText';
 import { LoadingSpinner } from '@/src/components/loadingSpinner';
 import { DisplayErrorAlertDialog } from '@/src/components/loadError';
@@ -13,7 +13,6 @@ import { useBrowseCategoryList, useUpdateBrowseCategoryList, useToggleBrowseCate
 import { updateBrowseCategoryStatus } from '@/src/util/api/user';
 import { getBrowseCategoryListForUser, getHomeScreenFeed } from '@/src/util/api/search';
 import { logDebugMessage, logErrorMessage, getErrorMessage } from '@/src/util/logging';
-import { useTheme } from '@/src/themes/theme';
 import { popToast } from '@/src/components/feedback';
 import { screenContentContainerStyle } from '@/src/components/ScreenContainer';
 import { getTermFromDictionary } from '@/src/translations/TranslationService';
@@ -125,6 +124,14 @@ export const Settings_BrowseCategories = () => {
 
      const hiddenCategories = (Array.isArray(list) ? list : []).filter((item) => item?.isHidden);
 
+     const listEmptyComponent = () => (
+          <Center className="mt-5 mb-5">
+               <Text bold size="lg">
+                    {getTermFromDictionary(language, 'no_hidden_browse_categories')}
+               </Text>
+          </Center>
+     );
+
      const handleShowCategories = async () => {
           if (isSubmitting || selectedKeys.size === 0) {
                return;
@@ -180,7 +187,9 @@ export const Settings_BrowseCategories = () => {
 
      return (
           <Box className="py-2">
-               <Text className="px-2 pb-4">{getTermFromDictionary(language, 'hidden_categories')}</Text>
+               {hiddenCategories.length > 0 ? (
+                    <Text className="px-2 pb-4">{getTermFromDictionary(language, 'hidden_categories')}</Text>
+               ) : null}
                <FlatList
                     contentContainerStyle={screenContentContainerStyle}
                     keyExtractor={(item, index) => {
@@ -192,6 +201,7 @@ export const Settings_BrowseCategories = () => {
                     }}
                     data={hiddenCategories}
                     renderItem={({ item }) => <DisplayCategory data={item} isSelected={selectedKeys.has(getCategoryKey(item))} onToggleSelect={toggleSelection} />}
+                    ListEmptyComponent={listEmptyComponent}
                />
                {showErrorDialog && <DisplayErrorAlertDialog title={errorTitle} message={errorMessage} />}
                {hiddenCategories.length > 0 ? (
