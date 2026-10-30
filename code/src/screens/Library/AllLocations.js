@@ -27,6 +27,8 @@ import { getLocations } from '../../util/api/system';
 import { logDebugMessage, logErrorMessage, getErrorMessage } from '../../util/logging';
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 import { useTheme } from '../../themes/theme';
+import { ThemedCheckbox as Checkbox, ThemedCheckboxIcon as CheckboxIcon, ThemedCheckboxIndicator as CheckboxIndicator, ThemedCheckboxLabel as CheckboxLabel } from '@/src/components/themed/ThemedCheckbox';
+import {ThemedFormControl as FormControl} from "@/src/components/themed/ThemedFormControls";
 
 const blurhash = 'MHPZ}tt7*0WC5S-;ayWBofj[K5RjM{ofM_';
 
@@ -48,6 +50,8 @@ export const AllLocations = () => {
      const [isCoordinatesLoaded, setIsCoordinatesLoaded] = React.useState(false);
      const [userLatitude, setUserLatitude] = React.useState(0);
      const [userLongitude, setUserLongitude] = React.useState(0);
+     const [showOnlyLocalBranches, setShowOnlyLocalBranches] = React.useState(true);
+     const [allLocations, setAllLocations] = React.useState([]);
 
      // Fetch coordinates on focus
      useFocusEffect(
@@ -104,6 +108,7 @@ export const AllLocations = () => {
            const syncLocations = async () => {
                 if (queryData?.ok && queryData?.data?.result?.locations) {
                      await updateAvailableLocations(queryData.data.result.locations ?? []);
+                     setAllLocations(queryData.data.result.all ?? []);
                 } else if (queryData && !queryData.ok) {
                      getErrorMessage(queryData.code, queryData.problem);
                 }
@@ -118,6 +123,17 @@ export const AllLocations = () => {
                ? sortBy(locations, ['distance', 'displayName'])
                : sortBy(locations, ['displayName']);
      }, [locations, sort]);
+
+     // Derive sorted "all locations" list (shown when showOnlyLocalBranches is false)
+     const sortedAllLocations = React.useMemo(() => {
+          if (!allLocations) return [];
+          return sort === 'distance'
+               ? sortBy(allLocations, ['distance', 'displayName'])
+               : sortBy(allLocations, ['displayName']);
+     }, [allLocations, sort]);
+
+     const displayedLocations = showOnlyLocalBranches ? sortedLocations : sortedAllLocations;
+
 
      const showSystemMessage = () => {
           if (isArray(systemMessages)) {
@@ -141,6 +157,19 @@ export const AllLocations = () => {
                               <ButtonText>{getTermFromDictionary(language, 'distance')}</ButtonText>
                          </Button>
                     </ButtonGroup>
+                    <FormControl className="mt-2">
+                         <Checkbox
+                              name="showOnlyLocalBranches"
+                              isChecked={showOnlyLocalBranches}
+                              onChange={() => {
+                                   setShowOnlyLocalBranches((prev) => !prev);
+                              }}>
+                              <CheckboxIndicator>
+                                   <CheckboxIcon />
+                              </CheckboxIndicator>
+                              <CheckboxLabel>{getTermFromDictionary(language, 'show_only_my_locations')}</CheckboxLabel>
+                         </Checkbox>
+                    </FormControl>
                </Box>
           );
      };
@@ -161,7 +190,7 @@ export const AllLocations = () => {
                                    {getActionButtons()}
                               </>
                          }
-                         data={sortedLocations}
+                         data={displayedLocations}
                          renderItem={({ item }) => (
                               <DisplayLocation data={item} />
                          )}
