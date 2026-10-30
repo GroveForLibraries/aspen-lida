@@ -379,8 +379,7 @@ const ButtonOptions = (props) => {
 
      return (
           <Center>
-               <ButtonGroup
-                    className="flex-col">
+               <ButtonGroup className="flex-col">
                     <Button
                          autoLoading={false}
                          isDisabled={loading}
@@ -394,41 +393,20 @@ const ButtonOptions = (props) => {
                                    setLoading(false);
                               }
                          }}>
-                         {loading ? (
-                          <ButtonSpinner key="spinner" className="mr-1" style={{ color: brand.primary['500-text'] }} />
-                         ) : (
-                             <MaterialIcons
-                                  key="icon"
-                                  name="schedule"
-                                  size={16}
-                                  color={brand.primary['500-text']}
-                                  className="mr-1"
-                             />
-                         )}
-                         <ButtonText
-                             className="font-medium"
-                             size="sm"
-                         >
-                             {getTermFromDictionary(language, 'browse_categories_load_all')}
+                         {loading ? <ButtonSpinner key="spinner" className="mr-1" style={{ color: brand.primary['500-text'] }} /> : <MaterialIcons key="icon" name="schedule" size={16} color={brand.primary['500-text']} className="mr-1" />}
+                         <ButtonText className="font-medium" size="sm">
+                              {getTermFromDictionary(language, 'browse_categories_load_all')}
                          </ButtonText>
                     </Button>
 
                     <Button
                          colorScheme="primary"
                          onPress={() => {
-                             showManageCategories();
+                              showManageCategories();
                          }}>
-                         <MaterialIcons
-                             name="settings"
-                             size={16}
-                             color={brand.primary['500-text']}
-                             className="mr-1"
-                         />
-                         <ButtonText
-                             className="font-medium"
-                             size="sm"
-                         >
-                             {getTermFromDictionary(language, 'browse_categories_manage')}
+                         <MaterialIcons name="visibility" size={16} color={brand.primary['500-text']} className="mr-1" />
+                         <ButtonText className="font-medium" size="sm">
+                              {getTermFromDictionary(language, 'manage_hidden_browse_categories')}
                          </ButtonText>
                     </Button>
 
@@ -437,8 +415,8 @@ const ButtonOptions = (props) => {
                          isDisabled={refreshing}
                          colorScheme="primary"
                          onPress={async () => {
-                             setRefreshing(true);
-                             try {
+                              setRefreshing(true);
+                              try {
                                    await onRefreshCategories();
                               } finally {
                                    setRefreshing(false);

@@ -67,7 +67,7 @@
   "browse_categories_refresh": "Refresh Categories",
   "browse_categories_load_all": "Load All Categories",
   "browse_categories_show_hide": "Show or Hide Browse Categories",
-  "manage_browse_categories": "Manage Browse Categories",
+  "hidden_browse_categories": "Hidden Browse Categories",
   "item_details": "Item Details",
   "author": "Author",
   "by": "By",
@@ -693,5 +693,8 @@
   "total": "Total",
   "library_updates": "Library Updates",
   "account_updates": "Account Updates",
-  "scanner": "Scanner"
+  "scanner": "Scanner",
+  "hidden_categories": "You currently have these categories hidden",
+  "show_these_browse_categories": "Show These Browse Categories",
+  "manage_hidden_browse_categories": "Manage Hidden Browse Categories"
 }
