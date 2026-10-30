@@ -146,6 +146,8 @@ export const AllLocations = () => {
           return null;
      };
 
+     const canToggleLocalBranches = (library?.showLocalBranchesOnly === 1 || library?.showLocalBranchesOnly === '1') && size(allLocations) > 0;
+
      const getActionButtons = () => {
           return (
                <Box style={{ alignItems: 'center', backgroundColor: neutrals.surface, borderBottomWidth: 1, borderColor: neutrals.border }} className="p-2">
@@ -157,19 +159,21 @@ export const AllLocations = () => {
                               <ButtonText>{getTermFromDictionary(language, 'distance')}</ButtonText>
                          </Button>
                     </ButtonGroup>
-                    <FormControl className="mt-2">
-                         <Checkbox
-                              name="showOnlyLocalBranches"
-                              isChecked={showOnlyLocalBranches}
-                              onChange={() => {
-                                   setShowOnlyLocalBranches((prev) => !prev);
-                              }}>
-                              <CheckboxIndicator>
-                                   <CheckboxIcon />
-                              </CheckboxIndicator>
-                              <CheckboxLabel>{getTermFromDictionary(language, 'show_only_my_locations')}</CheckboxLabel>
-                         </Checkbox>
-                    </FormControl>
+                    {canToggleLocalBranches ? (
+                         <FormControl className="mt-2">
+                              <Checkbox
+                                   name="showOnlyLocalBranches"
+                                   isChecked={showOnlyLocalBranches}
+                                   onChange={() => {
+                                        setShowOnlyLocalBranches((prev) => !prev);
+                                   }}>
+                                   <CheckboxIndicator>
+                                        <CheckboxIcon />
+                                   </CheckboxIndicator>
+                                   <CheckboxLabel>{getTermFromDictionary(language, 'show_only_my_locations')}</CheckboxLabel>
+                              </Checkbox>
+                         </FormControl>
+                    ) : null}
                </Box>
           );
      };
