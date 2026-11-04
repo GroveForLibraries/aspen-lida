@@ -697,4 +697,5 @@
   "switch_to_location": "Switch to Location",
   "location_switched": "You have switched to this location",
   "unable_to_switch_location": "Unable to switch to this location. Please try again."
+  "show_only_my_locations": "Show Only My Locations"
 }
