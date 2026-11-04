@@ -693,5 +693,6 @@
   "total": "Total",
   "library_updates": "Library Updates",
   "account_updates": "Account Updates",
-  "scanner": "Scanner"
+  "scanner": "Scanner",
+  "show_only_my_locations": "Show Only My Locations"
 }
