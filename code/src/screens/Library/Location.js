@@ -1,8 +1,9 @@
 import { useRoute } from '@react-navigation/native';
 import { useQueryClient } from '@tanstack/react-query';
 import { Image } from 'expo-image';
-import { formatTime, getTodaysHoursStatus, isArray, size } from '../../helpers/helpers';
+import { formatTime, getTodaysHoursStatus, isArray, numberOrNull, size } from '../../helpers/helpers';
 import React from 'react';
+import { popAlert } from '../../components/feedback';
 import { ThemedBadge as Badge, ThemedBadgeText as BadgeText } from '../../components/themed/ThemedBadge';
 import { Box } from '@/components/ui/box';
 import { ThemedButton as Button, ThemedButtonText as ButtonText } from '../../components/themed/ThemedButton';
@@ -14,14 +15,15 @@ import { VStack } from '@/components/ui/vstack';
 import { DisplaySystemMessage } from '../../components/Notifications';
 import { SystemMessagesContext } from '../../context/initialContext';
 import { useLibrary } from '../../hooks/useLibrarySystemData';
-import { useAvailableLocations } from '../../hooks/useLibraryBranchData';
+import { useAvailableLocations, useLibraryLocation } from '../../hooks/useLibraryBranchData';
+import { useSwitchLocation } from '../../hooks/useSwitchLocation';
 import { navigate } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import AdditionalInformation from './AdditionalInformation';
 import ContactButtons from './ContactButtons';
 import DisplayMap from './DisplayMap';
 import Hours from './Hours';
-import {logDebugMessage} from "../../util/logging";
+import {logDebugMessage, logErrorMessage} from "../../util/logging";
 import { useActiveLanguage } from '../../hooks/useLanguageData';
 import { useTheme } from '../../themes/theme';
 
@@ -41,6 +43,9 @@ export const Location = () => {
      const queryClient = useQueryClient();
      const { systemMessages, updateSystemMessages } = React.useContext(SystemMessagesContext);
      const { textColor } = useTheme();
+     const switchLocation = useSwitchLocation();
+     const currentLocation = useLibraryLocation();
+     const isActiveLocation = numberOrNull(currentLocation?.locationId) != null && numberOrNull(currentLocation?.locationId) === numberOrNull(location?.locationId);
      const showSystemMessage = () => {
           if (isArray(systemMessages)) {
                return systemMessages.map((obj, index) => {
@@ -75,6 +80,35 @@ export const Location = () => {
      const selectLocations = () => {
           navigate('AllLocations');
      };
+
+     const canSwitchActiveLocation = library?.enableLocationChange === 1 || library?.enableLocationChange === '1';
+
+     /**
+      * Switches the "active" location to this location - see useSwitchLocation for everything
+      * this keeps in sync (active location row, self-check settings, browse categories/home
+      * screen feed for the new (user, location) pair, and the active library if this location
+      * belongs to a different library/baseUrl).
+      */
+     const switchToLocation = async () => {
+          logDebugMessage('switchToLocation pressed for location ' + location?.locationId);
+
+          if (isActiveLocation) {
+               // Already the active location - nothing to switch, just let the user know.
+               popAlert(getTermFromDictionary(language, 'location_switched'), location?.displayName ?? '', 'success');
+               return;
+          }
+
+          try {
+               const savedLocation = await switchLocation(location, library);
+               popAlert(getTermFromDictionary(language, 'location_switched'), savedLocation?.displayName ?? '', 'success');
+               navigate('MyLibrary');
+          } catch (error) {
+               logErrorMessage(error);
+               popAlert(getTermFromDictionary(language, 'error'), getTermFromDictionary(language, 'unable_to_switch_location'), 'error');
+          }
+     };
+
+
 
      if (!location) {
           return null;
@@ -113,15 +147,13 @@ export const Location = () => {
                                    ) : null}
                                    {hasHours ? (
                                         <Badge colorScheme={isClosedToday ? 'error' : 'success'} className="self-start">
-                                             <BadgeText colorScheme={isClosedToday ? 'error' : 'success'}>
-                                                  {hoursLabel}
-                                             </BadgeText>
+                                             <BadgeText colorScheme={isClosedToday ? 'error' : 'success'}>{hoursLabel}</BadgeText>
                                         </Badge>
                                    ) : null}
                               </Box>
                          </Box>
                          <DisplayMap data={location} />
-                         <Box className="mx-4">
+                         <Box className="mx-4 pb-5">
                               <ContactButtons data={location} />
                               {hasHours ? <Hours data={location} /> : null}
                               <AdditionalInformation data={location} />
@@ -132,6 +164,11 @@ export const Location = () => {
                                              <ButtonText>{getTermFromDictionary(language, 'view_all_locations')}</ButtonText>
                                         </Button>
                                    </>
+                              ) : null}
+                              {canSwitchActiveLocation ? (
+                                   <Button className="mt-2" size="sm" colorScheme="primary" onPress={switchToLocation} isDisabled={isActiveLocation}>
+                                        <ButtonText>{getTermFromDictionary(language, isActiveLocation ? 'current_location' : 'switch_to_location')}</ButtonText>
+                                   </Button>
                               ) : null}
                          </Box>
                     </VStack>

@@ -233,6 +233,23 @@ export async function loadLocations() {
      return safeParse(row?.locations_json) ?? [];
 }
 
+/**
+ * Checks whether a row already exists in library_branch_state for the given location id,
+ * regardless of which location is currently "active". Used by location-switching flows to
+ * decide whether fresh location info needs to be fetched from the API before adding the row.
+ */
+export async function locationRowExists(locationId) {
+     const id = numberOrNull(locationId);
+     if (id == null) return false;
+
+     const db = await getDb();
+     const row = await db.getFirstAsync(
+          `SELECT 1 FROM library_branch_state WHERE location_id = ? LIMIT 1;`,
+          [id]
+     );
+     return row != null;
+}
+
 // ─── Utility functions ─────────────────────────────────────────────────────────
 
 /**

@@ -61,6 +61,22 @@ export async function getLists(url = null, page = 1, limit = 20, includePaginati
 export async function createList(title, description, isPublic = false, url = null, addToListGroup, addToListGroupNestedId, addToListGroupNewName, existingListId) {
      const client = createApiClient({ url, timeout: GLOBALS.timeoutAverage });
 
+     // Determine the nested (parent) list group id to send to the API.
+     // - If the user isn't adding to a list group at all, or explicitly chose not to nest, send null.
+     // - If adding to an *existing* list group, nesting isn't applicable to a new group, so default to the
+     //   selected existing group id when one isn't explicitly provided.
+     // - If creating a *new* list group, only nest when the user explicitly selected a parent group id;
+     //   an empty/unselected value must NOT fall back to existingListId, otherwise the new group would
+     //   incorrectly be nested under whatever group existingListId defaults to (e.g. the user's first group).
+     let addToListGroupNested = null;
+     if (addToListGroup !== 'no' && addToListGroupNestedId !== 'no') {
+          if (addToListGroupNestedId === '' || addToListGroupNestedId === undefined || addToListGroupNestedId === null) {
+               addToListGroupNested = addToListGroup === 'existing' ? existingListId : null;
+          } else {
+               addToListGroupNested = addToListGroupNestedId;
+          }
+     }
+
      const response = await client.post(
           '/ListAPI?method=createList',
           {},
@@ -70,7 +86,7 @@ export async function createList(title, description, isPublic = false, url = nul
                     description,
                     isPublic,
                     addToListGroupOption: addToListGroup,
-                    addToListGroupNested: (addToListGroup === 'no' || addToListGroupNestedId === 'no') ? null : addToListGroupNestedId === '' ? existingListId : addToListGroupNestedId,
+                    addToListGroupNested,
                     addToListGroupNewName,
                },
           }

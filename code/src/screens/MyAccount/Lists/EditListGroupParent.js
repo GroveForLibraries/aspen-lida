@@ -36,8 +36,11 @@ export const EditListGroupParent = ({id, parentId, handleUpdate}) => {
       const [showModal, setShowModal] = React.useState(false);
       const [loading, setLoading] = React.useState(false);
 
+      // Represents the "No Group" option used to unnest a list group from its parent group
+      const NO_PARENT_GROUP = { id: -1, title: getTermFromDictionary(language, 'no_list_group') };
+
       const [selectedGroup, setSelectedGroup] = React.useState(null);
-      const [newListGroupParentId, setNewListGroupParentId] = React.useState(parentId); // default state is current list group parent id
+      const [newListGroupParentId, setNewListGroupParentId] = React.useState(parentId ?? -1); // default state is current list group parent id, or -1 if ungrouped
 
 
       React.useEffect(() => {
@@ -45,11 +48,16 @@ export const EditListGroupParent = ({id, parentId, handleUpdate}) => {
                 const found = toArray(listGroups.groups).find((item) => item.id === parentId) || null;
                 setSelectedGroup(found);
            } else {
-                setSelectedGroup(null);
+                setSelectedGroup(NO_PARENT_GROUP);
            }
       }, [listGroups.groups, parentId]);
 
       const updateSelectedGroup = (groupId) => {
+           if (groupId === -1 || groupId === '-1') {
+                setSelectedGroup(NO_PARENT_GROUP);
+                setNewListGroupParentId(-1);
+                return;
+           }
            const group = toArray(listGroups.groups).find((item) => item.id === groupId);
            setSelectedGroup(group);
            setNewListGroupParentId(groupId);
@@ -83,38 +91,39 @@ export const EditListGroupParent = ({id, parentId, handleUpdate}) => {
                                         name="newListGroupParent"
                                         selectedValue={newListGroupParentId}
                                         accessibilityLabel={getTermFromDictionary(language, 'move_list_group_to')}
-                                        onValueChange={(itemValue) => updateSelectedGroup(itemValue)}>
-                                         <SelectTrigger>
-                                              {selectedGroup === null && parentId !== null ? (
-                                                        toArray(listGroups.groups).map((group) => {
-                                                             if (group.id === parentId) {
-                                                                  return <SelectInput value={group.title} />;
-                                                             }
-                                                        })
-                                                   ) :
-                                                   (selectedGroup === null && parentId === null ? (
-                                                        <SelectInput value={getTermFromDictionary(language, 'choose_existing_list_group')} />
-                                                   ) : (
-                                                        <SelectInput value={selectedGroup.title} />
-                                                   ))
-                                              }
-                                         </SelectTrigger>
-                                        <SelectPortal>
-                                             <SelectBackdrop />
-                                             <SelectContent>
-                                                  <SelectDragIndicatorWrapper>
-                                                       <SelectDragIndicator />
-                                                  </SelectDragIndicatorWrapper>
-                                                   <SelectScrollView>
-                                                        {toArray(listGroups.groups).map((item, index) => {
-                                                             if(item.id === id || item.id === parentId || item.parentGroupId === id) {
-                                                                  return null;
-                                                             }
-                                                             return <SelectItem key={index} value={item.id} label={item.title} selectedValue={newListGroupParentId} />;
-                                                        })}
-                                                   </SelectScrollView>
-                                             </SelectContent>
-                                        </SelectPortal>
+                                         onValueChange={(itemValue) => updateSelectedGroup(itemValue)}>
+                                          <SelectTrigger>
+                                               {selectedGroup === null && parentId !== null ? (
+                                                         toArray(listGroups.groups).map((group) => {
+                                                              if (group.id === parentId) {
+                                                                   return <SelectInput value={group.title} />;
+                                                              }
+                                                         })
+                                                    ) :
+                                                    (selectedGroup === null ? (
+                                                         <SelectInput value={getTermFromDictionary(language, 'choose_existing_list_group')} />
+                                                    ) : (
+                                                         <SelectInput value={selectedGroup.title} />
+                                                    ))
+                                               }
+                                          </SelectTrigger>
+                                         <SelectPortal>
+                                              <SelectBackdrop />
+                                              <SelectContent>
+                                                   <SelectDragIndicatorWrapper>
+                                                        <SelectDragIndicator />
+                                                   </SelectDragIndicatorWrapper>
+                                                    <SelectScrollView>
+                                                         <SelectItem label={getTermFromDictionary(language, 'no_list_group')} value="-1" key={-1} selectedValue={newListGroupParentId} />
+                                                         {toArray(listGroups.groups).map((item, index) => {
+                                                              if(item.id === id || item.id === parentId || item.parentGroupId === id) {
+                                                                   return null;
+                                                              }
+                                                              return <SelectItem key={index} value={item.id} label={item.title} selectedValue={newListGroupParentId} />;
+                                                         })}
+                                                    </SelectScrollView>
+                                              </SelectContent>
+                                         </SelectPortal>
                                    </Select>
                               </FormControl>
                          </ModalBody>
