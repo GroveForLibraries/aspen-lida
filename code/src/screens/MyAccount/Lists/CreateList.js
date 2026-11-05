@@ -28,7 +28,7 @@ import { ThemedTextarea as Textarea, ThemedTextareaInput as TextareaInput } from
  * @constructor
  */
 const CreateList = (props) => {
-      const { setLoading } = props;
+      const { setLoading, updateSelectedListGroup } = props;
       const { data: userState } = useUserState();
       const user = userState?.user ?? {};
       const updateUserProfile = useUpdateUserProfile();
@@ -262,15 +262,34 @@ const CreateList = (props) => {
                                                        if (listsResponse.ok) {
                                                             await updateLists(listsResponse.data.result);
                                                        }
+                                                       let updatedGroups = [];
                                                        const groupsResponse = await getListGroups(library.baseUrl);
                                                        if (groupsResponse.ok) {
+                                                            updatedGroups = groupsResponse.data?.result?.groups ?? [];
                                                             await updateListGroups({
-                                                                 groups: groupsResponse.data?.result?.groups ?? [],
+                                                                 groups: updatedGroups,
                                                                  unassigned: groupsResponse.data?.result?.unassigned ?? 0,
                                                             });
                                                        }
                                                        toggle();
                                                        popAlert(getTermFromDictionary(language, 'list_created'), res.message, status);
+                                                         // If the new list was added to a group, switch the group view to it
+                                                         // so the new list shows up immediately instead of only after a
+                                                         // manual refresh/navigation.
+                                                         if (typeof updateSelectedListGroup === 'function' && addToGroup !== 'no') {
+                                                              let targetGroupId = res.groupId ?? res.listGroupId ?? null;
+                                                              if (targetGroupId == null) {
+                                                                   if (addToGroup === 'existing') {
+                                                                        targetGroupId = existingGroupId;
+                                                                   } else if (addToGroup === 'new') {
+                                                                        const newGroup = toArray(updatedGroups).find((group) => group.title === newGroupName);
+                                                                        targetGroupId = newGroup?.id ?? null;
+                                                                   }
+                                                              }
+                                                              if (targetGroupId != null) {
+                                                                   updateSelectedListGroup(targetGroupId);
+                                                              }
+                                                         }
                                                   });
                                              } catch (error) {
                                                   logErrorMessage('Failed to create list: ', error);

@@ -1,5 +1,5 @@
 import { ThemedMaterialIcons as MaterialIcons } from '@/src/components/themed/ThemedMaterialIcons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, CommonActions } from '@react-navigation/native';
 import React, { useState } from 'react';
 import { popAlert } from '@/src/components/feedback';
 import { useUserState, useListGroups, useUpdateUserProfile, useUpdateLists } from '@/src/hooks/useUserData';
@@ -8,6 +8,7 @@ import { getTermFromDictionary } from '@/src/translations/TranslationService';
 import { deleteList, editList, getLists } from '@/src/util/api/list';
 import { refreshProfile } from '@/src/util/api/user';
 import { toArray } from '@/src/helpers/helpers';
+import { logErrorMessage } from '@/src/util/logging';
 import { useActiveLanguage } from '@/src/hooks/useLanguageData';
 import { TOKENS, useTheme } from '@/src/themes/theme';
 import { ThemedCloseIcon as CloseIcon, ThemedFormControl as FormControl, ThemedInput as Input, ThemedInputField as InputField, ThemedFormControlLabelText as FormControlLabelText, ThemedFormControlLabel as FormControlLabel } from '@/src/components/themed/ThemedFormControls';
@@ -52,13 +53,41 @@ const EditList = (props) => {
      const user = userState?.user ?? {};
       const borderColor = neutrals.border;
 
+      // Tracks the group the list actually belongs to as of the last successful
+      // save (not just whatever is currently selected in the dropdown), so that
+      // navigating back always points MyLists at the right group.
+      const lastSavedListGroupIdRef = React.useRef(data.listGroupId);
+
+      /**
+       * Marks the MyLists route (wherever it sits in the back stack) as having
+       * pending changes and records which list group it should switch to. This is
+       * done directly via navigation.dispatch (rather than only on back-button
+       * press) so it also works when the user swipes/hardware-backs out of this
+       * screen instead of tapping the custom header back button.
+       */
+      const markMyListsPendingGroup = React.useCallback((groupId) => {
+           try {
+                const state = navigation.getState();
+                const myListsRoute = state?.routes?.find((r) => r.name === 'MyLists');
+                if (myListsRoute) {
+                     navigation.dispatch({
+                          ...CommonActions.setParams({ hasPendingChanges: true, targetListGroupId: groupId }),
+                          source: myListsRoute.key,
+                     });
+                }
+           } catch (error) {
+                logErrorMessage(error);
+           }
+      }, [navigation]);
+
      React.useLayoutEffect(() => {
           navigation.setOptions({
                headerLeft: () => (
                     <Pressable
                          onPress={() => {
                               navigateStack('AccountScreenTab', 'MyLists', {
-                                   hasPendingChanges: true });
+                                   hasPendingChanges: true,
+                                   targetListGroupId: lastSavedListGroupIdRef.current });
                          }}
                         className="mr-3 p-1">
                         <MaterialIcons name="chevron-left" size={20} style={{ color: neutrals.actionableIndicator }} />
@@ -168,28 +197,33 @@ const EditList = (props) => {
                                          isLoadingText={getTermFromDictionary(language, 'saving', true)}
                                          onPress={() => {
                                               setLoading(true);
-                                              editList(data.id, title, description, isPublic, library.baseUrl, listGroupId).then(async () => {
-                                                   setLoading(false);
-                                                   if (title !== null) {
-                                                        navigation.setOptions({ title: title });
-                                                   }
-                                                   setShowModal(false);
-                                                   // Refresh lists from API and update local database
-                                                   const listsResponse = await getLists(library.baseUrl, 1, 20, 1);
-                                                   if (listsResponse.ok) {
-                                                        await updateLists(listsResponse.data.result);
-                                                   }
-                                              });
-                                         }}>
-                                        <ButtonText>{getTermFromDictionary(language, 'save')}</ButtonText>
-                                    </Button>
-                              </ButtonGroup>
-                         </ModalFooter>
-                    </ModalContent>
-               </Modal>
-          </>
-     );
-};
+                                               editList(data.id, title, description, isPublic, library.baseUrl, listGroupId).then(async () => {
+                                                    setLoading(false);
+                                                    if (title !== null) {
+                                                         navigation.setOptions({ title: title });
+                                                    }
+                                                    setShowModal(false);
+                                                    // Refresh lists from API and update local database
+                                                    const listsResponse = await getLists(library.baseUrl, 1, 20, 1);
+                                                    if (listsResponse.ok) {
+                                                         await updateLists(listsResponse.data.result);
+                                                    }
+                                                    // Remember the group this list now belongs to and make sure
+                                                    // MyLists switches to it whenever the user returns, regardless
+                                                    // of how they navigate back.
+                                                    lastSavedListGroupIdRef.current = listGroupId;
+                                                    markMyListsPendingGroup(listGroupId);
+                                               });
+                                          }}>
+                                          <ButtonText>{getTermFromDictionary(language, 'save')}</ButtonText>
+                                     </Button>
+                               </ButtonGroup>
+                          </ModalFooter>
+                     </ModalContent>
+                </Modal>
+           </>
+      );
+ };
 
 /**
  * DeleteList component that provides a button to delete a list. When clicked, it opens a confirmation dialog asking the user to confirm the deletion. It also includes an option for the user to opt out of soft deletion. Upon confirmation, it calls the API to delete the list and refreshes the user's lists and profile.
