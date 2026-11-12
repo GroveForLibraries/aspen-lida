@@ -1,10 +1,8 @@
 import React from 'react';
 import { Box } from '@/components/ui/box';
-import { Center } from '@/components/ui/center';
 import { FlatList } from '@/components/ui/flat-list';
-import { ThemedCheckbox as Checkbox, ThemedCheckboxIcon as CheckboxIcon, ThemedCheckboxIndicator as CheckboxIndicator, ThemedCheckboxLabel as CheckboxLabel } from '@/src/components/themed/ThemedCheckbox';
-import { ThemedButton as Button, ThemedButtonText as ButtonText } from '@/src/components/themed/ThemedButton';
-import { ThemedFormControl as FormControl } from '@/src/components/themed/ThemedFormControls';
+import { HStack } from '@/components/ui/hstack';
+import { ThemedSwitch as Switch } from '@/src/components/themed/ThemedSwitch';
 import { ThemedText as Text } from '@/src/components/themed/ThemedText';
 import { LoadingSpinner } from '@/src/components/loadingSpinner';
 import { DisplayErrorAlertDialog } from '@/src/components/loadError';
@@ -13,10 +11,9 @@ import { useBrowseCategoryList, useUpdateBrowseCategoryList, useToggleBrowseCate
 import { updateBrowseCategoryStatus } from '@/src/util/api/user';
 import { getBrowseCategoryListForUser, getHomeScreenFeed } from '@/src/util/api/search';
 import { logDebugMessage, logErrorMessage, getErrorMessage } from '@/src/util/logging';
+import { useTheme } from '@/src/themes/theme';
 import { popToast } from '@/src/components/feedback';
 import { screenContentContainerStyle } from '@/src/components/ScreenContainer';
-import { getTermFromDictionary } from '@/src/translations/TranslationService';
-import { useActiveLanguage } from '@/src/hooks/useLanguageData';
 
 /**
  * Settings_BrowseCategories component that displays a list of browse categories for the user to manage. It fetches the category list from the API, allows users to toggle visibility of categories, and handles syncing changes with the backend. It also manages loading states and error handling.
@@ -26,20 +23,10 @@ import { useActiveLanguage } from '@/src/hooks/useLanguageData';
 export const Settings_BrowseCategories = () => {
      const library = useLibrary();
      const list = useBrowseCategoryList();
-     const language = useActiveLanguage();
      const listRef = React.useRef(list);
      const updateBrowseCategoryList = useUpdateBrowseCategoryList();
-     const toggleCategoryVisibility = useToggleBrowseCategoryVisibility();
-     const toggleCategoryVisibilityBatch = useToggleBrowseCategoryVisibilityBatch();
-     const maxNum = useMaxCategories();
-     const updateBrowseCategories = useUpdateBrowseCategories();
 
      const [isFetching, setIsFetching] = React.useState(false);
-     const [selectedKeys, setSelectedKeys] = React.useState(() => new Set());
-     const [isSubmitting, setIsSubmitting] = React.useState(false);
-     const [showErrorDialog, setShowErrorDialog] = React.useState(false);
-     const [errorTitle, setErrorTitle] = React.useState('');
-     const [errorMessage, setErrorMessage] = React.useState('');
 
      React.useEffect(() => {
           listRef.current = list;
@@ -55,9 +42,7 @@ export const Settings_BrowseCategories = () => {
                          const categories = [...(data?.data?.result ?? [])].sort((a, b) =>
                               String(a?.title ?? '').localeCompare(String(b?.title ?? ''))
                          );
-                         console.log(categories);
-
-                         const existing = Array.isArray(listRef.current) ? listRef.current : [];
+                          const existing = Array.isArray(listRef.current) ? listRef.current : [];
                           const hasChanged = JSON.stringify(existing) !== JSON.stringify(categories);
                           if (hasChanged) {
                                await updateBrowseCategoryList(categories);
@@ -81,11 +66,42 @@ export const Settings_BrowseCategories = () => {
           fetchCategoryList();
      }, [library.baseUrl, updateBrowseCategoryList]);
 
-     const getCategoryKey = React.useCallback((targetCategory) => {
-          return targetCategory?.sourceId ?? targetCategory?.key;
-     }, []);
+     if (isFetching) {
+          return <LoadingSpinner />;
+     }
 
-     // A selected category also brings along its subcategories (matched by "Parent: Child" title prefix).
+     return (
+          <FlatList
+               contentContainerStyle={screenContentContainerStyle}
+               keyExtractor={(item, index) => {
+                    // `sourceId` is the best unique identifier when present; fallback adds index to avoid key collisions.
+                    if (item?.sourceId) {
+                         return String(item.sourceId);
+                    }
+                    return `${item?.key ?? item?.title ?? 'browse_category'}-${index}`;
+               }}
+               data={list}
+               renderItem={({ item }) => <DisplayCategory data={item} />}
+          />
+     );
+};
+
+const DisplayCategory = (data) => {
+     const category = data.data;
+     const allCategories = useBrowseCategoryList();
+     const [isUpdating, setIsUpdating] = React.useState(false);
+     const [showErrorDialog, setShowErrorDialog] = React.useState(false);
+     const [errorTitle, setErrorTitle] = React.useState('');
+     const [errorMessage, setErrorMessage] = React.useState('');
+     const library = useLibrary();
+     const { colorMode, neutralPairs, brand } = useTheme();
+     const toggleCategoryVisibility = useToggleBrowseCategoryVisibility();
+     const toggleCategoryVisibilityBatch = useToggleBrowseCategoryVisibilityBatch();
+     const maxNum = useMaxCategories();
+     const updateBrowseCategories = useUpdateBrowseCategories();
+
+     const isVisible = !category.isHidden;
+
      const getCascadeCategories = React.useCallback((selectedCategory) => {
           const title = String(selectedCategory?.title ?? '').trim();
           if (!title) {
@@ -93,146 +109,125 @@ export const Settings_BrowseCategories = () => {
           }
 
           const prefix = `${title}:`.toLowerCase();
-          const related = (Array.isArray(list) ? list : []).filter((item) => {
+          const related = (Array.isArray(allCategories) ? allCategories : []).filter((item) => {
                const childTitle = String(item?.title ?? '').trim().toLowerCase();
                return childTitle.startsWith(prefix);
           });
 
           return [selectedCategory, ...related];
-     }, [list]);
+     }, [allCategories]);
 
-     const toggleSelection = React.useCallback((category) => {
-          const key = getCategoryKey(category);
-          if (!key) {
-               return;
-          }
+     const getCategoryKey = React.useCallback((targetCategory) => {
+          return targetCategory?.sourceId ?? targetCategory?.key;
+     }, []);
 
-          setSelectedKeys((previous) => {
-               const next = new Set(previous);
-               if (next.has(key)) {
-                    next.delete(key);
-               } else {
-                    next.add(key);
-               }
-               return next;
-          });
+     const getCategoryKeys = React.useCallback((categories) => {
+          return (Array.isArray(categories) ? categories : [])
+               .map((item) => getCategoryKey(item))
+               .filter(Boolean);
      }, [getCategoryKey]);
 
-     if (isFetching) {
-          return <LoadingSpinner />;
-     }
+     const syncVisibilityInBackground = React.useCallback((targetCategory, isHidden, { showFailureToast = true } = {}) => {
+          const targetKey = getCategoryKey(targetCategory);
+          if (!targetKey) {
+               return Promise.resolve(false);
+          }
 
-     const hiddenCategories = (Array.isArray(list) ? list : []).filter((item) => item?.isHidden);
+          return updateBrowseCategoryStatus(targetKey, library.baseUrl)
+               .then(() => {
+                    logDebugMessage(`Category ${targetKey} visibility synced`);
+                    return true;
+               })
+               .catch(async (error) => {
+                    // Rollback locally if API fails so UI and cache stay consistent.
+                    await toggleCategoryVisibility(targetKey, !isHidden);
+                    logErrorMessage(error);
 
-     const listEmptyComponent = () => (
-          <Center className="mt-5 mb-5">
-               <Text bold size="lg">
-                    {getTermFromDictionary(language, 'no_hidden_browse_categories')}
-               </Text>
-          </Center>
-     );
+                    if (showFailureToast) {
+                         const message = getErrorMessage({ statusCode: error?.status, problem: error?.problem });
+                         popToast(message.title, message.message, 'error');
+                    }
 
-     const handleShowCategories = async () => {
-          if (isSubmitting || selectedKeys.size === 0) {
+                    return false;
+               });
+     }, [getCategoryKey, library.baseUrl, toggleCategoryVisibility]);
+
+     React.useEffect(() => {
+          setShowErrorDialog(false);
+     }, [category?.key, category?.sourceId, category?.isHidden]);
+
+     const updateToggle = async (category) => {
+          if (isUpdating) {
                return;
           }
 
-          setIsSubmitting(true);
+          setIsUpdating(true);
 
-          const selectedCategories = hiddenCategories.filter((item) => selectedKeys.has(getCategoryKey(item)));
-          const categoriesToShow = selectedCategories.flatMap((category) => getCascadeCategories(category));
-          const categoryKeysToShow = [...new Set(categoriesToShow.map((item) => getCategoryKey(item)).filter(Boolean))];
+          const nextIsHidden = isVisible;
+          const categoriesToToggle = getCascadeCategories(category);
+          const categoryKeysToToggle = getCategoryKeys(categoriesToToggle);
+          const categoriesNeedingSync = categoriesToToggle.filter((item) => item?.isHidden !== nextIsHidden);
 
-
-          try {
-               const optimisticResult = await toggleCategoryVisibilityBatch(categoryKeysToShow, false);
-               if (!optimisticResult?.success) {
-                    const error = getErrorMessage({ statusCode: optimisticResult?.error?.status, problem: optimisticResult?.error?.problem });
-                    setErrorTitle(error.title);
-                    setErrorMessage(error.message);
+           try {
+                const optimisticResult = await toggleCategoryVisibilityBatch(categoryKeysToToggle, nextIsHidden);
+                if (!optimisticResult?.success) {
+                     const error = getErrorMessage({ statusCode: optimisticResult?.error?.status, problem: optimisticResult?.error?.problem });
+                     setErrorTitle(error.title);
+                     setErrorMessage(error.message);
                     logErrorMessage(optimisticResult?.error);
-                    setShowErrorDialog(true);
-                    popToast(error.title, error.message, 'error');
+                     setShowErrorDialog(true);
+                     popToast(error.title, error.message, 'error');
                     return;
                }
 
-               setSelectedKeys(new Set());
-
-               const results = await Promise.allSettled(
-                    categoryKeysToShow.map((categoryKey) =>
-                         updateBrowseCategoryStatus(categoryKey, library.baseUrl).catch(async (error) => {
-                              // Rollback locally if the API fails so UI and cache stay consistent.
-                              await toggleCategoryVisibility(categoryKey, true);
-                              logErrorMessage(error);
-                              return Promise.reject(error);
-                         })
-                    )
-               );
-
-               const hadBackgroundFailure = results.some((result) => result.status === 'rejected');
-               if (hadBackgroundFailure) {
-                    popToast('Update issue', 'Some categories could not be updated.', 'error');
-               }
-
-               const requestedMax = maxNum > 0 ? maxNum : 5;
-               const homeFeed = await getHomeScreenFeed(requestedMax, library.baseUrl);
-               if (homeFeed?.ok) {
-                    const nextCategories = homeFeed.data?.result?.browseCategories ?? [];
-                    await updateBrowseCategories(nextCategories);
-               }
+               const parentKey = getCategoryKey(category);
+               logDebugMessage("Finished local toggle " + parentKey);
           } finally {
-               setIsSubmitting(false);
+               setIsUpdating(false);
           }
+
+          if (categoriesNeedingSync.length === 0) {
+               return;
+          }
+
+           void Promise.allSettled(
+                categoriesNeedingSync.map((targetCategory, index) =>
+                     syncVisibilityInBackground(targetCategory, nextIsHidden, {
+                          showFailureToast: index === 0,
+                     })
+                )
+           ).then(async (results) => {
+                const hadBackgroundFailure = results.some((result) => result.status === 'fulfilled' && result.value === false);
+
+                if (hadBackgroundFailure && categoriesNeedingSync.length > 1) {
+                     popToast('Update issue', 'Some subcategories could not be updated.', 'error');
+                }
+
+                const requestedMax = maxNum > 0 ? maxNum : 5;
+                const homeFeed = await getHomeScreenFeed(requestedMax, library.baseUrl);
+                if (homeFeed?.ok) {
+                     const nextCategories = homeFeed.data?.result?.browseCategories ?? [];
+                     await updateBrowseCategories(nextCategories);
+                }
+           });
      };
-
      return (
-          <Box className="py-2">
-               {hiddenCategories.length > 0 ? (
-                    <Text className="px-2 pb-4">{getTermFromDictionary(language, 'hidden_categories')}</Text>
-               ) : null}
-               <FlatList
-                    contentContainerStyle={screenContentContainerStyle}
-                    keyExtractor={(item, index) => {
-                         // `sourceId` is the best unique identifier when present; fallback adds index to avoid key collisions.
-                         if (item?.sourceId) {
-                              return String(item.sourceId);
-                         }
-                         return `${item?.key ?? item?.title ?? 'browse_category'}-${index}`;
-                    }}
-                    data={hiddenCategories}
-                    renderItem={({ item }) => <DisplayCategory data={item} isSelected={selectedKeys.has(getCategoryKey(item))} onToggleSelect={toggleSelection} />}
-                    ListEmptyComponent={listEmptyComponent}
-               />
-               {showErrorDialog && <DisplayErrorAlertDialog title={errorTitle} message={errorMessage} />}
-               {hiddenCategories.length > 0 ? (
-                    <Box className="px-4">
-                         <Button isDisabled={selectedKeys.size === 0 || isSubmitting} onPress={handleShowCategories}>
-                              <ButtonText>{getTermFromDictionary(language, 'show_these_browse_categories')}</ButtonText>
-                         </Button>
-                    </Box>
-               ) : null}
-          </Box>
-     );
-};
-
-const DisplayCategory = ({ data, isSelected, onToggleSelect }) => {
-     const category = data;
-
-     return (
-          <Box>
-               <FormControl>
-                    <Checkbox
+          <Box className="py-2" style={{ borderBottomWidth: 1, borderColor: colorMode === 'light' ? neutralPairs.surfaceMuted.light : neutralPairs.iconMuted.dark }}>
+               <HStack space="sm" className="items-center justify-between pb-1">
+                    <Text bold size="lg" className="flex-wrap flex-1">
+                         {category.title}
+                    </Text>
+                    <Switch
+                         size="md"
                          name={category.key}
-                         onChange={() => {
-                              onToggleSelect(category);
+                         onValueChange={() => {
+                              updateToggle(category);
                          }}
-                         isChecked={isSelected}>
-                         <CheckboxIndicator>
-                              <CheckboxIcon />
-                         </CheckboxIndicator>
-                         <CheckboxLabel>{category.title}</CheckboxLabel>
-                    </Checkbox>
-               </FormControl>
+                         isDisabled={isUpdating}
+                         value={isVisible}
+                    />
+               </HStack>
+               {showErrorDialog && <DisplayErrorAlertDialog title={errorTitle} message={errorMessage} />}
           </Box>
      );
 };

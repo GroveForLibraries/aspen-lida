@@ -58,46 +58,58 @@ export const PreferencesScreen = () => {
      }, [navigation]);
 
      return (
-          <ScreenContainer className="py-3">
+         <ScreenContainer className="py-3">
                <VStack space="sm">
                     <VStack space="md">
                          <VStack space="sm">
                               <Pressable className="py-2" onPress={() => navigate('MyPreferences_ManageBrowseCategories', { prevRoute: 'Preferences' })}>
                                    <HStack space="xs" alignItems="center">
                                         <MaterialIcons name="chevron-right" size={24} style={{ color: neutrals.actionableIndicator }} />
-                                        <Text className="font-medium">{getTermFromDictionary(language, 'manage_hidden_browse_categories')}</Text>
+                                        <Text className="font-medium">
+                                             {getTermFromDictionary(language, 'manage_browse_categories')}
+                                        </Text>
                                    </HStack>
                               </Pressable>
                               {library.allowPickupLocationUpdates ? (
                                    <Pressable className="py-2" onPress={() => navigate('MyPreferences_ManagePickupLocations')}>
                                         <HStack space="xs" alignItems="center">
                                              <MaterialIcons name="chevron-right" size={24} style={{ color: neutrals.actionableIndicator }} />
-                                             <Text className="font-medium">{getTermFromDictionary(language, 'manage_pickup_locations')}</Text>
+                                             <Text className="font-medium">
+                                                  {getTermFromDictionary(language, 'manage_pickup_locations')}
+                                             </Text>
                                         </HStack>
                                    </Pressable>
                               ) : null}
                               <Pressable className="py-2" onPress={() => navigate('PermissionDashboard')}>
                                    <HStack space="xs" alignItems="center">
                                         <MaterialIcons name="chevron-right" size={24} style={{ color: neutrals.actionableIndicator }} />
-                                        <Text className="font-medium">{getTermFromDictionary(language, 'device_permissions')}</Text>
+                                        <Text className="font-medium">
+                                             {getTermFromDictionary(language, 'device_permissions')}
+                                        </Text>
                                    </HStack>
                               </Pressable>
                               <Pressable className="py-2" onPress={() => navigate('MyDevice_Support')}>
                                    <HStack space="xs" alignItems="center">
                                         <MaterialIcons name="chevron-right" size={24} style={{ color: neutrals.actionableIndicator }} />
-                                        <Text className="font-medium">{getTermFromDictionary(language, 'support')}</Text>
+                                        <Text className="font-medium">
+                                             {getTermFromDictionary(language, 'support')}
+                                        </Text>
                                    </HStack>
                               </Pressable>
                          </VStack>
                     </VStack>
-                    <Divider />
+                    <Divider/>
                     <VStack>
                          <HStack className="justify-between items-center">
-                              <Text bold>{getTermFromDictionary(language, 'language')}</Text>
+                              <Text bold>
+                                   {getTermFromDictionary(language, 'language')}
+                              </Text>
                               <LanguageSwitcher />
                          </HStack>
                          <HStack className="justify-between items-center">
-                              <Text bold>{getTermFromDictionary(language, 'appearance')}</Text>
+                              <Text bold>
+                                   {getTermFromDictionary(language, 'appearance')}
+                              </Text>
                               <UseColorMode showText={true} />
                          </HStack>
                     </VStack>
