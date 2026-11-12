@@ -64,7 +64,7 @@ const AccountStackNavigator = () => {
                          component={Settings_BrowseCategories}
                          options={{
                               header: () => {
-                                   const title = getTermFromDictionary(language, 'hidden_browse_categories');
+                                   const title = getTermFromDictionary(language, 'manage_browse_categories');
                                    return <TitleWithLogo title={title} hideBack={true} />;
                               },
                          }}

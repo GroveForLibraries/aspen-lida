@@ -9,7 +9,7 @@ import { DisplayAndroidEndOfSupportMessage, DisplaySystemMessage } from '../../c
 import { SearchContext, SystemMessagesContext } from '../../context/initialContext';
 import { useLibrary, useHomeScreenLinks, useUpdateHomeScreenLinks } from '../../hooks/useLibrarySystemData';
 import { useUserState } from '../../hooks/useUserData';
-import { useBrowseCategories, useBrowseCategoryList, useMaxCategories, useUpdateBrowseCategories, useUpdateMaxCategories, useBrowseCategoryExpiration } from '../../hooks/useBrowseCategoryData';
+import { useBrowseCategories, useMaxCategories, useUpdateBrowseCategories, useUpdateMaxCategories, useBrowseCategoryExpiration } from '../../hooks/useBrowseCategoryData';
 import { navigateStack } from '../../helpers/RootNavigator';
 import { getTermFromDictionary } from '../../translations/TranslationService';
 import { getHomeScreenFeed, getDefaultFacets, getSearchIndexes, getSearchSources } from '../../util/api/search';
@@ -49,7 +49,6 @@ export const DiscoverHomeScreen = () => {
      const homeScreenLinks = useHomeScreenLinks();
      const updateHomeScreenLinks = useUpdateHomeScreenLinks();
      const category = useBrowseCategories();
-     const browseCategoryList = useBrowseCategoryList();
      const maxNum = useMaxCategories();
      const updateBrowseCategories = useUpdateBrowseCategories();
      const updateMaxCategories = useUpdateMaxCategories();
@@ -355,7 +354,7 @@ export const DiscoverHomeScreen = () => {
                     )}
                     ListFooterComponent={
                          <Box className="py-5">
-                              <ButtonOptions language={language} showManageCategories={showManageCategories} onRefreshCategories={onRefreshCategories} discoveryVersion={library.discoveryVersion} onLoadAllCategories={onLoadAllCategories} hasHiddenCategories={browseCategoryList.some((item) => item?.isHidden)} />
+                              <ButtonOptions language={language} showManageCategories={showManageCategories} onRefreshCategories={onRefreshCategories} discoveryVersion={library.discoveryVersion} onLoadAllCategories={onLoadAllCategories} />
                               {showErrorDialog && (
                                    <DisplayErrorAlertDialog title={errorTitle} message={errorMessage} />
                               )}
@@ -376,11 +375,12 @@ const ButtonOptions = (props) => {
      const { brand } = useTheme();
      const [loading, setLoading] = React.useState(false);
      const [refreshing, setRefreshing] = React.useState(false);
-     const { language, showManageCategories, onRefreshCategories, onLoadAllCategories, hasHiddenCategories } = props;
+     const { language, showManageCategories, onRefreshCategories, onLoadAllCategories } = props;
 
      return (
           <Center>
-               <ButtonGroup className="flex-col">
+               <ButtonGroup
+                    className="flex-col">
                     <Button
                          autoLoading={false}
                          isDisabled={loading}
@@ -394,32 +394,51 @@ const ButtonOptions = (props) => {
                                    setLoading(false);
                               }
                          }}>
-                         {loading ? <ButtonSpinner key="spinner" className="mr-1" style={{ color: brand.primary['500-text'] }} /> : <MaterialIcons key="icon" name="schedule" size={16} color={brand.primary['500-text']} className="mr-1" />}
-                         <ButtonText className="font-medium" size="sm">
-                              {getTermFromDictionary(language, 'browse_categories_load_all')}
+                         {loading ? (
+                          <ButtonSpinner key="spinner" className="mr-1" style={{ color: brand.primary['500-text'] }} />
+                         ) : (
+                             <MaterialIcons
+                                  key="icon"
+                                  name="schedule"
+                                  size={16}
+                                  color={brand.primary['500-text']}
+                                  className="mr-1"
+                             />
+                         )}
+                         <ButtonText
+                             className="font-medium"
+                             size="sm"
+                         >
+                             {getTermFromDictionary(language, 'browse_categories_load_all')}
                          </ButtonText>
                     </Button>
 
-                    {hasHiddenCategories ? (
-                         <Button
-                              colorScheme="primary"
-                              onPress={() => {
-                                   showManageCategories();
-                              }}>
-                              <MaterialIcons name="visibility" size={16} color={brand.primary['500-text']} className="mr-1" />
-                              <ButtonText className="font-medium" size="sm">
-                                   {getTermFromDictionary(language, 'manage_hidden_browse_categories')}
-                              </ButtonText>
-                         </Button>
-                    ) : null}
+                    <Button
+                         colorScheme="primary"
+                         onPress={() => {
+                             showManageCategories();
+                         }}>
+                         <MaterialIcons
+                             name="settings"
+                             size={16}
+                             color={brand.primary['500-text']}
+                             className="mr-1"
+                         />
+                         <ButtonText
+                             className="font-medium"
+                             size="sm"
+                         >
+                             {getTermFromDictionary(language, 'browse_categories_manage')}
+                         </ButtonText>
+                    </Button>
 
                     <Button
                          autoLoading={false}
                          isDisabled={refreshing}
                          colorScheme="primary"
                          onPress={async () => {
-                              setRefreshing(true);
-                              try {
+                             setRefreshing(true);
+                             try {
                                    await onRefreshCategories();
                               } finally {
                                    setRefreshing(false);
